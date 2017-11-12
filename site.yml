@@ -1,0 +1,41 @@
+###############################################################################
+### Project Hat Trick is an Open Architecture approach to defining and      ###
+### automating the deployment of Red Hat Software Bundles on open,          ###
+### commodity hardware. The architectures and automation developed here     ###
+### can be utilized as a starting place for applying this in a datacenter   ###
+### installation.                                                           ###
+###                                                                         ###
+### Option 1: RH OpenStack Platform and Ceph Hyperconverged                 ###
+###                                                                         ###
+### Enjoy and Contribute!                                                   ###
+###############################################################################
+
+#Configure Network Gear
+include: 1-netgear-switch-configuration.yml
+
+#Configure RHEL+KVM Host for holding IDM and RHOSP-director
+include: 2-rhel7-kvm.yml
+
+#Creae IDM VM on KVM Host, install and configure for ID and DNS
+include: 3.1-rhel7-idm-vm.yml
+include: 3.2-rhel7-idm-install.yml
+
+#Create RHOSP-director VM and install
+include: 4.1-rhosp-director-vm.yml
+include: 4.2-rhosp-director-install.yml
+include: 4.3-rhosp-overcloud-node-prep.yml
+
+#RHOSP Overcloud deployment
+include: 5-rhosp-overcloud.yml
+
+#RHOSP Overcloud Post Configuration
+include: 6-rhosp-overcloud-post-config.yml
+
+#Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
+include: 7-rhcloudforms.yml
+
+#Deploy Ansible Tower on RHOSP
+include: 8-ansible-tower.yml
+
+#Deploy OpenShift Container Platform on RHOSP
+include: 9-rhocp.yml
