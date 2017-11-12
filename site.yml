@@ -11,31 +11,34 @@
 ###############################################################################
 
 #Configure Network Gear
-include: 1-netgear-switch-configuration.yml
+include: 01-netgear-switch-config.yml
 
 #Configure RHEL+KVM Host for holding IDM and RHOSP-director
-include: 2-rhel7-kvm.yml
+include: 02-rhel7-kvm.yml
 
 #Creae IDM VM on KVM Host, install and configure for ID and DNS
-include: 3.1-rhel7-idm-vm.yml
-include: 3.2-rhel7-idm-install.yml
+include: 03.1-rhel7-idm-vm.yml
+include: 03.2-rhel7-idm-install.yml
 
 #Create RHOSP-director VM and install
-include: 4.1-rhosp-director-vm.yml
-include: 4.2-rhosp-director-install.yml
-include: 4.3-rhosp-overcloud-node-prep.yml
+include: 04.1-rhosp-director-vm.yml
+include: 04.2-rhosp-director-install.yml
+include: 04.3-rhosp-overcloud-deploy-prep.yml
 
 #RHOSP Overcloud deployment
-include: 5-rhosp-overcloud.yml
+include: 05-rhosp-overcloud.yml
 
 #RHOSP Overcloud Post Configuration
-include: 6-rhosp-overcloud-post-config.yml
+include: 06-rhosp-overcloud-post-config.yml
 
-#Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
-include: 7-rhcloudforms.yml
+#Deploy simple RHEL7 host with Ansible Engine and OpenStack Shade on RHOSP
+include: 07-rhel7-ansible-engine-plus-shade.yml
 
 #Deploy Ansible Tower on RHOSP
-include: 8-ansible-tower.yml
+include: 08-ansible-tower.yml
+
+#Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
+include: 09-rhcloudforms.yml
 
 #Deploy OpenShift Container Platform on RHOSP
-include: 9-rhocp.yml
+include: 10-rhocp.yml

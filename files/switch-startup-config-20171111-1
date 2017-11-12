@@ -1,0 +1,172 @@
+0x4e470x010x00XS7XXTGH            6.6.0.11            0x000000000x00000000000000
+! The line above is the NSDP Text Configuration header. DO NOT EDIT THIS HEADER
+!Current Configuration:
+!
+!System Description "XS716T ProSAFE 16-Port 10-Gigabit Smart Managed Switch, 6.6.0.11, 1.0.0.8"
+!System Software Version "6.6.0.11"
+!System Up Time          "0 days 20 hrs 32 mins 50 secs"
+!Additional Packages     QOS,IPv6,IPv6 Management,Routing
+!Current SNTP Synchronized Time: SNTP Client Mode Is Disabled
+!
+network protocol none
+network parms 192.168.0.2 255.255.254.0 192.168.0.1
+vlan database
+vlan 2,900-906
+vlan name 2 "Provisioning"
+vlan name 900 "InternalAPI"
+vlan name 901 "Storage"
+vlan name 902 "StorageMgmt"
+vlan name 903 "Tenant"
+vlan name 904 "Management"
+vlan name 905 "Provider905"
+vlan name 906 "Provider906"
+exit
+configure
+no ip domain lookup
+ip domain name "hattrick1.local"
+ip name server 192.168.0.6
+ip routing
+line console
+exit
+line telnet
+exit
+interface xg1
+addport lag 1
+exit
+interface xg2
+addport lag 1
+exit
+interface xg3
+addport lag 2
+exit
+interface xg4
+addport lag 2
+exit
+interface xg6
+addport lag 3
+exit
+interface xg7
+addport lag 3
+exit
+interface xg9
+addport lag 4
+exit
+interface xg10
+addport lag 4
+exit
+interface xg12
+addport lag 5
+exit
+interface xg13
+addport lag 5
+exit
+snmp-server sysname " "
+snmp-server location " "
+!
+interface xg1
+mtu 9000
+exit
+interface xg2
+mtu 9000
+exit
+interface xg3
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg4
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg5
+mtu 9000
+vlan pvid 2
+vlan participation auto 1
+vlan participation include 2
+exit
+interface xg6
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg7
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg8
+mtu 9000
+vlan pvid 2
+vlan participation auto 1
+vlan participation include 2
+exit
+interface xg9
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg10
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg11
+mtu 9000
+vlan pvid 2
+vlan participation auto 1
+vlan participation include 2
+exit
+interface xg12
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg13
+mtu 9000
+vlan participation include 900-906
+vlan tagging 900-906
+exit
+interface xg14
+mtu 9000
+vlan pvid 2
+vlan participation auto 1
+vlan participation include 2
+exit
+interface xg15
+mtu 9000
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface xg16
+mtu 9000
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface lag 1
+description 'Nuk Bond0'
+no port-channel static
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface lag 2
+no port-channel static
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface lag 3
+no port-channel static
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface lag 4
+no port-channel static
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+interface lag 5
+no port-channel static
+vlan participation include 2,900-906
+vlan tagging 2,900-906
+exit
+exit
