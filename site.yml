@@ -11,34 +11,34 @@
 ###############################################################################
 
 #Configure Network Gear
-include: 01-netgear-switch-config.yml
+#- import_playbook: 01-netgear-switch-config.yml
 
 #Configure RHEL+KVM Host for holding IDM and RHOSP-director
-include: 02-rhel7-kvm.yml
+- import_playbook: 02-rhel7-kvm.yml
 
 #Creae IDM VM on KVM Host, install and configure for ID and DNS
-include: 03.1-rhel7-idm-vm.yml
-include: 03.2-rhel7-idm-install.yml
+#- import_playbook:  03.1-rhel7-idm-vm.yml
+#- import_playbook:  03.2-rhel7-idm-install.yml
 
 #Create RHOSP-director VM and install
-include: 04.1-rhosp-director-vm.yml
-include: 04.2-rhosp-director-install.yml
-include: 04.3-rhosp-overcloud-deploy-prep.yml
+#- import_playbook:  04.1-rhosp-director-vm.yml
+#- import_playbook:  04.2-rhosp-director-install.yml
+#- import_playbook:  04.3-rhosp-overcloud-deploy-prep.yml
 
 #RHOSP Overcloud deployment
-include: 05-rhosp-overcloud.yml
+#- import_playbook:  05-rhosp-overcloud.yml
 
 #RHOSP Overcloud Post Configuration
-include: 06-rhosp-overcloud-post-config.yml
+#- import_playbook:  06-rhosp-overcloud-post-config.yml
 
 #Deploy simple RHEL7 host with Ansible Engine and OpenStack Shade on RHOSP
-include: 07-rhel7-ansible-engine-plus-shade.yml
+#- import_playbook:  07-rhel7-ansible-engine-plus-shade.yml
 
 #Deploy Ansible Tower on RHOSP
-include: 08-ansible-tower.yml
+#- import_playbook:  08-ansible-tower.yml
 
 #Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
-include: 09-rhcloudforms.yml
+#- import_playbook:  09-rhcloudforms.yml
 
 #Deploy OpenShift Container Platform on RHOSP
-include: 10-rhocp.yml
+#- import_playbook:  10-rhocp.yml

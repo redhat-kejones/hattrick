@@ -1,2 +1,8 @@
+---
 #TODO: Need to find or write playbook to prep initial host to be KVM, Gateway,
 #      and with networking in place
+- hosts: switch
+  gather_facts: false
+  roles:
+    - rhel-common
+    - rhel-kvm

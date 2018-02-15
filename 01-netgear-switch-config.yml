@@ -1,2 +1,10 @@
+---
+- hosts: switch
+  gather_facts: false
+  roles:
+    #- rhel-common
+    - netgear-xs716t
+
 #TODO: Need to write playbook to configure HatTrick Netgear switch with known
 #      Working configuration
+#

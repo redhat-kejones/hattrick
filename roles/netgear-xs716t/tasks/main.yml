@@ -1,0 +1,14 @@
+---
+# tasks file for netgear-xs716T
+
+- name: run show commands
+  telnet:
+    pause: 2
+    user: admin
+    password: password
+    port: 60000
+    login_prompt: "User:"
+    prompts:
+      - "[>|#]"
+    command:
+      - show vlan
