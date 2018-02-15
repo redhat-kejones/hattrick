@@ -1,5 +1,9 @@
 ---
-# tasks file for roles/rhel-common
+# tasks file for roles/rhel_common
+- name: import secret variable file
+  include_vars: "vault"
+  no_log: true
+
 - name: test to see if selinux is running
   command: getenforce
   register: sestatus
@@ -15,11 +19,4 @@
 
 - name: disable all repositories
   command: subscription-manager repos --disable=\*
-  when: ansible_distribution == 'RedHat' and register_rhn
-
-- name: enable the needed rhel repositories
-  command: subscription-manager repos --enable={{ item }}
-  with_items:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
   when: ansible_distribution == 'RedHat' and register_rhn

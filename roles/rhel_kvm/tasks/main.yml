@@ -1,5 +1,6 @@
 ---
-# tasks file for roles/rhel-kvm
+# tasks file for roles/rhel_kvm
+
 - name: set hostname
   hostname:
     name: "{{ rhel_kvm.hostname_full }}"
