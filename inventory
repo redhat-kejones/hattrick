@@ -4,11 +4,22 @@
 [switch]
 192.168.0.2
 
-[rhel7-kvm]
+[rhel_common]
+192.168.0.3
+192.168.0.4
+192.168.0.5
+
+[rhel_kvm]
 192.168.0.3
 
-[idm]
+[rhel_idm]
 192.168.0.4
 
 [rhosp-director]
 192.168.0.5
+
+[ansible_tower]
+192.168.0.6
+
+[rhel_satellite]
+192.168.0.7

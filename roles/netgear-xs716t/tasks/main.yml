@@ -9,6 +9,6 @@
     port: 60000
     login_prompt: "User:"
     prompts:
-      - "[>|#]"
+      - "[u'(XS716T) >',u'#']"
     command:
       - show vlan
