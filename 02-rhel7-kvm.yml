@@ -6,4 +6,4 @@
   remote_user: root
   roles:
     - rhel_common
-    #- rhel-kvm
+    - rhel_kvm

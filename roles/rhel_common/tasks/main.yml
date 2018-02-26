@@ -19,17 +19,17 @@
     state: reloaded
   when: ssh_config.changed
 
-- name: add a temporary nameserver to /etc/resolve.conf file
+- name: add a temporary nameserver to /etc/resolv.conf file
   lineinfile:
     dest: /etc/resolv.conf
     line: "nameserver 8.8.8.8"
-    insertbefore: "^nameserver 192.168"
+    insertafter: "BOF"
     state: present
 
-- name: test to see if selinux is running
-  command: getenforce
-  register: sestatus
-  changed_when: false
+- name: enable SELinux
+  selinux:
+    policy: targeted
+    state: enforcing
 
 - name: register System with RHN Subscription Manager
   redhat_subscription:

@@ -15,7 +15,7 @@
 [rhel_idm]
 192.168.0.4
 
-[rhosp-director]
+[rhosp_director]
 192.168.0.5
 
 [ansible_tower]

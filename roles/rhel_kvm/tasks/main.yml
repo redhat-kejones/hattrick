@@ -3,4 +3,140 @@
 
 - name: set hostname
   hostname:
-    name: "{{ rhel_kvm.hostname_full }}"
+    name: "{{ hostname_full }}"
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+
+- name: check if virtualization extensions exist
+  command: grep -E 'svm|vmx' /proc/cpuinfo
+  register: virt_check
+  failed_when: false
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'yum-utils'
+    - 'git'
+    - 'qemu-kvm'
+    - 'qemu-img'
+    - 'libvirt'
+    - 'virt-install'
+    - 'libvirt-client'
+    - 'libvirt-python'
+    - 'libguestfs-tools-c'
+
+- copy:
+    src: files/kvm.conf
+    dest: /etc/modprobe.d/kvm.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- name: read sda device information (always use unit when probing)
+  parted: device=/dev/sda unit=MiB
+  register: sda_info
+
+- name: remove all partitions from sda
+  parted:
+    device: /dev/sda
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ sda_info.partitions }}"
+
+- name: create 1 primary partition on sda
+  parted:
+    device: /dev/sda
+    number: 1
+    state: present
+
+- name: format sda1 xfs
+  filesystem:
+    fstype: xfs
+    dev: /dev/sda1
+
+- name: read sdb device information (always use unit when probing)
+  parted: device=/dev/sdb unit=MiB
+  register: sdb_info
+
+- name: remove all partitions from sdb
+  parted:
+    device: /dev/sdb
+    number: "{{ item.num }}"
+    state: absent
+  with_items:
+   - "{{ sdb_info.partitions }}"
+
+- name: create 1 primary partition on sdb
+  parted:
+    device: /dev/sdb
+    number: 1
+    state: present
+
+- name: format sdb1 xfs
+  filesystem:
+    fstype: xfs
+    dev: /dev/sdb1
+
+- name: mount sda1 for libvirt images
+  mount:
+    path: /var/lib/libvirt/images
+    src: /dev/sda1
+    fstype: xfs
+    opts: defaults
+    state: mounted
+
+- name: mount sdb1 for Red Hat Content storage
+  mount:
+    path: /content
+    src: /dev/sdb1
+    fstype: xfs
+    opts: defaults
+    state: mounted
+
+- name: restart server to get updated kernel
+  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+- name: waiting for server to come back
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
