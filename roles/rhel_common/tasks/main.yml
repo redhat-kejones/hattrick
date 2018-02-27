@@ -22,7 +22,7 @@
 - name: add a temporary nameserver to /etc/resolv.conf file
   lineinfile:
     dest: /etc/resolv.conf
-    line: "nameserver 8.8.8.8"
+    line: "nameserver {{ public_dns_nameserver }}"
     insertafter: "BOF"
     state: present
 

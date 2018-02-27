@@ -1,1 +1,2 @@
-hostname_full: kvm.two.hattrick.lab
+rhel_kvm:
+  hostname_full: kvm.two.hattrick.lab

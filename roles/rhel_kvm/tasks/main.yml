@@ -3,13 +3,14 @@
 
 - name: set hostname
   hostname:
-    name: "{{ hostname_full }}"
+    name: "{{ rhel_kvm.hostname_full }}"
 
 - name: enable the needed rhel repositories
   command: subscription-manager repos --enable={{ item }}
   with_items:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo
@@ -47,6 +48,7 @@
     - 'libvirt-client'
     - 'libvirt-python'
     - 'libguestfs-tools-c'
+    - 'rhel-guest-image-7'
 
 - copy:
     src: files/kvm.conf
@@ -59,6 +61,16 @@
     name: libvirtd
     enabled: yes
     state: started
+
+- name: unmount libvirt images
+  mount:
+    path: /var/lib/libvirt/images
+    state: unmounted
+
+- name: unmount Red Hat Content storage
+  mount:
+    path: /content
+    state: unmounted
 
 - name: read sda device information (always use unit when probing)
   parted: device=/dev/sda unit=MiB
@@ -121,6 +133,14 @@
     fstype: xfs
     opts: defaults
     state: mounted
+
+- name: copy over the rhel guest image for later virtual disk images
+  copy:
+    src: "/usr/share/rhel-guest-image-7/rhel-guest-image-7.2-20160302.0.x86_64.qcow2"
+    dest: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
+
+- name: set a root password on base rhel guest image
+  command: "virt-customize /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat"
 
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
