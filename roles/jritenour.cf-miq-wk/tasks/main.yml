@@ -1,0 +1,26 @@
+---
+# tasks file for jritenour.cf-miq-wk
+  - name: Join CloudForms/ManageIQ region
+    command: appliance_console_cli -K  {{ db_server }} --sshlogin {{ ssh_user }} --sshpassword {{ cf_ssh_pass }} --hostname {{ db_server }} --password {{ cf_db_pass }}
+
+  - name: Wait for CloudForms services to come up
+    wait_for:
+      host: "{{ansible_eth0.ipv4.address }}"
+      port: "443"
+      delay: "120"
+      timeout: "600"
+      state: "started"
+
+  - name: Configure Roles
+    command: "/var/www/miq/vmdb/bin/rails runner 'MiqServer.my_server.set_config(:server => {:role => \"event,reporting,scheduler,smartstate,ems_operations,ems_inventory,ems_metrics_collector,ems_metrics_coordinator,ems_metrics_processor,user_interface,websocket,web_services,automate\"})'" 
+
+  - name: restart EVM
+    service:
+      name: evmserverd
+      state: restarted
+
+  - name: Create Zone
+    shell: "/var/www/miq/vmdb/bin/rails runner 'Zone.create(:name => \"{{ zone_name }}\", :description => \"{{ zone_desc }}\")'"
+
+  - name: Move Worker server to Worker Zone
+    command: "/var/www/miq/vmdb/bin/rails runner 'MiqServer.my_server.set_config(:server => {:zone => \"{{ zone_name}}\"})'"

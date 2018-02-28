@@ -1,0 +1,4 @@
+---
+- import_playbook: osp-db-create.yml
+- import_playbook: osp-ui-create.yml
+- import_playbook: osp-wk-create.yml
