@@ -10,7 +10,7 @@
     wk: true
     num: 2
   vars_files:
-    - '../main.yml'
+    - 'vars.yml'
   roles:
     - {role: 'roles/jritenour.osp-cf-miq'}
 
