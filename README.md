@@ -1,2 +1,2 @@
 # hattrick
-Project Hat Trick - Open Architectures for Full Stack
+Project Hat Trick - Open Architectures for Full Stack!
