@@ -1,0 +1,40 @@
+---
+# tasks file for jritenour.cf-miq-db
+  - name: Configure CF DB
+    command: appliance_console_cli -k -i -p "{{ cf_db_pass }}" -b "{{ cf_db_dev }}" -r "{{ region_num }}"
+
+  - name: Wait for CloudForms services to come up
+    wait_for:
+      host: "{{ansible_eth0.ipv4.address }}"
+      port: "443"
+      delay: "120"
+      timeout: "600"
+      state: "started"
+
+  - name: Create Zone
+    shell: "/var/www/miq/vmdb/bin/rails runner 'Zone.create(:name => \"{{ zone_name }}\", :description => \"{{ zone_desc }}\")'"
+
+  - name: Move DB Server to new zone
+    command: "/var/www/miq/vmdb/bin/rails runner 'MiqServer.my_server.set_config(:server => {:zone => \"{{ zone_name}}\"})'"
+
+  - name: Download automate file
+    get_url:
+      url: https://raw.githubusercontent.com/jritenour/cf-poc/master/automate/datastore.zip
+      dest: /root/datastore.zip
+      mode: 0644
+
+  - name: Import automate domain
+    command: '/var/www/miq/vmdb/bin/rake evm:automate:import DOMAIN=POC ZIP_FILE=/root/datastore.zip PREVIEW=false ENABLED=true'
+    args:
+      chdir: /var/www/miq/vmdb
+
+  - name: Download dialog file
+    get_url:
+      url: https://raw.githubusercontent.com/jritenour/cf-poc/master/dialogs/dialog.yml
+      dest: /root/dialog.yml
+      mode: 0644
+
+  - name: Import service dialogs
+    command: "/var/www/miq/vmdb/bin/rake dialogs:import['/root/dialog.yml']"
+    args:
+      chdir: /var/www/miq/vmdb

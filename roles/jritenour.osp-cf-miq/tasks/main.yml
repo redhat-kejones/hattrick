@@ -1,0 +1,128 @@
+---
+# tasks file for jritenour.osp-cf-miq
+  - name: Create CFME volume for instance
+    os_volume:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      availability_zone: "{{ az }}"
+      size: "{{ db_size }}"
+      display_name: cf-{{ type }}-{{ item }}
+    with_sequence:
+      count={{ num }}
+
+  - name: launch instances
+    os_server:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      name: cf-{{ type }}-{{ num }}
+      state: present
+      key_name: "{{ key_name }}"
+      availability_zone: "{{ az }}"
+      nics:
+        - net-name: "{{ network_name }}"
+      image: "{{ image_uid }}"
+      flavor: "{{ flavor_name }}"
+      security_groups: "{{ security_group }}"
+      auto_ip: yes
+      volumes:
+        - cf-{{ type }}-{{ num }}
+    register: osp_host
+    when: db or ui
+
+  - name: Add second interface to workers
+    os_server:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      name: cf-{{ type }}-{{ item }}
+      state: present
+      key_name: "{{ key_name }}"
+      availability_zone: "{{ az }}"
+      nics:
+        - net-name: "{{ network_name }}"
+        - net-name: "{{ prov_net }}"
+      image: "{{ image_uid }}"
+      flavor: "{{ flavor_name }}"
+      security_groups: "{{ security_group }}"
+      volumes:
+        - cf-{{ type }}-{{ item }}
+    with_sequence:
+      count={{ num }}
+    register: osp_wk
+    when: wk
+
+  - name: assign floatingip to worker
+    os_floating_ip:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      server: cf-wk-{{ item }}
+      network: public
+      nat_destination: "{{ network_name }}" 
+      wait: True
+    register: float
+    with_sequence:
+      count={{ num }}
+    when: wk
+
+  - name: Get worker info (os_floating_ip null value workaround)
+    os_server_facts:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      server: cf-wk*
+    when: wk
+  
+  - debug: 
+      var: openstack_servers
+    when: wk
+   
+  - name: debug
+    debug:
+      var: osp_host
+
+  - name: wait for instance become ready to use
+    wait_for:
+      host: "{{ osp_host.openstack.accessIPv4 }}"
+      port: 22 
+      timeout: "320"
+      state: "started"
+    when: db or ui
+
+  - name: add DB server to inventory
+    add_host:
+      hostname: "{{ osp_host.openstack.accessIPv4 }}"
+      ansible_ssh_user: root
+      ansible_ssh_pass: "{{ cf_ssh_pass }}"
+      groupname: cfdb
+    when: db
+
+  - name: add Worker to inventory
+    add_host:
+      hostname: "{{ item.private_v4 }}"
+      ansible_ssh_user: root
+      ansible_ssh_pass: "{{ cf_ssh_pass }}"
+      groupname: cfwk
+    with_items: "{{ openstack_servers }}"
+    when: wk
+
+  - name: add UI server to inventory
+    add_host:
+      hostname: "{{ osp_host.openstack.accessIPv4 }}"
+      ansible_ssh__user: root
+      ansible_ssh_pass: "{{ cf_ssh_pass }}"
+      groupname: cfui
+    when: ui

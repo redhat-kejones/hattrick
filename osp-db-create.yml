@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  remote_user: root
+  vars_files:
+    - '../main.yml'
+  vars:
+    type: db
+    db: true
+    ui: false
+    wk: false
+    num: 1
+  roles:
+    - {role: 'roles/jritenour.osp-cf-miq'}
+
+- hosts: cfdb
+  remote_user: root
+  vars_files:
+    - '../main.yml'
+  vars:
+    zone_name: DB
+    zone_desc: Database zone
+    db_server: "{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
+  roles: 
+    - {role: 'roles/jritenour.cf-miq-db'}

@@ -6,9 +6,6 @@ osp_project: operators  # OpenStack specific
 az: nova # works with OpenStack, EC2 & Azure
 db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
 db_vol_name: ocp-{{ type }}-vol
-db_server:  192.168.1.90 #IP/FQN of cf database server
-ui_server:  192.168.1.92 #IP/FQN of cf ui server
-wk_server:  192.168.1.94 #IP/FQN of cf worker server
 vm_name: osp-{{ type }}
 key_name: operator #works with OpenStack & EC2
 network_name: private # Works with all providers
@@ -20,7 +17,7 @@ cf_db_pass: 'xxx'
 cf_ssh_pass: 'xxx'
 cf_db_dev: '/dev/vdb'
 region_num: 20
-security_group: default # works with OpenStack & EC2
+security_group: cfme # works with OpenStack & EC2
 dns: 192.168.0.4
 rhn_user: xxx
 rhn_pass: xxx
@@ -29,3 +26,7 @@ ipa_server: idm.int.hattrick1.local
 domain: int.hattrick1.local
 ipa_user: admin
 ipa_password: xxx
+undercloud_ip: 192.168.0.10 # OpenStack specific
+undercloud_user: admin # OpenStack specific
+undercloud_pw: 'xxx' 
+
