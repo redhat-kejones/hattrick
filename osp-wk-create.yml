@@ -17,7 +17,7 @@
 - hosts: cfwk
   remote_user: root
   vars_files:
-    - '../main.yml'
+    - 'vars.yml'
   vars:
     zone_name: OpenStack
     zone_desc: OpenStack Zone
@@ -36,7 +36,7 @@
 - hosts: cfdb
   remote_user: root
   vars_files:
-    - '../main.yml'
+    - 'vars.yml'
   tasks:
   - name: Add Overcloud as provider
     uri:

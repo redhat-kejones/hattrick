@@ -17,7 +17,7 @@
 - hosts: cfui
   remote_user: root
   vars_files:
-    - '../main.yml'
+    - 'vars.yml'
   vars:
     zone_name: UI
     zone_desc: UI Zone
