@@ -60,7 +60,7 @@
 - service:
     name: libvirtd
     enabled: yes
-    state: started
+    state: stopped
 
 - name: unmount libvirt images
   mount:
@@ -83,6 +83,7 @@
     state: absent
   with_items:
    - "{{ sda_info.partitions }}"
+  ignore_errors: true
 
 - name: create 1 primary partition on sda
   parted:
@@ -106,6 +107,7 @@
     state: absent
   with_items:
    - "{{ sdb_info.partitions }}"
+  ignore_errors: true
 
 - name: create 1 primary partition on sdb
   parted:
@@ -134,13 +136,25 @@
     opts: defaults
     state: mounted
 
+- service:
+    name: libvirtd
+    enabled: yes
+    state: started
+
+- user:
+    name: root
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+
 - name: copy over the rhel guest image for later virtual disk images
   copy:
     src: "/usr/share/rhel-guest-image-7/rhel-guest-image-7.2-20160302.0.x86_64.qcow2"
     dest: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
+    remote_src: true
 
-- name: set a root password on base rhel guest image
-  command: "virt-customize /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat"
+- name: remove cloud-init and set root password on base rhel 7 guest image
+  command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --run-command 'yum remove cloud-init* -y'"
 
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
