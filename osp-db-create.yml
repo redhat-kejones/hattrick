@@ -17,7 +17,7 @@
 - hosts: cfdb
   remote_user: root
   vars_files:
-    - '../main.yml'
+    - 'vars.yml'
   vars:
     zone_name: DB
     zone_desc: Database zone
