@@ -1,12 +1,73 @@
-- name: copy over the rhel guest image to idm virtual disk image
-  copy:
-    src: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
-    dest: "/var/lib/libvirt/images/idm-os.qcow2"
+- hosts: rhel_kvm
+  name: playbook create IDM VM
+  remote_user: root
+  vars:
+    idm_public_ip: 192.168.0.4
+  tasks:
+  #- name: copy over the rhel guest image to idm virtual disk image
+  #  copy:
+  #    src: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
+  #    dest: "/var/lib/libvirt/images/idm-os.qcow2"
+  #    remote_src: true
 
-- name: define idm vm
-  become: yes
-  virt:
-    name: "idm"
-    command: define
-    xml: "{{ lookup('template', 'idm.xml.j2') }}"
-    uri: qemu:///system
+  - name: create idm operating system disk
+    command: "qemu-img create -f qcow2 /var/lib/libvirt/images/idm-os.qcow2 80G"
+
+  - name: push rhel 7 guest onto idm operating system disk
+    command: "virt-resize --expand /dev/sda1 /var/lib/libvirt/images/rhel-guest-image-7.qcow2 /var/lib/libvirt/images/idm-os.qcow2"
+
+  - name: create the ifcfg-eth0 file for idm
+    template:
+      src: templates/idm-ifcfg-eth0.j2
+      dest: files/idm-ifcfg-eth0
+    delegate_to: localhost
+
+  - name: copy over the eth0 config file for IDM
+    copy:
+      src: "files/idm-ifcfg-eth0"
+      dest: "/root/ifcfg-eth0"
+
+  - name: copy eth0 config into IDM disk
+    command: "virt-copy-in -a /var/lib/libvirt/images/idm-os.qcow2 /root/ifcfg-eth0 /etc/sysconfig/network-scripts/"
+
+  - name: define idm vm
+    become: yes
+    virt:
+      name: "idm"
+      command: define
+      xml: "{{ lookup('template', 'idm.xml.j2') }}"
+      uri: qemu:///system
+
+  - name: start up IDM vm
+    command: "virsh start idm"
+
+  - name: waiting for IDM to come online
+    wait_for:
+      host: "{{ idm_public_ip }}"
+      state: started
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+- hosts: rhel_idm
+  name: add authorized keys to IDM
+  remote_user: root
+  vars:
+    ansible_ssh_user: root
+    ansible_ssh_pass: redhat
+  tasks:
+  - name: add authorized key for root@kvm
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', 'files/kvm_root_id_rsa.pub') }}"
+
+  - name: add authorized key from machine running this playbook
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
