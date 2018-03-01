@@ -1,3 +1,6 @@
+[localhost]
+localhost
+
 [router]
 192.168.0.1
 
@@ -14,6 +17,10 @@
 
 [rhel_kvm]
 192.168.0.3
+
+[vmenator]
+192.168.0.3
+localhost
 
 [rhel_idm]
 192.168.0.4

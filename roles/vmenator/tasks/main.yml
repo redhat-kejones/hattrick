@@ -1,0 +1,45 @@
+---
+# tasks file for roles/vmenator
+- debug:
+    msg: "{{ vmenator.vms }}"
+
+- debug:
+    msg: "{{ item }}"
+  with_items: "{{ vmenator.vms }}"
+
+- name: create operating system disks for all vms
+  command: "qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }} {{ item.disk_os_size }}"
+  with_items: "{{ vmenator.vms }}"
+
+- name: push rhel 7 guest onto vm operating system disks
+  command: "virt-resize --expand /dev/sda1 /var/lib/libvirt/images/rhel-guest-image-7.qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }}"
+  with_items: "{{ vmenator.vms }}"
+
+- name: create the ifcfg files for vms
+  template:
+    src: templates/{{ item.0.name }}-ifcfg-{{ item.1.name }}.j2
+    dest: files/{{ item.0.name }}-ifcfg-{{ item.1.name}}
+  delegate_to: localhost
+  with_subelements:
+    - "{{ vmenator.vms }}"
+    - nics
+
+- name: ensure individual dirs exist for vm ifcfg files
+  file: 
+    path: "/tmp/{{ item.name }}"
+    state: directory
+  with_items: "{{ vmenator.vms }}"
+
+- name: copy over the ifcfg files for the vms
+  copy:
+    src: "files/{{ item.0.name }}-ifcfg-{{ item.1.name }}"
+    dest: "/tmp/{{ item.0.name }}/ifcfg-{{ item.1.name }}"
+  with_subelements:
+    - "{{ vmenator.vms }}"
+    - nics
+
+- name: copy ifcfg files into vm operating disks
+  command: "virt-copy-in -a /var/lib/libvirt/images/{{ item.0.name }}-os.qcow2 /tmp/{{ item.0.name }}/ifcfg-{{ item.1.name }} /etc/sysconfig/network-scripts/"
+  with_subelements:
+    - "{{ vmenator.vms }}"
+    - nics

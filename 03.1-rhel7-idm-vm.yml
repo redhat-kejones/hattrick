@@ -1,15 +1,10 @@
-- hosts: rhel_kvm
+- hosts: localhost
   name: playbook create IDM VM
-  remote_user: root
+  remote_user: kejones
+  become: yes
   vars:
     idm_public_ip: 192.168.0.4
   tasks:
-  #- name: copy over the rhel guest image to idm virtual disk image
-  #  copy:
-  #    src: "/var/lib/libvirt/images/rhel-guest-image-7.qcow2"
-  #    dest: "/var/lib/libvirt/images/idm-os.qcow2"
-  #    remote_src: true
-
   - name: create idm operating system disk
     command: "qemu-img create -f qcow2 /var/lib/libvirt/images/idm-os.qcow2 80G"
 
@@ -30,12 +25,22 @@
   - name: copy eth0 config into IDM disk
     command: "virt-copy-in -a /var/lib/libvirt/images/idm-os.qcow2 /root/ifcfg-eth0 /etc/sysconfig/network-scripts/"
 
+  - name: create xml for IDM vm
+    #command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:br2 --network bridge:br1 --name idm --cpu host --dry-run --print-xml"
+    command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network network:external --name idm --cpu host --dry-run --print-xml"
+    register: idm_xml_content
+
+  - name: save output of IDM XML to /tmp/idm.xml
+    copy:
+      content: "{{ idm_xml_content.stdout }}"
+      dest: /tmp/idm.xml
+
   - name: define idm vm
     become: yes
     virt:
       name: "idm"
       command: define
-      xml: "{{ lookup('template', 'idm.xml.j2') }}"
+      xml: "{{ idm_xml_content.stdout }}"
       uri: qemu:///system
 
   - name: start up IDM vm
