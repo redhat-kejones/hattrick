@@ -55,6 +55,8 @@
         ipaddress: "{{ osp_ip }}"
         port: "5000"
         security_protocol: "non_ssl"
+        zone:
+          href: "https://{{ db_server }}/api/zone/{{ region }}000000000004"
         credentials:
           userid: "{{ osp_user }}"
           password: "{{ osp_pass }}"
@@ -76,6 +78,8 @@
         ipaddress: "{{ undercloud_ip }}"
         port: "13000"
         security_protocol: "non_ssl"
+        zone:
+          href: "https://{{ db_server }}/api/zone/{{ region }}000000000004"
         credentials:
           userid: "{{ undercloud_user }}"
           password: "{{ undercloud_pw }}"
