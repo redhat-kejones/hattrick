@@ -43,3 +43,10 @@
   with_subelements:
     - "{{ vmenator.vms }}"
     - nics
+
+- name: create xml for IDM vm
+  command: "virt-install --ram {{ item.0.ram }} --vcpus {{ item.0.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.0.disk_os_name }},device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc {{ item.1.config | join(' --network ') }} --name idm --cpu host --dry-run --print-xml"
+  register: idm_xml_content
+  with_subelements:
+    - "{{ vmenator.vms }}"
+    - nics
