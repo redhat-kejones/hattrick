@@ -1,6 +1,6 @@
 - hosts: localhost
   name: playbook create IDM VM
-  remote_user: kejones
+  remote_user: root
   become: yes
   vars:
     idm_public_ip: 192.168.0.4
@@ -26,8 +26,8 @@
     command: "virt-copy-in -a /var/lib/libvirt/images/idm-os.qcow2 /root/ifcfg-eth0 /etc/sysconfig/network-scripts/"
 
   - name: create xml for IDM vm
-    #command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:br2 --network bridge:br1 --name idm --cpu host --dry-run --print-xml"
-    command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network network:external --name idm --cpu host --dry-run --print-xml"
+    command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network bridge:br2 --network bridge:br1 --name idm --cpu host --dry-run --print-xml"
+    #command: "virt-install --ram 4096 --vcpus 1 --os-variant rhel7 --disk path=/var/lib/libvirt/images/idm-os.qcow2,device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --network network:external --name idm --cpu host --dry-run --print-xml"
     register: idm_xml_content
 
   - name: save output of IDM XML to /tmp/idm.xml

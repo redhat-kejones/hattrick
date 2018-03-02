@@ -5,9 +5,9 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "bridge:br2"
+      config: "--type bridge --source br2"
     - name: eth1
-      config: "bridge:br1"
+      config: "--type bridge --source br1"
     ram: 16384
     vcpus: 8
   - name: idm
@@ -15,7 +15,7 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "bridge:br1"
+      config: "--type bridge --source br1"
     ram: 4096
     vcpus: 1
   - name: repo
@@ -23,6 +23,6 @@ vmenator:
     disk_os_size: 200G
     nics:
     - name: eth0
-      config: "bridge:br1"
+      config: "--type bridge --source br1"
     ram: 1024
     vcpus: 1
