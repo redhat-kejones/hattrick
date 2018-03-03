@@ -4,6 +4,7 @@ rhel_idm:
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
   forward_ip: 8.8.8.8
+  reverse_zone: "168.192.in-addr.arpa."
   users:
   - username: kejones
     password: redhat
@@ -13,7 +14,36 @@ rhel_idm:
     email: "kejones@redhat.com"
     phone: "+17577481777"
     title: "Cloud Domain Architect" 
+  - username: jritenour
+    password: redhat
+    display_name: "Jason Ritenour"
+    first_name: Jason
+    last_name: Ritenour
+    email: "jmr@redhat.com"
+    phone: "+17577481777"
+    title: "Cloud Domain Architect" 
   dns_records:
+  - hostname: switch
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: router
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
+  - hostname: repo
+    record_type: A
+    ip_address: 192.168.0.8
+    reverse_record: 8.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.5
+    reverse_record: 5.0
   - hostname: openstack
     record_type: A
-    ip_address: 192.168.1.40 
+    ip_address: 192.168.1.40
+    reverse_record: 40.1

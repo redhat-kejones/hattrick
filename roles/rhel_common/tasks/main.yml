@@ -1,8 +1,8 @@
 ---
 # tasks file for roles/rhel_common
-- name: import secret variable file
-  include_vars: "vault"
-  no_log: true
+#- name: import secret variable file
+#  include_vars: "vault"
+#  no_log: true
 
 - name: disable UseDNS in the /etc/ssh/sshd_config file
   lineinfile:

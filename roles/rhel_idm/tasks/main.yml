@@ -45,7 +45,7 @@
     - ipa-server-dns
 
 - name: Setup IPA Server 
-  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --forwarder '{{ rhel_idm.forward_ip }}'
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
 
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
@@ -54,14 +54,14 @@
   ignore_errors: true
   when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
 
-- name: waiting for server to come back
+- name: waiting for IDM server to come back online
   wait_for:
     host: "{{ inventory_hostname }}"
     state: started
     delay: 10
     connect_timeout: 5
     timeout: 300
-    port: 22
+    port: 443
   delegate_to: 127.0.0.1
   become: false
   ignore_errors: true
@@ -104,8 +104,8 @@
     ipa_user: admin
     ipa_pass: "{{ rhel_idm.admin_pwd }}"
     state: present
-    zone_name: 168.192.in-addr.arpa
-    record_name: "{{ item.ip_address }}"
+    zone_name: "{{ rhel_idm.reverse_zone }}"
+    record_name: "{{ item.reverse_record }}"
     record_type: 'PTR'
     record_value: "{{ item.hostname }}.{{ domain }}"
   with_items:
