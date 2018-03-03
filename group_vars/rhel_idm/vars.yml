@@ -1,0 +1,19 @@
+rhel_idm:
+  hostname_short: idm
+  realm: "{{ domain | upper }}"
+  dm_pwd: "{{ vault_idm_dm_pwd }}"
+  admin_pwd: "{{ vault_idm_admin_pwd }}"
+  forward_ip: 8.8.8.8
+  users:
+  - username: kejones
+    password: redhat
+    display_name: "Kevin Jones"
+    first_name: Kevin
+    last_name: Jones
+    email: "kejones@redhat.com"
+    phone: "+17577481777"
+    title: "Cloud Domain Architect" 
+  dns_records:
+  - hostname: openstack
+    record_type: A
+    ip_address: 192.168.1.40 

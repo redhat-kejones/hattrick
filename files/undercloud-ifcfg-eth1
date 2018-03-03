@@ -1,4 +1,4 @@
-DEVICE="eth0"
+DEVICE="eth1"
 BOOTPROTO="static"
 BOOTPROTOv6="none"
 ONBOOT="yes"

@@ -1,0 +1,112 @@
+---
+# tasks file for roles/rhel_idm
+- name: set hostname
+  hostname:
+    name: "{{ rhel_idm.hostname_short }}.{{ domain }}"
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ inventory_hostname }}"
+    line: "{{ inventory_hostname }} {{ rhel_idm.hostname_short }}.{{ domain }} {{ rhel_idm.hostname_short }}"
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  when: ansible_distribution == 'RedHat' and register_rhn
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+
+- name: install IPA packages
+  yum: 
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - ipa-server
+    - ipa-server-dns
+
+- name: Setup IPA Server 
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --forwarder '{{ rhel_idm.forward_ip }}'
+
+- name: restart server to get updated kernel
+  shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+- name: waiting for server to come back
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
+
+- name: add users to IDM
+  ipa_user:
+    ipa_host: "{{ rhel_idm.hostname_short }}.{{ domain }}"
+    ipa_user: admin
+    ipa_pass: "{{ rhel_idm.admin_pwd }}"
+    state: present
+    uid: "{{ item.username }}"
+    password: "{{ item.password }}"
+    displayname: "{{ item.display_name }}"
+    givenname: "{{ item.first_name }}"
+    sn: "{{ item.last_name }}"
+    title: "{{ item.title }}"
+    mail:
+    - "{{ item.email }}"
+    telephonenumber:
+    - "{{ item.phone }}"
+  with_items:
+    - "{{ rhel_idm.users }}"
+
+- name: add forward DNS entries to IDM
+  ipa_dnsrecord:
+    ipa_host: "{{ rhel_idm.hostname_short }}.{{ domain }}"
+    ipa_user: admin
+    ipa_pass: "{{ rhel_idm.admin_pwd }}"
+    state: present
+    zone_name: "{{ domain }}"
+    record_name: "{{ item.hostname }}"
+    record_type: "A"
+    record_value: "{{ item.ip_address }}"
+  with_items:
+    - "{{ rhel_idm.dns_records }}"
+ 
+- name: add reverse DNS entries to IDM
+  ipa_dnsrecord:
+    ipa_host: "{{ rhel_idm.hostname_short }}.{{ domain }}"
+    ipa_user: admin
+    ipa_pass: "{{ rhel_idm.admin_pwd }}"
+    state: present
+    zone_name: 168.192.in-addr.arpa
+    record_name: "{{ item.ip_address }}"
+    record_type: 'PTR'
+    record_value: "{{ item.hostname }}.{{ domain }}"
+  with_items:
+    - "{{ rhel_idm.dns_records }}"

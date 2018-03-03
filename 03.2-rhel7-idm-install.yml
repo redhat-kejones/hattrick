@@ -1,22 +1,21 @@
-- hosts: localhost
-  name: playbook create IDM VM
+---
+- hosts: rhel_idm
+  name: add authorized keys to IDM
   remote_user: root
-  become: yes
   vars:
     ansible_ssh_user: root
     ansible_ssh_pass: redhat
   tasks:
   - name: check that IDM is online
     wait_for:
-    host: "{{ inventory_hostname }}"
-    state: started
-    delay: 10
-    connect_timeout: 5
-    timeout: 300
-    port: 22
-  delegate_to: 127.0.0.1
-  become: false
-  ignore_errors: true
+      host: "{{ inventory_hostname }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
 
   - name: add authorized key from root@kvm
     authorized_key:
@@ -29,3 +28,10 @@
       user: root
       state: present
       key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- hosts: rhel_idm
+  name: install and configure IDM
+  remote_user: root
+  roles:
+    - rhel_common
+    - rhel_idm
