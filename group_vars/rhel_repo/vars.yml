@@ -1,0 +1,33 @@
+---
+# vars file for rhel_repo
+
+rhel_repo:
+  hostname_short: repo
+  git_repo: https://github.com/redhat-kejones/hattrick
+  sync_satellite: false
+  repos:
+    rhel:
+      - rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+
+    osp:
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+
+    satellite:
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+
+    ocp:
+      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+
+    cfme:
+      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms

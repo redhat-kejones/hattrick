@@ -1,5 +1,5 @@
 ---
-# vars file for ansible.hattrick-reposync
+# vars file for rhel_repo
 
 git_repo: https://github.com/redhat-kejones/hattrick
 

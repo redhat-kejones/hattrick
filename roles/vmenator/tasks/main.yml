@@ -15,6 +15,10 @@
   command: "virt-resize --expand /dev/sda1 /var/lib/libvirt/images/rhel-guest-image-7.qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }}"
   with_items: "{{ vmenator.vms }}"
 
+- name: grow root file system to size of disk
+  command: "virt-customize -a /var/lib/libvirt/images/{{ item.disk_os_name }} --run-command 'xfs_growfs /'"
+  with_items: "{{ vmenator.vms }}"
+
 - name: create the ifcfg files for vms
   template:
     src: templates/{{ item.0.name }}-ifcfg-{{ item.1.name }}.j2
@@ -45,7 +49,7 @@
     - nics
 
 - name: create xml for vms
-  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc --name {{ item.name }} --cpu host --dry-run --print-xml"
+  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host --dry-run --print-xml"
   register: vm_xml_content
   with_items:
     - "{{ vmenator.vms }}"

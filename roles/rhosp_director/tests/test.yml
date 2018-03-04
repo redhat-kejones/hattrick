@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - ansible.hattrick-reposync
+    - roles/rhosp_director
