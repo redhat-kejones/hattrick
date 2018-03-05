@@ -3,6 +3,7 @@
 - name: set hostname
   hostname:
     name: "{{ rhosp_director.hostname_short }}.{{ domain }}"
+  tags: prep
 
 - name: add line to hosts file for self
   lineinfile:
@@ -10,6 +11,7 @@
     state: present
     regexp: "^{{ inventory_hostname }}"
     line: "{{ inventory_hostname }} {{ rhosp_director.hostname_short }}.{{ domain }} {{ rhosp_director.hostname_short }}"
+  tags: prep
 
 - sysctl:
     name: net.ipv4.ip_forward
@@ -17,6 +19,7 @@
     sysctl_set: yes
     state: present
     reload: yes
+  tags: prep
 
 - name: enable the needed rhel repositories
   command: subscription-manager repos --enable={{ item }}
@@ -31,11 +34,13 @@
     - rhel-7-server-rhceph-2-mon-rpms
     - rhel-7-server-rhceph-2-tools-rpms
   when: ansible_distribution == 'RedHat' and register_rhn
+  tags: prep
 
 - name: add stack user and set password
   user:
     name: stack
     password: "{{ rhosp_director.stack_user_pwd }}"
+  tags: prep
 
 - name: allow stack user to have passwordless sudo
   lineinfile:
@@ -43,6 +48,7 @@
     state: present
     regexp: '^stack'
     line: 'stack ALL=(ALL) NOPASSWD:ALL'
+  tags: prep
 
 - name: turn off requiretty for sudo
   lineinfile:
@@ -52,10 +58,12 @@
   with_items:
      - { line: "Defaults !requiretty", state: present }
      - { line: "Defaults requiretty", state: absent }
+  tags: prep
 
 - name: check sudoers
   shell: cat /etc/sudoers | grep tty
   register: sudoers_output
+  tags: prep
 
 - name: install several useful utility and undercloud packages
   yum:
@@ -74,6 +82,7 @@
     - 'python-tripleoclient'
     - 'rhosp-director-images'
     - 'rhosp-director-images-ipa'
+  tags: prep
 
 - name: install ceph ansible if RHOSP 12+
   yum:
@@ -82,6 +91,7 @@
   with_items:
     - 'ceph-ansible'
   when: versions.rhosp >= 12
+  tags: prep
 
 - name: update packages
   yum:
@@ -90,16 +100,19 @@
   register: yum_result
   async: 1000
   poll: 30
+  tags: prep
 
 - name: check Kernel is the Latest
   shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
   ignore_errors: true
   register: reboot_hint
+  tags: prep
 
 - name: make sure cloud-init is not installed
   yum:
     name: cloud-init
     state: absent
+  tags: prep
 
 - name: restart undercloud machine to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible restart triggered for RHOSP Director install"
@@ -107,6 +120,7 @@
   poll: 0
   ignore_errors: true
   when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+  tags: prep
 
 - name: waiting for Server to come back
   wait_for:
@@ -119,6 +133,7 @@
   delegate_to: 127.0.0.1
   become: false
   ignore_errors: true
+  tags: prep
 
 - name: setting provisioning interface onboot=no
   lineinfile:
@@ -126,6 +141,7 @@
     state: present
     regexp: '^ONBOOT'
     line: 'ONBOOT=no'
+  tags: prep
 
 - name: copy undercloud.conf template
   become: yes
@@ -137,6 +153,7 @@
     owner: stack
     group: stack
     mode: 0644
+  tags: install
 
 - name: set undercloud.conf variables in the default section
   become: yes
@@ -182,7 +199,7 @@
     - { key: clean_nodes, value: "{{ rhosp_director.clean_nodes }}"}
     - { key: undercloud_name_servers, value: "{{ dns_server }}"}
     - { key: undercloud_ntp_servers, value: "{{ rhosp_director.ntp_servers }}"}
-
+  tags: install
 
 - name: set undercloud.conf variables in the auth section
   become: yes
@@ -194,6 +211,7 @@
     value: "{{ rhosp_director.admin_password }}"
     mode: 0644
     backup: no
+  tags: install
 
 - name: make images and templates directories
   become: yes
@@ -207,6 +225,7 @@
   with_items:
     - 'images'
     - 'templates'
+  tags: install
 
 - name: unpacking overcloud and ironic images
   become: yes
@@ -216,8 +235,9 @@
     remote_src: true
     dest: /home/stack/images
   with_items:
-    - '/usr/share/rhosp-director-images/overcloud-full-latest-{{ rhosp_version }}.0.tar'
-    - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ rhosp_version }}.0.tar'
+    - '/usr/share/rhosp-director-images/overcloud-full-latest-{{ versions.rhosp }}.0.tar'
+    - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ versions.rhosp }}.0.tar'
+  tags: install
 
 - name: install the Undercloud
   become: yes
@@ -227,6 +247,7 @@
     chdir: /home/stack
   async: 2700
   poll: 30
+  tags: install
 
 - name: adding overcloud images to OSPD
   become: yes
@@ -234,16 +255,19 @@
   shell: source /home/stack/stackrc && openstack overcloud image upload
   args:
     chdir: /home/stack/images
+  tags: install
 
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
   shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server }} $(openstack subnet list | awk '/192.168.2/ {print $2}')
+  tags: install
 
 - name: configuring fernet tokens for overcloud
   become: yes
   become_user: stack
   shell: source /home/stack/stackrc && sudo keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone && sudo tar -zcf /home/stack/keystone-fernet-keys.tar.gz /etc/keystone/fernet-keys && upload-swift-artifacts -f /home/stack/keystone-fernet-keys.tar.gz
+  tags: install
 
 - name: set debug flag to false in DEFAULT section
   ini_file:
@@ -257,6 +281,7 @@
     - '/etc/neutron/neutron.conf'
     - '/etc/heat/heat.conf'
     - '/etc/ironic/ironic.conf'
+  tags: install
 
 - name: fix ceilometer database ttls
   ini_file:
@@ -268,12 +293,14 @@
   with_items:
     - 'metering_time_to_live'
     - 'event_time_to_live'
+  tags: install
 
 - name: Change dhcp_domain in nova.conf
   lineinfile:
     dest: /etc/nova/nova.conf
     regexp: '^dhcp_domain='
     line: "dhcp_domain={{ rhosp_director.cloud_domain }}"
+  tags: install
 
 - name: restart openstack services
   service:
@@ -283,3 +310,96 @@
     - 'openstack-*'
     - 'neutron-*'
     - 'httpd'
+  tags: install
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-pyghmi
+  tags: introspection
+
+- name: create instackenv file
+  copy:
+    content: "{{ lookup('template', 'templates/instackenv.json.j2') | to_nice_json }}"
+    dest: "/home/stack/instackenv.json"
+  tags: introspection
+
+- name: ping check on IPMI IP
+  command: ping -c 2 -w 5 {{ item.pm_addr }}
+  register: ping_response
+  ignore_errors: true
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  tags: introspection
+
+- name: debug ping responses
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: set validation errors for failed pings
+  set_fact:
+    validation_errors: "{{ validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
+  when: "item.rc != 0"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: ensure ipmi boot network
+  ipmi_boot:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    bootdev: "{{ rhosp_director.bootdev|default('network') }}"
+    state: present
+  when: "item.pm_driver == 'pxe_ipmitool'"
+  register: ipmi_boot
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  ignore_errors: true
+  tags: introspection
+
+- name: set validation errors as needed for ipmi issues
+  set_fact:
+    validation_errors: "{{ rhosp_director.validation_errors }} + [ 'error checking ipmi on {{ item.item.pm_addr }} - please confirm credentials access and IPMI configuration ' ]"
+  when: "{{ item.failed|default('false')|bool }}"
+  with_items: "{{ ipmi_boot.results }}"
+  tags: introspection
+
+- name: debug validation errors
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ rhosp_director.validation_errors }}"
+  tags: introspection
+
+- name: poweroff all servers when poweroff == true
+  ipmi_power:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    state: off
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  when: 'rhosp_director.poweroff|bool'
+  ignore_errors: true
+  tags: introspection
+
+- name: check failure
+  fail:
+    msg: "\n - {{ rhosp_director.validation_errors|join('\n') }}"
+  when: validation_errors is defined and validation_errors|length > 0
+  tags: introspection
+
+- name: import introspect and provide nodes
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud node import --introspect --provide instackenv.json
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  tags: introspection
+
+- name: success
+  debug:
+    msg: ipmi completely validated
+  tags: introspection

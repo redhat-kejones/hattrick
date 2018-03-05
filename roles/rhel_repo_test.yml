@@ -1,5 +1,0 @@
----
-- hosts: locahost
-  remote_user: root
-  roles:
-    - ansible.hattrick-reposync

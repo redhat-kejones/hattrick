@@ -1,6 +1,18 @@
 domain: two.hattrick.lab
 dns_server: 192.168.0.4
 
+networks:
+- name: external
+  cidr: 192.168.0.0/23
+  defroute: true
+  gateway: 192.168.0.1
+  vlan: 1
+- name: provisioning
+  cidr: 192.168.2.0/24
+  defroute: false
+  vlan: 2
+    
+
 versions:
   rhosp: 10
   satellite: 6.2

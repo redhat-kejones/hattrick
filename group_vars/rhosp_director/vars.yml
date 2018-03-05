@@ -1,4 +1,8 @@
 rhosp_director:
+  poweroff: true
+  bootdev: network
+  validation_errors: []
+  
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
 
