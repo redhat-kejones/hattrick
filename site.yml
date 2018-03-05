@@ -13,20 +13,45 @@
 #Configure Network Gear
 #- import_playbook: 01-netgear-switch-config.yml
 
-#Configure RHEL+KVM Host for holding IDM and RHOSP-director
-- import_playbook: 02-rhel7-kvm.yml
+- name: install and configure RHEL KVM
+  import_playbook: 02-rhel7-kvm.yml
+  tags: rhel_kvm
 
-#Create IDM, Reposync Server, and RHOSP Director
-- import_playbook:  03.1-vmenator.yml
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  03.1-vmenator.yml
 
-#Install and configure IDM for Identiy and DNS
-- import_playbook:  03.2-rhel7-idm-install.yml
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  03.2-wait-for-vms.yml
 
-#Install and configure Reposync Server for content
-- import_playbook:  03.2-rhel7-repo-install.yml
+- name: install and configure IDM
+  #hosts: localhost
+  #gather_facts: false
+  tags: infrastructure
+  #tasks:
+  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhel7-idm-install.yml
+  #    async: 45
+  import_playbook:  03.3-rhel7-idm-install.yml
 
-#RHOSP-director install and node introspection
-- import_playbook:  03.2-rhosp-director-install.yml
+- name: install and configure reposync server
+  #hosts: localhost
+  #gather_facts: false
+  tags: infrastructure
+  #tasks:
+  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhel7-repo-install.yml
+  #    async: 300
+  #    poll: 30
+  import_playbook:  03.3-rhel7-repo-install.yml
+
+- name: install and configure RHOSP director
+  #hosts: localhost
+  #gather_facts: false
+  tags: infrastructure
+  #tasks:
+  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhosp-director-install.yml
+  #    async: 45
+  import_playbook:  03.3-rhosp-director-install.yml
 
 #- import_playbook:  04-rhosp-overcloud-deploy-prep.yml
 

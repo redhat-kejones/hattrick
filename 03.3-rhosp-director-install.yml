@@ -1,12 +1,13 @@
 ---
-- hosts: rhel_repo
-  name: add authorized keys to repo server
+- name: add authorized keys to RHOSP Director server
+  hosts: rhosp_director
+  gather_facts: false
   remote_user: root
   vars:
     ansible_ssh_user: root
     ansible_ssh_pass: redhat
   tasks:
-  - name: check that repo server is online
+  - name: check that RHOSP Director server is online
     wait_for:
       host: "{{ inventory_hostname }}"
       state: started
@@ -29,9 +30,9 @@
       state: present
       key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
-- hosts: rhel_repo
-  name: install and configure repo server
+- name: install and configure RHOSP Director server
+  hosts: rhosp_director
   remote_user: root
   roles:
     - rhel_common
-    - rhel_repo
+    - rhosp_director

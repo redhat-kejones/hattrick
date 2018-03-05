@@ -1,12 +1,13 @@
 ---
-- hosts: rhel_idm
-  name: add authorized keys to IDM
+- name: add authorized keys to repo server
+  hosts: rhel_repo
+  gather_facts: false
   remote_user: root
   vars:
     ansible_ssh_user: root
     ansible_ssh_pass: redhat
   tasks:
-  - name: check that IDM is online
+  - name: check that repo server is online
     wait_for:
       host: "{{ inventory_hostname }}"
       state: started
@@ -29,9 +30,9 @@
       state: present
       key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
-- hosts: rhel_idm
-  name: install and configure IDM
+- name: install and configure repo server
+  hosts: rhel_repo
   remote_user: root
   roles:
     - rhel_common
-    - rhel_idm
+    - rhel_repo

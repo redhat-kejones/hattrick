@@ -1,12 +1,13 @@
 ---
-- hosts: rhosp_director
-  name: add authorized keys to RHOSP Director server
+- name: add authorized keys to IDM
+  hosts: rhel_idm
+  gather_facts: false
   remote_user: root
   vars:
     ansible_ssh_user: root
     ansible_ssh_pass: redhat
   tasks:
-  - name: check that RHOSP Director server is online
+  - name: check that IDM is online
     wait_for:
       host: "{{ inventory_hostname }}"
       state: started
@@ -29,9 +30,9 @@
       state: present
       key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
-- hosts: rhosp_director
-  name: install and configure RHOSP Director server
+- name: install and configure IDM
+  hosts: rhel_idm
   remote_user: root
   roles:
     - rhel_common
-    - rhosp_director
+    - rhel_idm
