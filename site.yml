@@ -26,31 +26,15 @@
   import_playbook:  03.2-wait-for-vms.yml
 
 - name: install and configure IDM
-  #hosts: localhost
-  #gather_facts: false
   tags: infrastructure
-  #tasks:
-  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhel7-idm-install.yml
-  #    async: 45
   import_playbook:  03.3-rhel7-idm-install.yml
 
 - name: install and configure reposync server
-  #hosts: localhost
-  #gather_facts: false
   tags: infrastructure
-  #tasks:
-  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhel7-repo-install.yml
-  #    async: 300
-  #    poll: 30
   import_playbook:  03.3-rhel7-repo-install.yml
 
 - name: install and configure RHOSP director
-  #hosts: localhost
-  #gather_facts: false
   tags: infrastructure
-  #tasks:
-  #  - shell: ansible-playbook -i inventory --ask-vault-pass 03.3-rhosp-director-install.yml
-  #    async: 45
   import_playbook:  03.3-rhosp-director-install.yml
 
 #- import_playbook:  04-rhosp-overcloud-deploy-prep.yml

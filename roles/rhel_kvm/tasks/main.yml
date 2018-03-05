@@ -48,6 +48,14 @@
     - 'libvirt-python'
     - 'libguestfs-tools-c'
     - 'rhel-guest-image-7'
+    - 'ansible'
+
+- name: clone the code repository to the /root
+  git:
+    repo: "{{ git_repo }}"
+    dest: /root/
+    accept_hostkey: yes
+  tags: clone_repo
 
 - copy:
     src: files/kvm.conf

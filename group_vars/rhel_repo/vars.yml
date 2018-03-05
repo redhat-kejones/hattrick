@@ -3,7 +3,6 @@
 
 rhel_repo:
   hostname_short: repo
-  git_repo: https://github.com/redhat-kejones/hattrick
   sync_satellite: false
   repos:
     rhel:
