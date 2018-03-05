@@ -16,14 +16,19 @@
 #Configure RHEL+KVM Host for holding IDM and RHOSP-director
 - import_playbook: 02-rhel7-kvm.yml
 
-#Creae IDM VM on KVM Host, install and configure for ID and DNS
-#- import_playbook:  03.1-rhel7-idm-vm.yml
-#- import_playbook:  03.2-rhel7-idm-install.yml
+#Create IDM, Reposync Server, and RHOSP Director
+- import_playbook:  03.1-vmenator.yml
 
-#Create RHOSP-director VM and install
-#- import_playbook:  04.1-rhosp-director-vm.yml
-#- import_playbook:  04.2-rhosp-director-install.yml
-#- import_playbook:  04.3-rhosp-overcloud-deploy-prep.yml
+#Install and configure IDM for Identiy and DNS
+- import_playbook:  03.2-rhel7-idm-install.yml
+
+#Install and configure Reposync Server for content
+- import_playbook:  03.2-rhel7-repo-install.yml
+
+#RHOSP-director install and node introspection
+- import_playbook:  03.2-rhosp-director-install.yml
+
+#- import_playbook:  04-rhosp-overcloud-deploy-prep.yml
 
 #RHOSP Overcloud deployment
 #- import_playbook:  05-rhosp-overcloud.yml
