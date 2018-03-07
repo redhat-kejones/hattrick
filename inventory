@@ -17,6 +17,7 @@ localhost
 
 [rhel_kvm]
 192.168.0.3
+#localhost
 
 [vmenator]
 192.168.0.3
