@@ -1,4 +1,4 @@
-#TODO: Need to write playbook to configure HatTrick Netgear switch with known
+#TODO: Need to write playbook to configure switch with known
 #      Working configuration
 #
 ---

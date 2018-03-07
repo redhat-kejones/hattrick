@@ -14,8 +14,7 @@
 - name: enable the needed rhel repositories
   command: subscription-manager repos --enable={{ item }}
   with_items:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
+    - "{{ rhel_idm.repos }}"
   when: ansible_distribution == 'RedHat' and register_rhn
 
 - name: update packages
@@ -37,14 +36,13 @@
     state: absent
 
 - name: install IPA packages
-  yum: 
+  yum:
     name: '{{ item }}'
     state: latest
   with_items:
-    - ipa-server
-    - ipa-server-dns
+    - "{{ rhel_idm.packages }}"
 
-- name: Setup IPA Server 
+- name: Setup IPA Server
   command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
 
 - name: restart server to get updated kernel
@@ -97,7 +95,7 @@
     record_value: "{{ item.ip_address }}"
   with_items:
     - "{{ rhel_idm.dns_records }}"
- 
+
 - name: add reverse DNS entries to IDM
   ipa_dnsrecord:
     ipa_host: "{{ rhel_idm.hostname_short }}.{{ domain }}"
