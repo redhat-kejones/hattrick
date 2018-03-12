@@ -1,12 +1,5 @@
 ---
 # tasks file for roles/vmenator
-- debug:
-    msg: "{{ vmenator.vms }}"
-
-- debug:
-    msg: "{{ item }}"
-  with_items: "{{ vmenator.vms }}"
-
 - name: create operating system disks for all vms
   command: "qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }} {{ item.disk_os_size }}"
   with_items: "{{ vmenator.vms }}"
@@ -29,7 +22,7 @@
     - nics
 
 - name: ensure individual dirs exist for vm ifcfg files
-  file: 
+  file:
     path: "/tmp/{{ item.name }}"
     state: directory
   with_items: "{{ vmenator.vms }}"
@@ -49,7 +42,7 @@
     - nics
 
 - name: create xml for vms
-  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host --dry-run --print-xml"
+  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host-model --dry-run --print-xml"
   register: vm_xml_content
   with_items:
     - "{{ vmenator.vms }}"
@@ -73,7 +66,7 @@
     - "{{ vmenator.vms }}"
 
 - name: attach network interfaces for vms
-  command: "virsh attach-interface {{ item.0.name }} {{ item.1.config }} --live"
+  command: "virsh attach-interface {{ item.0.name }} {{ item.1.config }} --live --persistent"
   with_subelements:
     - "{{ vmenator.vms }}"
     - nics
