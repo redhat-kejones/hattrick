@@ -197,7 +197,7 @@
     - { key: ipxe_enabled, value: "true"}
     - { key: store_events, value: "true" }
     - { key: clean_nodes, value: "{{ rhosp_director.clean_nodes }}"}
-    - { key: undercloud_name_servers, value: "{{ dns_server }}"}
+    - { key: undercloud_name_servers, value: "{{ dns_server_local }}"}
     - { key: undercloud_ntp_servers, value: "{{ rhosp_director.ntp_servers }}"}
   tags: install
 
@@ -260,7 +260,7 @@
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server }} $(openstack subnet list | awk '/192.168.2/ {print $2}')
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/192.168.2/ {print $2}')
   tags: install
 
 - name: configuring fernet tokens for overcloud
