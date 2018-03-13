@@ -36,7 +36,7 @@
     register: osp_host
     when: db or ui
 
-  - name: Add second interface to workers
+  - name: Launch workers with second interface on provisioning network
     os_server:
       auth:
         auth_url: "{{ osp_url }}"
@@ -70,6 +70,7 @@
       server: cf-wk-{{ item }}
       network: public
       nat_destination: "{{ network_name }}" 
+      state: present
       wait: True
     register: float
     with_sequence:
@@ -109,14 +110,17 @@
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfdb
     when: db
+ 
+  - debug:
+      msg: "{{ float }}"
 
   - name: add Worker to inventory
     add_host:
-      hostname: "{{ item.float.floating_ip.floating_ip_address }}"
+      hostname: "{{ item.addresses.private[1].addr }}"
       ansible_ssh_user: root
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfwk
-    with_items: "{{ float }}"
+    with_items: "{{ openstack_servers }}"
     when: wk
 
   - name: add UI server to inventory
