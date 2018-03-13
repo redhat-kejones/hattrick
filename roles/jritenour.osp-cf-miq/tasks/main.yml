@@ -112,7 +112,7 @@
 
   - name: add Worker to inventory
     add_host:
-      hostname: "{{ item.private_v4 }}"
+      hostname: "{{ item.accessIPv4 }}"
       ansible_ssh_user: root
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfwk
