@@ -3,3 +3,4 @@
 vault.yml
 vault
 vars.yml
+*id_rsa*

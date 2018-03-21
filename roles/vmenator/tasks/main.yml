@@ -42,7 +42,7 @@
     - nics
 
 - name: create xml for vms
-  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host-model --dry-run --print-xml"
+  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host-model --autostart --dry-run --print-xml"
   register: vm_xml_content
   with_items:
     - "{{ vmenator.vms }}"

@@ -7,7 +7,7 @@ rhosp_director:
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
 
   # All variales for undercloud.conf
-  cloud_domain: int.hattrick2.lab
+  cloud_domain: "{{ domain }}"
   hostname_short: undercloud
   ntp_servers: time.google.com
   # Network interface on the Undercloud that will be handling the PXE

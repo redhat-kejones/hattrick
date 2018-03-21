@@ -10,7 +10,7 @@ vm_name: osp-{{ type }}
 key_name: operator #works with OpenStack & EC2
 network_name: private # Works with all providers
 prov_net: provisioning # Works with all providers
-image_uid: 51d72e30-1dec-4542-9e73-ae8d33fb4adc # works with OpenStack
+image_uid: cf46 # works with OpenStack
 flavor_name: m1.cfme # works with OSP/Azure/AWS
 #float_ip: 192.168.1.90 #OpenStack specific
 ssh_user: root
@@ -32,4 +32,4 @@ undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 
 #Temporary
-db_server: 192.168.1.78
+db_server: 192.168.1.74

@@ -30,6 +30,8 @@
     delegate_to: 127.0.0.1
     become: false
     ignore_errors: true
+  - pause:
+      minutes: 1
 
 - hosts: cfwk
   remote_user: root
@@ -45,12 +47,12 @@
   tasks:
   - name: copy ifcfg-eth1
     template:
-      src: ifcg
+      src: ifcfg
       dest: '/etc/sysconfig/network-scripts/ifcfg-eth1'
   - name: enable eth1
     command: ifup eth1
 
-- hosts: cfdb
+- hosts: "{{ db_server }}"
   remote_user: root
   vars_files:
     - 'vars.yml'

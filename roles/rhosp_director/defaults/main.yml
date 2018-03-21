@@ -1,2 +1,3 @@
 ---
 # defaults file for roles/rhosp_director
+domain: two.hattrick.lab
