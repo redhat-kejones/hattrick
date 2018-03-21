@@ -17,7 +17,7 @@ networks:
     vlan: 2
 
 versions:
-  rhosp: 12
+  rhosp: 10
   satellite: 6.2
   ocp: 3.6
   cfme: 5.8
