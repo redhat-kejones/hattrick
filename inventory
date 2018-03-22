@@ -28,6 +28,9 @@ localhost
 [rhosp_director]
 192.168.0.5
 
+[rhosp_overcloud]
+192.168.0.5
+
 [ansible_tower]
 192.168.0.6
 

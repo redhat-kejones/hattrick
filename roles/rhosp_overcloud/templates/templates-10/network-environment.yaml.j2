@@ -1,0 +1,56 @@
+#This file is an example of an environment file for defining the isolated
+#networks and related parameters.
+resource_registry:
+  # Network Interface templates to use (these files must exist)
+  OS::TripleO::Controller::Net::SoftwareConfig:
+    /home/stack/templates/nic-configs/controller.yaml
+  OS::TripleO::Compute::Net::SoftwareConfig:
+    /home/stack/templates/nic-configs/compute.yaml
+  OS::TripleO::CephStorage::Net::SoftwareConfig:
+    /home/stack/templates/nic-configs/ceph-storage.yaml
+
+parameter_defaults:
+  # This section is where deployment-specific configuration is done
+  # CIDR subnet mask length for provisioning network
+  ControlPlaneSubnetCidr: '24'
+  # Gateway router for the provisioning network (or Undercloud IP)
+  ControlPlaneDefaultRoute: 192.168.2.10
+  EC2MetadataIp: 192.168.2.10  # Generally the IP of the Undercloud
+  # Customize the IP subnets to match the local environment
+  InternalApiNetCidr: 192.168.100.0/24
+  StorageNetCidr: 192.168.101.0/24
+  StorageMgmtNetCidr: 192.168.102.0/24
+  TenantNetCidr: 192.168.103.0/24
+  ExternalNetCidr: 192.168.0.0/23
+  # Customize the VLAN IDs to match the local environment
+  InternalApiNetworkVlanID: 900
+  StorageNetworkVlanID: 901
+  StorageMgmtNetworkVlanID: 902
+  TenantNetworkVlanID: 903
+  ExternalNetworkVlanID: 1
+  # Customize the IP ranges on each network to use for static IPs and VIPs
+  InternalApiAllocationPools: [{'start': '192.168.100.40', 'end': '192.168.100.250'}]
+  StorageAllocationPools: [{'start': '192.168.101.40', 'end': '192.168.101.250'}]
+  StorageMgmtAllocationPools: [{'start': '192.168.102.40', 'end': '192.168.102.250'}]
+  TenantAllocationPools: [{'start': '192.168.103.40', 'end': '192.168.103.250'}]
+  # Leave room if the external network is also used for floating IPs
+  ExternalAllocationPools: [{'start': '192.168.1.40', 'end': '192.168.1.69'}]
+  # Gateway router for the external network
+  ExternalInterfaceDefaultRoute: 192.168.0.1
+  PublicVirtualFixedIPs: [{'ip_address':'192.168.1.40'}]
+  # Uncomment if using the Management Network (see network-management.yaml)
+  # ManagementNetCidr: 10.0.1.0/24
+  # ManagementAllocationPools: [{'start': '10.0.1.10', 'end', '10.0.1.50'}]
+  # Use either this parameter or ControlPlaneDefaultRoute in the NIC templates
+  # ManagementInterfaceDefaultRoute: 10.0.1.1
+  # Set to empty string to enable multiple external networks or VLANs
+  NeutronExternalNetworkBridge: "''"
+  # The tunnel type for the tenant network (vxlan or gre). Set to '' to disable tunneling.
+  NeutronTunnelTypes: 'vxlan'
+  NeutronBridgeMappings: 'datacentre:br-ex,prov:br-prov'
+  NeutronNetworkVLANRanges: 'datacentre:1:1000,prov:1:1000'
+  NeutronFlatNetworks: 'datacentre,prov'
+  # Customize bonding options, e.g. "mode=4 lacp_rate=1 updelay=1000 miimon=100"
+  #BondInterfaceOvsOptions: "bond_mode=balance-slb"
+  BondInterfaceOvsOptions: "mode=4 lacp_rate=1 miimon=100"
+  #NetworkDeploymentActions: ['CREATE','UPDATE']
