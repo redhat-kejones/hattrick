@@ -214,11 +214,11 @@
 
   - name: add Worker to inventory
     add_host:
-      hostname: "{{ item.private_v4 }}"
+      hostname: "{{ item.float.floating_ip.floating_ip_address }}"
       ansible_ssh_user: root
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfwk
-    with_items: "{{ openstack_servers }}"
+    with_items: "{{ float }}"
     when: wk
 
   - name: add UI server to inventory
