@@ -1,0 +1,30 @@
+repo_server_ip: 192.168.1.196
+ocp:
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-fast-datapath-rpms
+    - rhel-7-server-ose-3.6-rpms
+osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
+osp_ip: 192.168.1.40 # OpenStack specific
+osp_user: "{{ vault_osp_user }}" # OpenStack specific
+osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+osp_project: operators  # OpenStack specific
+az: nova # works with OpenStack, EC2 & Azure
+db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
+db_vol_name: ocp-{{ type }}-vol
+vm_name: osp-{{ type }}
+key_name: kvm #works with OpenStack & EC2
+network_name: private # Works with all providers
+ssh_user: cloud-user
+cf_db_dev: '/dev/vdb'
+region_num: 20
+security_group: default # works with OpenStack & EC2
+dns: "{{ dns_server_local }}"
+ipa_server: idm.shadowbox.lab
+ipa_user: "{{ vault_idm_admin_user }}"
+ipa_password: "{{ vault_idm_admin_pwd }}"
+ocpuser: admin
+ocppass: redhat
+ocp_wildcard_domain: ocp.shadowbox.lab
+#master1: .shadowbox.lab

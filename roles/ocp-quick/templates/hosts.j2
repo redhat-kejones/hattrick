@@ -1,0 +1,45 @@
+# Create an OSEv3 group that contains the masters and nodes groups
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+# SSH user, this user should allow ssh based auth without requiring a password
+ansible_ssh_user={{ ssh_user }}
+
+# If ansible_ssh_user is not root, ansible_become must be set to true
+ansible_become=true
+
+openshift_deployment_type=openshift-enterprise
+
+# uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider
+#openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
+
+openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+openshift_master_cluster_public_hostname={{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+
+openshift_master_default_subdomain={{ ocp_wildcard_domain }}
+
+openshift_disable_check=docker_image_availability
+
+#Change console/api port to 443 instead of 8443
+openshift_master_api_port=443
+openshift_master_console_port=443
+
+#Enable OpenShift Service Catalog
+openshift_enable_service_catalog=true
+
+# host group for masters
+[masters]
+{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+
+[etcd]
+{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+
+# host group for nodes, includes region info
+[nodes]
+{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+{{ hostvars[groups['node'][1]]['ansible_fqdn'] }}  openshift_node_labels="{'region': 'infra'}"

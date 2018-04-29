@@ -33,6 +33,8 @@
 - name: install and configure IDM
   hosts: rhel_idm
   remote_user: root
+  vars:
+    use_public_dns: true
   roles:
     - rhel_common
     - rhel_idm

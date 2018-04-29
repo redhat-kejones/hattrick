@@ -5,6 +5,12 @@ rhel_idm:
   admin_pwd: "{{ vault_idm_admin_pwd }}"
   forward_ip: 8.8.8.8
   reverse_zone: "168.192.in-addr.arpa."
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - ipa-server
+    - ipa-server-dns
   users:
   - username: kejones
     password: redhat

@@ -5,20 +5,21 @@ osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
 az: nova # works with OpenStack, EC2 & Azure
 db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
-db_vol_name: ocp-{{ type }}-vol
-vm_name: osp-{{ type }}
+db_vol_name: cf-{{ type }}-vol
+vm_name: cf-{{ type }}
 key_name: operator #works with OpenStack & EC2
 network_name: private # Works with all providers
 prov_net: provisioning # Works with all providers
 image_uid: cf46 # works with OpenStack
-flavor_name: m1.cfme # works with OSP/Azure/AWS
+flavor: m1.cfme # works with OSP/Azure/AWS TODO: cleanup
+flavor_name: cf.min # works with OSP/Azure/AWS TODO:cleanup
 #float_ip: 192.168.1.90 #OpenStack specific
 ssh_user: root
 cf_db_pass: "{{ vault_cf_db_pwd }}"
 cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
 cf_db_dev: '/dev/vdb'
 region_num: 20
-security_group: default # works with OpenStack & EC2
+security_group: cfme # works with OpenStack & EC2
 dns: 192.168.0.4
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
@@ -32,4 +33,4 @@ undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 
 #Temporary
-db_server: 192.168.1.74
+#db_server: 192.168.1.74

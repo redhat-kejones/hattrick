@@ -57,7 +57,7 @@ openstack flavor create --id 4 --ram 4096 --disk 40 --vcpus 4 --public m1.large
 openstack flavor create --id 5 --ram 8192 --disk 80 --vcpus 8 --public m1.xlarge
 openstack flavor create --id 6 --ram 12288 --disk 80 --vcpus 4 --public cf.min
 openstack flavor create --id 7 --ram 16834 --disk 40 --vcpus 2 --public ocp1.master
-openstack flavor create --id 8 --ram 8192 --disk 40 --vcpus 2 --public ocp2.node
+openstack flavor create --id 8 --ram 8192 --disk 40 --vcpus 2 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type
@@ -74,7 +74,7 @@ neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --d
 
 #Create provider networks
 #Provisioning
-neutron net-create provisioning --provider:network_type flat  --provider:physical_network prov 
+neutron net-create provisioning --provider:network_type flat  --provider:physical_network prov
 neutron subnet-create provisioning 192.168.2.0/24 --name provisioning-sub --allocation-pool=start=192.168.2.60,end=192.168.2.99 --no-gateway
 #Provider905
 neutron net-create provider905 --provider:network_type vlan --provider:segmentation_id 905 --provider:physical_network datacentre 
@@ -97,18 +97,18 @@ curl -o /home/stack/guest-images/cirros.qcow2 http://download.cirros-cloud.net/0
 qemu-img convert -f qcow2 -O raw /home/stack/guest-images/cirros.qcow2 /home/stack/guest-images/cirros035.img
 #Upload the cirros test image to glance and share publicly
 glance image-create --name cirros035 --disk-format raw \
-  --container-format bare --is-public true --progress --file /home/stack/guest-images/cirros035.img
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros035.img
 #glance image-create --name rhel74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
 #glance image-create --name centos7 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
 #glance image-create --name rhel69 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
 #glance image-create --name rhelatomic74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
 #glance image-create --name spark160 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
 #glance image-create --name cf45 --disk-format raw --min-disk 40 --min-ram 12288 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/cfme-rhos-5.8.1.5-1.x86_64.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.8.1.5-1.x86_64.img
 #glance image-create --name win2012r2 --disk-format raw --min-disk 40 --min-ram 4096 \
-#  --container-format bare --public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img

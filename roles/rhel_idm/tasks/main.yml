@@ -108,3 +108,9 @@
     record_value: "{{ item.hostname }}.{{ domain }}"
   with_items:
     - "{{ rhel_idm.dns_records }}"
+
+- name: remove temporary nameserver from /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    state: absent

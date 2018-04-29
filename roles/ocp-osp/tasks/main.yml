@@ -1,0 +1,60 @@
+---
+# tasks file for jritenour.osp-cf-miq
+  - name: Generate  UUID
+    shell: openssl rand -hex 2
+    register: uuid_list
+  - name: Debugging instance info
+    debug:
+      var: uuid_list.stdout
+
+  - name: Create volume for instance
+    os_volume:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      availability_zone: "{{ az }}"
+      size: "{{ db_size }}"
+      display_name: "{{ db_vol_name }}-{{ uuid_list.stdout }}"
+
+  - name: launch instances
+    os_server:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      name: "{{ vm_name }}-{{ uuid_list.stdout }}"
+      state: present
+      key_name: "{{ key_name }}"
+      availability_zone: "{{ az }}"
+      nics:
+        - net-name: "{{ network_name }}"
+      image: "{{ image_uid }}"
+      flavor: "{{ flavor_name }}"
+      volumes:
+        - "{{ db_vol_name }}-{{ uuid_list.stdout }}"
+    register: osp_host
+
+  - name: wait for instance become ready to use
+    wait_for:
+     host: "{{ osp_host.openstack.public_v4 }}"
+     port: "22"
+     timeout: "320"
+     state: "started"
+
+  - name: add master to inventory
+    add_host:
+      hostname: "{{ osp_host.openstack.public_v4 }}"
+      ansible_ssh_user: cloud-user
+      groupname: master
+    when: master
+
+  - name: add node to inventory
+    add_host:
+      hostname: "{{ osp_host.openstack.public_v4 }}"
+      ansible_ssh_user: cloud-user
+      groupname: node
+    when: node

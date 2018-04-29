@@ -1,6 +1,7 @@
 domain: two.hattrick.lab
 dns_server_local: 192.168.0.4
 dns_server_public: 8.8.8.8
+use_public_dns: false
 git_repo: https://github.com/redhat-kejones/hattrick
 
 networks:
@@ -20,4 +21,4 @@ versions:
   rhosp: 10
   satellite: 6.2
   ocp: 3.6
-  cfme: 5.8
+  cfme: 5.9

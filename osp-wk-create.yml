@@ -45,6 +45,9 @@
     - {role: 'roles/jritenour.cf-miq-wk'}
 
   tasks:
+  - name: set fact for db_server IP
+    set_fact: db_server="{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
+
   - name: copy ifcfg-eth1
     template:
       src: ifcfg

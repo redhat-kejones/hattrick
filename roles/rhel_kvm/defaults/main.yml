@@ -8,6 +8,10 @@ git_repo: https://github.com/redhat-kejones/hattrick
 # defaults file for roles/rhel_kvm
 rhel_kvm:
   hostname_full: kvm.{{ domain }}
+  disks:
+    root: sda
+    libvirt_images: sdb
+    content: sdc
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms

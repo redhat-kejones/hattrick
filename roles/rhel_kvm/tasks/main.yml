@@ -1,5 +1,8 @@
 ---
 # tasks file for roles/rhel_kvm
+- debug:
+    msg: "{{ rhel_kvm }}"
+
 - name: set hostname
   hostname:
     name: "{{ rhel_kvm.hostname_full }}"
@@ -34,13 +37,6 @@
   with_items:
     - "{{ rhel_kvm.packages }}"
 
-- name: clone the code repository to the /root
-  git:
-    repo: "{{ git_repo }}"
-    dest: /root/
-    accept_hostkey: yes
-  tags: clone_repo
-
 - copy:
     src: files/kvm.conf
     dest: /etc/modprobe.d/kvm.conf
@@ -57,75 +53,104 @@
   mount:
     path: /var/lib/libvirt/images
     state: unmounted
+  when: rhel_kvm.disks.libvirt_images is defined
 
 - name: unmount Red Hat Content storage
   mount:
     path: /content
     state: unmounted
+  when: rhel_kvm.disks.content is defined
 
-- name: read sda device information (always use unit when probing)
-  parted: device=/dev/sda unit=MiB
-  register: sda_info
-
-- name: remove all partitions from sda
+- name: "read {{ rhel_kvm.disks.libvirt_images }} device information (always use unit when probing)"
   parted:
-    device: /dev/sda
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    unit: MiB
+  register: libvirt_images_info
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "remove all partitions from {{ rhel_kvm.disks.libvirt_images }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     number: "{{ item.num }}"
     state: absent
   with_items:
-   - "{{ sda_info.partitions }}"
+   - "{{ libvirt_images_info.partitions }}"
   ignore_errors: true
+  when: rhel_kvm.disks.libvirt_images is defined
 
-- name: create 1 primary partition on sda
+- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
   parted:
-    device: /dev/sda
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     number: 1
     state: present
+  when: rhel_kvm.disks.libvirt_images is defined
 
-- name: format sda1 xfs
+- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
   filesystem:
     fstype: xfs
-    dev: /dev/sda1
+    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+  when: rhel_kvm.disks.libvirt_images is defined
 
-- name: read sdb device information (always use unit when probing)
-  parted: device=/dev/sdb unit=MiB
-  register: sdb_info
-
-- name: remove all partitions from sdb
+- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
   parted:
-    device: /dev/sdb
+    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
+    number: 1
+    state: present
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+  when: rhel_kvm.disks.libvirt_images is defined
+
+- name: "read {{ rhel_kvm.disks.content }} device information (always use unit when probing)"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.content }}"
+    unit: MiB
+  register: content_info
+  when: rhel_kvm.disks.content is defined
+
+- name: "remove all partitions from {{ rhel_kvm.disks.content }}"
+  parted:
+    device: "/dev/{{ rhel_kvm.disks.content }}"
     number: "{{ item.num }}"
     state: absent
   with_items:
-   - "{{ sdb_info.partitions }}"
+   - "{{ content_info.partitions }}"
   ignore_errors: true
+  when: rhel_kvm.disks.content is defined
 
-- name: create 1 primary partition on sdb
+- name: "create 1 primary partition on {{ rhel_kvm.disks.content }}"
   parted:
-    device: /dev/sdb
+    device: "/dev/{{ rhel_kvm.disks.content }}"
     number: 1
     state: present
+  when: rhel_kvm.disks.content is defined
 
-- name: format sdb1 xfs
+- name: "format {{ rhel_kvm.disks.content }}1 xfs"
   filesystem:
     fstype: xfs
-    dev: /dev/sdb1
+    dev: "/dev/{{ rhel_kvm.disks.content }}1"
+  when: rhel_kvm.disks.content is defined
 
-- name: mount sda1 for libvirt images
+- name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
   mount:
     path: /var/lib/libvirt/images
-    src: /dev/sda1
+    src: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
     fstype: xfs
     opts: defaults
     state: mounted
+  when: rhel_kvm.disks.libvirt_images is defined
 
-- name: mount sdb1 for Red Hat Content storage
+- name: "mount {{ rhel_kvm.disks.content }}1 for Red Hat Content storage"
   mount:
     path: /content
-    src: /dev/sdb1
+    src: "/dev/{{ rhel_kvm.disks.content }}1"
     fstype: xfs
     opts: defaults
     state: mounted
+  when: rhel_kvm.disks.content is defined
 
 - service:
     name: libvirtd
@@ -137,12 +162,18 @@
     name: root
     generate_ssh_key: yes
     ssh_key_bits: 2048
-    ssh_key_file: .ssh/id_rsa
+    ssh_key_file: /root/.ssh/id_rsa
+
+- name: copy over ssh config
+  copy:
+    src: files/ssh_config
+    dest: /root/.ssh/config
 
 - name: fetch public key from KVM host
   fetch:
     src: /root/.ssh/id_rsa.pub
     dest: files/kvm_root_id_rsa.pub
+    flat: yes
 
 - name: copy over the rhel guest image for later virtual disk images
   copy:
@@ -152,6 +183,45 @@
 
 - name: remove cloud-init and set root password on base rhel 7 guest image
   command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --run-command 'yum remove cloud-init* -y'"
+
+- name: install the epel rpm from a remote repo
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+
+- name: install ansible and other packages
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - python-pip
+
+- name: make sure pip is latest
+  pip:
+    name: pip
+    state: latest
+
+- name: make sure setuptools is latest
+  pip:
+    name: setuptools
+    state: latest
+
+- name: install shade
+  pip:
+    name: shade
+    version: 1.27.1
+    extra_args: "-Iv"
+
+- name: copy over ansible.cfg
+  copy:
+    src: files/.ansible.cfg
+    dest: /root/.ansible.cfg
+
+- name: remove temporary nameserver from /etc/resolv.conf file
+  lineinfile:
+    dest: /etc/resolv.conf
+    line: "nameserver {{ dns_server_public }}"
+    state: absent
 
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"

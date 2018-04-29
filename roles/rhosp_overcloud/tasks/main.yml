@@ -80,7 +80,7 @@
     dest: /home/stack/overcloudPostConfig.sh
     owner: stack
     group: stack
-    mode: 775
+    mode: 0775
   tags: post-overcloud
  
 - name: run overcloud post configuration
