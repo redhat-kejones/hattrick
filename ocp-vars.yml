@@ -4,7 +4,7 @@ ocp:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
     - rhel-7-fast-datapath-rpms
-    - rhel-7-server-ose-3.6-rpms
+    - rhel-7-server-ose-3.9-rpms
 osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
 osp_ip: 192.168.1.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
@@ -27,4 +27,4 @@ ipa_password: "{{ vault_idm_admin_pwd }}"
 ocpuser: admin
 ocppass: redhat
 ocp_wildcard_domain: ocp.shadowbox.lab
-#master1: .shadowbox.lab
+master1: osp-master-0c6a.shadowbox.lab

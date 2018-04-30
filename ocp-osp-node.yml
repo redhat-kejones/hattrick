@@ -22,26 +22,34 @@
 
 - hosts:
     - master
-    - node
+#    - node
   remote_user: root
   become: true
   vars_files:
     - 'ocp-vars.yml'
   tasks:
-    - name: add newnodes line
-      lineinfile:
-        dest: /etc/ansible/hosts
-        state: present
-        insertafter: '^nodes'
-        line: 'new_nodes'
+    - name: copy over ansible.cfg
+      copy:
+        src: files/.ansible.cfg
+        dest: /root/.ansible.cfg
 
-    - name: add newnodes block
-      blockinfile:
-        insertafter: EOF
-        path: /etc/ansible/hosts
-        content: |
-          [new_nodes]
-          {{ hostvars[groups['node'][0]]['ansible_default_ipv4']['address'] }}
+#    - name: add newnodes line
+#      lineinfile:
+#        dest: /etc/ansible/hosts
+#        state: present
+#        insertafter: '^nodes'
+#        line: 'new_nodes'
+#      when: "'master' in group_names"
+#
+#    - name: add newnodes block
+#      blockinfile:
+#        insertafter: EOF
+#        path: /etc/ansible/hosts
+#        content: |
+#          [new_nodes]
+#          {{ hostvars[groups['node'][0]]['ansible_default_ipv4']['address'] }}
+#      when: "'master' in group_names"
+
 - hosts: '!localhost'
   remote_user: cloud-user
   become: true
