@@ -1,0 +1,66 @@
+---
+- hosts: rhosp_director
+  name: playbook to startup all hattrick systems and services
+  remote_user: root
+  tasks:
+  - name: startup overcloud hosts
+    command: "for i in {1..4}; do ironic node-set-power-state node$i on; done"
+
+  - name: waiting for horizon to come online
+    wait_for:
+      host: "192.168.1.40"
+      state: started
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 80
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+  - name: Authenticate to the cloud and retrieve the service catalog
+    os_auth:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+
+  - name: Show service catalog
+    debug:
+      var: service_catalog
+
+  - name: get list of openstack projects
+    os_project_facts:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+
+  - debug:
+    var: openstack_projects
+
+  #TODO: should I loop over projects and start all vms?
+  #      or just operators project vms?
+
+  - os_server_facts:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+  
+  - debug:
+    var: openstack_servers
+
+  - os_server_action:
+      action: start
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      server: {{ item.name }}
+      timeout: 200
+    with_dict: openstack_servers

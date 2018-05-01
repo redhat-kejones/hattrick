@@ -1,0 +1,7 @@
+---
+- hosts: rhel_kvm
+  name: create infrastructure VMs
+  remote_user: root
+  become: yes
+  roles:
+    - vmenator
