@@ -2,9 +2,9 @@
 # vars file for rhel_repo
 
 rhel_repo:
-  hostname_short: repo
-  sync_satellite: false
-  repos:
+  hostname_short: repos
+  sync_satellite: true
+  repos:        
     rhel:
       - rhel-{{ ansible_distribution_major_version }}-server-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
@@ -23,6 +23,7 @@ rhel_repo:
     satellite:
       - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-puppet4-rpms
 
     ocp:
       - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms

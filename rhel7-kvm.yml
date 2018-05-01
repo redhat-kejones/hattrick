@@ -1,9 +1,0 @@
----
-- hosts: rhel_kvm
-  name: playbook to complete KVM configuration and installation
-  remote_user: root
-  vars:
-    use_public_dns: true
-  roles:
-    - rhel_common
-    - rhel_kvm

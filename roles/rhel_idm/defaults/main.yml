@@ -1,7 +1,7 @@
 ---
 # defaults for all
 domain: two.hattrick.lab
-dns_server_local: 192.168.0.4
+dns_server_local: 172.16.11.15
 dns_server_public: 8.8.8.8
 git_repo: https://github.com/redhat-kejones/hattrick
 
@@ -31,13 +31,13 @@ rhel_idm:
   dns_records:
   - hostname: switch
     record_type: A
-    ip_address: 192.168.0.2
+    ip_address: 172.16.11.2
     reverse_record: 2.0
   - hostname: router
     record_type: A
-    ip_address: 192.168.0.2
+    ip_address: 172.16.0.1
     reverse_record: 2.0
   - hostname: kvm
     record_type: A
-    ip_address: 192.168.0.3
+    ip_address: 172.16.11.10
     reverse_record: 3.0

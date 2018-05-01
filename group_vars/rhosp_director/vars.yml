@@ -9,7 +9,7 @@ rhosp_director:
   # All variales for undercloud.conf
   cloud_domain: "{{ domain }}"
   hostname_short: undercloud
-  ntp_servers: time.google.com
+  ntp_servers: time.google.com #TODO: public or local NTP? maybe KVM or Cisco Switch
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
@@ -18,24 +18,24 @@ rhosp_director:
   # portion of the value will be assigned to the network interface
   # defined by local_interface, with the netmask defined by the prefix
   # portion of the value
-  provisioning_ip: 192.168.2.10/24
+  provisioning_ip: 172.16.10.16/24
   # Network CIDR for the Neutron-managed network for Overcloud
   # instances. This should be the subnet used for PXE booting
-  provisioning_network_cidr: 192.168.2.0/24
+  provisioning_network_cidr: 172.16.10.0/24
   # Network gateway for the Neutron-managed network for Overcloud
   # instances. This should match the local_ip above when using masquerading
-  provisioning_network_gateway: 192.168.2.10
+  provisioning_network_gateway: 172.16.10.1
   # Virtual IP address to use for the admin endpoints of Undercloud services.
-  admin_apis_vip: 192.168.2.11
+  admin_apis_vip: 172.16.10.17
   # Temporary IP range that will be given to nodes during the discovery
   # process.  Should not overlap with the range defined by dhcp_start
   # and dhcp_end, but should be in the same network
-  inspection_dhcp_start: 192.168.2.40
-  inspection_dhcp_end: 192.168.2.59
+  inspection_dhcp_start: 172.16.10.20
+  inspection_dhcp_end: 172.16.10.39
   # Start of DHCP allocation range for PXE and DHCP of Overcloud instances
-  deploy_dhcp_start: 192.168.2.20
+  deploy_dhcp_start: 172.16.10.40
   # End of DHCP allocation range for PXE and DHCP of Overcloud instances
-  deploy_dhcp_end: 192.168.2.39
+  deploy_dhcp_end: 172.16.10.69
   # Defines whether to wipe the hard drive of overcloud nodes between
   # deployments and after the introspection
   clean_nodes: false
@@ -45,7 +45,7 @@ rhosp_director:
   overcloud_nodes:
     - name: node1
       profile: control
-      pm_addr: "192.168.2.201"
+      pm_addr: "172.16.10.11"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
@@ -53,7 +53,7 @@ rhosp_director:
       pm_driver: "pxe_ipmitool"
     - name: node2
       profile: compute
-      pm_addr: "192.168.2.202"
+      pm_addr: "172.16.10.12"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
@@ -61,7 +61,7 @@ rhosp_director:
       pm_driver: "pxe_ipmitool"
     - name: node3
       profile: compute
-      pm_addr: "192.168.2.203"
+      pm_addr: "172.16.10.13"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
@@ -69,7 +69,7 @@ rhosp_director:
       pm_driver: "pxe_ipmitool"
     - name: node4
       profile: compute
-      pm_addr: "192.168.2.204"
+      pm_addr: "172.16.10.14"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,

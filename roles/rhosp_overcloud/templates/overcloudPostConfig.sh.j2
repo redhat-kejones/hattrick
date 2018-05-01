@@ -2,17 +2,17 @@
 
 #Parameters
 user=operator
-password=redhat
+password=Redhat1993
 email=operator@redhat.com
 tenant=operators
 externalNetwork=public
-externalCidr='192.168.0.0/23'
-externalGateway='192.168.0.1'
-externalDns='192.168.0.4'
-externalFipStart='192.168.1.70'
-externalFipEnd='192.168.1.199'
+externalCidr='172.16.11.0/24'
+externalGateway='172.16.11.1'
+externalDns='172.16.11.15'
+externalFipStart='172.16.11.30'
+externalFipEnd='172.16.11.199'
 tenantNetwork=private
-tenantCidr='172.16.0.0/24'
+tenantCidr='192.168.0.0/24'
 keypairName=operator
 keypairPubkey="{{ rhosp_overcloud.operator_pub_key }}"
 
@@ -61,7 +61,7 @@ openstack flavor create --id 8 --ram 8192 --disk 40 --vcpus 2 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type
-neutron net-create $externalNetwork --provider:network_type flat --provider:physical_network datacentre --shared --router:external 
+neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id 11 --provider:physical_network datacentre --shared --router:external 
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns
@@ -75,13 +75,7 @@ neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --d
 #Create provider networks
 #Provisioning
 neutron net-create provisioning --provider:network_type flat  --provider:physical_network prov
-neutron subnet-create provisioning 192.168.2.0/24 --name provisioning-sub --allocation-pool=start=192.168.2.60,end=192.168.2.99 --no-gateway
-#Provider905
-neutron net-create provider905 --provider:network_type vlan --provider:segmentation_id 905 --provider:physical_network datacentre 
-neutron subnet-create provider905 192.168.105.0/24 --name provider905-sub --allocation-pool=start=192.168.105.20,end=192.168.105.199 --no-gateway
-#Provider906
-neutron net-create provider906 --provider:network_type vlan --provider:segmentation_id 906 --provider:physical_network datacentre 
-neutron subnet-create provider906 192.168.106.0/24 --name provider906-sub --allocation-pool=start=192.168.106.20,end=192.168.106.199 --no-gateway
+neutron subnet-create provisioning 172.16.10.0/24 --name provisioning-sub --allocation-pool=start=172.16.10.70,end=172.16.10.99 --no-gateway
 
 #Create a router
 neutron router-create router-$externalNetwork

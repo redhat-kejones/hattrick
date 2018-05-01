@@ -1,7 +1,0 @@
----
-- name: configure and deploy RHOSP Overcloud
-  hosts: rhosp_director
-  remote_user: root
-  roles:
-    - rhosp_overcloud
-

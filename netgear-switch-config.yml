@@ -1,7 +1,0 @@
-#TODO: Need to write playbook to configure switch with known
-#      Working configuration
-#
----
-- hosts: switch
-  roles:
-     - netgear-xs710
