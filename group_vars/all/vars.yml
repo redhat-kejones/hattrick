@@ -1,5 +1,5 @@
-domain: pod1.mpc
-dns_server_local: 172.16.11.15
+domain: pod2.mpc
+dns_server_local: 172.16.21.15
 dns_server_public: 8.8.8.8
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 git_repo: https://github.com/redhat-kejones/hattrick
@@ -7,18 +7,18 @@ git_repo: https://github.com/redhat-kejones/hattrick
 networks:
   external:
     name: external
-    cidr: 172.16.11.0/24
+    cidr: 172.16.21.0/24
     defroute: true
-    gateway: 172.16.11.1
+    gateway: 172.16.21.1
     vlan: 11
   provisioning:
     name: provisioning
-    cidr: 172.16.10.0/24
+    cidr: 172.16.20.0/24
     defroute: false
     vlan: 10
 
 versions:
   rhosp: 10
-  satellite: 6.2
+  satellite: 6.3
   ocp: 3.6
   cfme: 5.9

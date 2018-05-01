@@ -27,21 +27,21 @@ rhel_idm:
     reverse_record: 1.0
   - hostname: switch
     record_type: A
-    ip_address: 172.16.10.2
+    ip_address: 172.16.20.2
     reverse_record: 2.10
   - hostname: kvm
     record_type: A
-    ip_address: 172.16.11.10
+    ip_address: 172.16.21.10
     reverse_record: 10.11
   - hostname: repos
     record_type: A
-    ip_address: 172.16.11.18
+    ip_address: 172.16.21.18
     reverse_record: 14.11
   - hostname: undercloud
     record_type: A
-    ip_address: 172.16.11.16
+    ip_address: 172.16.21.16
     reverse_record: 12.11
   - hostname: openstack
     record_type: A
-    ip_address: 172.16.11.20
+    ip_address: 172.16.21.20
     reverse_record: 15.11
