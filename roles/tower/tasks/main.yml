@@ -1,0 +1,20 @@
+---
+# tasks file for tower
+  - name: Register with Red Hat Subscription Manager
+    redhat_subscription:
+      state: present
+      username: "{{ rhn_user }}"
+      password: "{{ rhn_pass }}"
+      pool_ids:
+        - "{{ rhn_pool }}"
+
+  - name: Disable all repos
+    command: subscription-manager repos --disable "*"
+
+  - name: Enable necessary repos
+    command: subscription-manager repos --enable="rhel-7-server-rpms"     --enable="rhel-7-server-extras-rpms" 
+
+  - name: Install & enable EPEL repo
+    command: 'yum install http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+
+http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
