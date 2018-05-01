@@ -3,6 +3,21 @@
     command: subscription-manager repos --enable={{ item }}
     with_items:
       - "{{ ocp.repos }}"
+
+  - name: update packages
+    yum:
+      name: '*'
+      state: latest
+      skip_broken: yes
+    register: yum_result
+    async: 1000
+    poll: 30
+
+  - name: check Kernel is the Latest
+    shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+    ignore_errors: true
+    register: reboot_hint
+
 #  - name: Add Repos
 #    yum_repository:
 #      name: "{{ item.name }}"
@@ -42,6 +57,43 @@
     - atomic-openshift-utils
     - docker-1.12.6
     - ipa-client
+    - dnsmasq
+
+  - name: restart server to get updated kernel
+    shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+    async: 1
+    poll: 0
+    ignore_errors: true
+    when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+  - name: waiting for repo server to come back online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 80
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+  - name: add newnodes line
+    lineinfile:
+      dest: /etc/ansible/hosts
+      state: present
+      insertafter: '^nodes'
+      line: 'new_nodes'
+
+  - name: add newnodes block
+    blockinfile:
+      insertafter: EOF
+      path: /etc/ansible/hosts
+      content: |
+        [new_nodes]
+         {{ hostvars[groups['node'][0]]['inventory_hostname'] }}
+#        {{ inventory_hostname }}
+
   - name: configure IPA client
     command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --ip-address='{{ inventory_hostname }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended
     when: "'node' in group_names"

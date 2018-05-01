@@ -45,13 +45,6 @@
      timeout: "320"
      state: "started"
 
-  - name: add master to inventory
-    add_host:
-      hostname: "{{ osp_host.openstack.public_v4 }}"
-      ansible_ssh_user: cloud-user
-      groupname: master
-    when: master
-
   - name: add node to inventory
     add_host:
       hostname: "{{ osp_host.openstack.public_v4 }}"
