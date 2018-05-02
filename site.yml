@@ -29,9 +29,10 @@
   tags: infrastructure
   import_playbook:  05-rhosp-director-install.yml
 
-- name: install and configure reposync server
-  tags: infrastructure
-  import_playbook:  06-rhel7-repo-install.yml
+#Note: note needed
+#- name: install and configure reposync server
+#  tags: infrastructure
+#  import_playbook:  06-rhel7-repo-install.yml
 
 - name: install and configure RHOSP overcloud
   tags: infrastructure
