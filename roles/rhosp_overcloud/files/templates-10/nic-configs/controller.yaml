@@ -117,7 +117,7 @@ resources:
               members:
                 -
                   type: interface
-                  name: enp8s0
+                  name: enp7s0
                   primary: true
             -
               type: ovs_bridge
