@@ -6,6 +6,6 @@ register_rhn: false
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pwd: "{{ vault_rhn_pwd }}"
 rhn_pool_name: "{{ vault_rhn_pool_name }}"
-local_repo_url: "http://172.16.21.18/"
-#MPC Synology
-#local_repo_url: "http://172.16.2.10/repos/"
+#local_repo_url: "http://172.16.21.18/"
+MPC Synology
+local_repo_url: "http://172.16.2.10/repos/"
