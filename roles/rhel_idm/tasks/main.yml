@@ -62,7 +62,7 @@
     delay: 10
     connect_timeout: 5
     timeout: 300
-    port: 443
+    port: 22
   delegate_to: 127.0.0.1
   become: false
   ignore_errors: true
@@ -76,6 +76,18 @@
 
 - name: Setup IPA Server
   command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
+
+- name: waiting for IDM services to come up
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 443
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
 
 - name: add users to IDM
   ipa_user:
