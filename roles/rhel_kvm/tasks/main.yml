@@ -8,9 +8,21 @@
     name: "{{ rhel_kvm.hostname_full }}"
 
 - name: enable the needed rhel repositories
-  command: subscription-manager repos --enable={{ item }}
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
   with_items:
     - "{{ rhel_kvm.repos }}"
+
+#- name: enable the needed rhel repositories
+#  command: subscription-manager repos --enable={{ item }}
+#  with_items:
+#    - "{{ rhel_kvm.repos }}"
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo

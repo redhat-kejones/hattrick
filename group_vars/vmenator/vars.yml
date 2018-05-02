@@ -5,10 +5,10 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "--type bridge --source br2 --model virtio"
+      config: "--type bridge --source br1 --model virtio"
       #config: "--type network --source provisioning --model virtio"
     - name: eth1
-      config: "--type bridge --source br1 --model virtio"
+      config: "--type bridge --source br2 --model virtio"
       #config: "--type network --source external --model virtio"
     ram: 16384
     vcpus: 8
@@ -17,16 +17,16 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "--type bridge --source br1 --model virtio"
+      config: "--type bridge --source br2 --model virtio"
       #config: "--type network --source external --model virtio"
     ram: 4096
     vcpus: 1
-  - name: repo
-    disk_os_name: repo-os.qcow2
-    disk_os_size: 200G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br1 --model virtio"
-      #config: "--type network --source external --model virtio"
-    ram: 1024
-    vcpus: 1
+#  - name: repo
+#    disk_os_name: repo-os.qcow2
+#    disk_os_size: 200G
+#    nics:
+#    - name: eth0
+#      config: "--type bridge --source br2 --model virtio"
+#      #config: "--type network --source external --model virtio"
+#    ram: 1024
+#    vcpus: 1

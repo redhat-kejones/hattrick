@@ -9,11 +9,24 @@
   roles:
     - rhel_common
   tasks:
+
     - name: enable the needed rhel repositories
-      command: subscription-manager repos --enable={{ item }}
+      yum_repository:
+        name: "{{ item }}"
+        description: "{{ item }}"
+        baseurl: "{{ local_repo_url }}{{ item }}"
+        gpgcheck: no
+        enabled: yes
+        file: rhn-local
+        state: present
       with_items:
-        - rhel-7-server-rpms
-        - rhel-7-server-extras-rpms
+        - "{{ repos }}"
+
+#    - name: enable the needed rhel repositories
+#      command: subscription-manager repos --enable={{ item }}
+#      with_items:
+#        - rhel-7-server-rpms
+#        - rhel-7-server-extras-rpms
 
     - name: install the epel rpm from a remote repo
       yum:

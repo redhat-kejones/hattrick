@@ -1,9 +1,9 @@
 rhel_kvm:
-  hostname_full: "kvm.{{ domain }}"
+  hostname_full: "nuc.{{ domain }}"
   disks:
     root: sda
     libvirt_images: sdb
-    content: sdc
+#    content: sdc
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms

@@ -12,10 +12,22 @@
     line: "{{ inventory_hostname }} {{ rhel_idm.hostname_short }}.{{ domain }} {{ rhel_idm.hostname_short }}"
 
 - name: enable the needed rhel repositories
-  command: subscription-manager repos --enable={{ item }}
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
   with_items:
     - "{{ rhel_idm.repos }}"
-  when: ansible_distribution == 'RedHat' and register_rhn
+
+#- name: enable the needed rhel repositories
+#  command: subscription-manager repos --enable={{ item }}
+#  with_items:
+#    - "{{ rhel_idm.repos }}"
+#  when: ansible_distribution == 'RedHat' and register_rhn
 
 - name: update packages
   yum:

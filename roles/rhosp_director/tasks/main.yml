@@ -22,19 +22,32 @@
   tags: prep
 
 - name: enable the needed rhel repositories
-  command: subscription-manager repos --enable={{ item }}
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
   with_items:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-    - rhel-7-server-rh-common-rpms
-    - rhel-ha-for-rhel-7-server-rpms
-    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
-    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-    - rhel-7-server-rhceph-2-osd-rpms
-    - rhel-7-server-rhceph-2-mon-rpms
-    - rhel-7-server-rhceph-2-tools-rpms
-  when: ansible_distribution == 'RedHat' and register_rhn
+    - "{{ rhosp_director.repos }}"
   tags: prep
+
+#- name: enable the needed rhel repositories
+#  command: subscription-manager repos --enable={{ item }}
+#  with_items:
+#    - rhel-7-server-rpms
+#    - rhel-7-server-extras-rpms
+#    - rhel-7-server-rh-common-rpms
+#    - rhel-ha-for-rhel-7-server-rpms
+#    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+#    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+#    - rhel-7-server-rhceph-2-osd-rpms
+#    - rhel-7-server-rhceph-2-mon-rpms
+#    - rhel-7-server-rhceph-2-tools-rpms
+#  when: ansible_distribution == 'RedHat' and register_rhn
+#  tags: prep
 
 - name: add stack user and set password
   user:

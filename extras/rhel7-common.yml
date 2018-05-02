@@ -5,4 +5,4 @@
   name: playbook to complete KVM configuration and installation
   remote_user: root
   roles:
-    - rhel_common
+    - ../roles/rhel_common

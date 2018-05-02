@@ -2,6 +2,16 @@ rhosp_director:
   poweroff: true
   bootdev: network
   validation_errors: []
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+    - rhel-7-server-rhceph-2-osd-rpms
+    - rhel-7-server-rhceph-2-mon-rpms
+    - rhel-7-server-rhceph-2-tools-rpms
   
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
