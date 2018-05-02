@@ -47,6 +47,13 @@
     name: cloud-init
     state: absent
 
+- name: install IPA packages
+  yum:
+    name: '{{ item }}'
+    state: latest
+  with_items:
+    - "{{ rhel_idm.packages }}"
+
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
   async: 1
@@ -66,13 +73,6 @@
   delegate_to: 127.0.0.1
   become: false
   ignore_errors: true
-
-- name: install IPA packages
-  yum:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - "{{ rhel_idm.packages }}"
 
 - name: Setup IPA Server
   command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
