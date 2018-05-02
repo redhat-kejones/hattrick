@@ -85,24 +85,41 @@ neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 neutron router-gateway-set router-$externalNetwork $externalNetwork
 
 mkdir -p /home/stack/guest-images
+mount 172.16.2.10/volume1/web/install/images /home/stack/guest-images
 
-#Download the cirros test image
-curl -o /home/stack/guest-images/cirros.qcow2 http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
-qemu-img convert -f qcow2 -O raw /home/stack/guest-images/cirros.qcow2 /home/stack/guest-images/cirros035.img
-#Upload the cirros test image to glance and share publicly
+#Cirros
 glance image-create --name cirros035 --disk-format raw \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros035.img
-#glance image-create --name rhel74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
-#glance image-create --name centos7 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
-#glance image-create --name rhel69 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
-#glance image-create --name rhelatomic74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
-#glance image-create --name spark160 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
-#glance image-create --name cf45 --disk-format raw --min-disk 40 --min-ram 12288 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.8.1.5-1.x86_64.img
-#glance image-create --name win2012r2 --disk-format raw --min-disk 40 --min-ram 4096 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros-0.3.5-x86_64-disk.img
+
+#RHEL Cloud Images
+glance image-create --name rhel74 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
+
+glance image-create --name rhel75 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.5-x86_64-kvm.img
+
+glance image-create --name rhel69 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
+
+glance image-create --name rhel610 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-6.10-beta-1-x86_64-kvm.img
+
+#RHEL Atomic
+glance image-create --name rhelatomic74 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
+
+#CentOS 7
+glance image-create --name centos7 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
+
+#Sahara Apache Spark
+glance image-create --name spark160 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
+
+#CloudForms
+glance image-create --name cf46 --disk-format raw --min-disk 40 --min-ram 12288 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.9.1.2-1.x86_64.img
+
+#Windows Server 2012r2 Cloud Image
+glance image-create --name win2012r2 --disk-format raw --min-disk 40 --min-ram 4096 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img

@@ -33,17 +33,9 @@
   tags: infrastructure
   import_playbook:  06-rhel7-repo-install.yml
 
-- name: give operator chance to make sure nodes are ready for overcloud deploy
-  pause:
-    prompt: "Make sure ironic nodes are power off and available"
-
 - name: install and configure RHOSP overcloud
   tags: infrastructure
   import_playbook:  07-rhosp-overcloud.yml
-
-- name: give operator chance to check that overcloud is ready for workloads
-  pause:
-    prompt: "Make sure ironic nodes are power off and available"
 
 - name: install and configure CloudForms
   tags: management
