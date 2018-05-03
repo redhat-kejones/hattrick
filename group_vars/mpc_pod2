@@ -26,7 +26,46 @@ networks:
     name: provisioning
     cidr: 172.16.20.0/24
     defroute: false
+    gateway: 172.16.20.1
     vlan: 20
+    dhcpStart: 172.16.20.70
+    dhcpEnd: 172.16.20.99
+  interanal_api:
+    name: internal_api
+    cidr: 172.16.23.0/24
+    defroute: false
+    vlan: 23
+    dhcpStart: 172.16.23.40
+    dhcpEnd: 172.16.23.250
+  tenant:
+    name: internal_api
+    cidr: 172.16.24.0/24
+    defroute: false
+    vlan: 24
+    dhcpStart: 172.16.24.40
+    dhcpEnd: 172.16.24.250
+  storage:
+    name: storage
+    cidr: 172.16.25.0/24
+    defroute: false
+    vlan: 25
+    dhcpStart: 172.16.25.40
+    dhcpEnd: 172.16.25.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 172.16.26.0/24
+    defroute: false
+    vlan: 26
+    dhcpStart: 172.16.26.40
+    dhcpEnd: 172.16.26.250
+  provider:
+    name: provider
+    cidr: 172.16.22.0/24
+    defroute: false
+    gateway: 172.16.22.1
+    vlan: 22
+    dhcpStart: 172.16.22.40
+    dhcpEnd: 172.16.22.250
 
 versions:
   rhosp: 10

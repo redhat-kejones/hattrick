@@ -27,6 +27,44 @@ networks:
     cidr: 172.16.10.0/24
     defroute: false
     vlan: 10
+    dhcpStart: 172.16.10.70
+    dhcpEnd: 172.16.10.99
+  interanal_api:
+    name: internal_api
+    cidr: 172.16.13.0/24
+    defroute: false
+    vlan: 13
+    dhcpStart: 172.16.13.40
+    dhcpEnd: 172.16.13.250
+  tenant:
+    name: internal_api
+    cidr: 172.16.14.0/24
+    defroute: false
+    vlan: 14
+    dhcpStart: 172.16.14.40
+    dhcpEnd: 172.16.14.250
+  storage:
+    name: storage
+    cidr: 172.16.15.0/24
+    defroute: false
+    vlan: 15
+    dhcpStart: 172.16.15.40
+    dhcpEnd: 172.16.15.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 172.16.16.0/24
+    defroute: false
+    vlan: 16
+    dhcpStart: 172.16.16.40
+    dhcpEnd: 172.16.16.250
+  provider:
+    name: provider
+    cidr: 172.16.12.0/24
+    defroute: false
+    gateway: 172.16.12.1
+    vlan: 12
+    dhcpStart: 172.16.12.40
+    dhcpEnd: 172.16.12.250
 
 versions:
   rhosp: 10
