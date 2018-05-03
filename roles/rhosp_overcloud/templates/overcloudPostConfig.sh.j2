@@ -90,7 +90,7 @@ neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 neutron router-gateway-set router-$externalNetwork $externalNetwork
 
 mkdir -p /home/stack/guest-images
-sudo mount 172.16.2.10:/volume1/web/install/images /home/stack/guest-images
+sudo mount {{ nfs_server }}:/volume1/web/install/images /home/stack/guest-images
 
 #Cirros
 glance image-create --name cirros --disk-format raw \

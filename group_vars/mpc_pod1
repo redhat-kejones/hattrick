@@ -5,6 +5,8 @@ use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 git_repo: https://github.com/redhat-kejones/hattrick
 
+nfs_server: 172.16.2.10
+
 register_rhn: false
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pwd: "{{ vault_rhn_pwd }}"
@@ -20,6 +22,8 @@ networks:
     defroute: true
     gateway: 172.16.11.1
     vlan: 11
+    dhcpStart: 172.16.11.20
+    dhcpEnd: 172.16.11.29
     fipStart: 172.16.11.30
     fipEnd: 172.16.11.199
   provisioning:
