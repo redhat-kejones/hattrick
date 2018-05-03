@@ -6,11 +6,12 @@ password=Redhat1993
 email=operator@redhat.com
 tenant=operators
 externalNetwork=public
-externalCidr='172.16.21.0/24'
-externalGateway='172.16.21.1'
-externalDns='172.16.21.15'
-externalFipStart='172.16.21.30'
-externalFipEnd='172.16.21.199'
+externalCidr={{ networks.external.cidr }}
+externalVlanId={{ networks.external.vlan }}
+externalGateway={{ networks.external.gateway }}
+externalDns={{ dns_server_local }}
+externalFipStart={{ networks.external.fipStart }}
+externalFipEnd={{ networks.external.fipEnd }}
 tenantNetwork=private
 tenantCidr='192.168.0.0/24'
 keypairName=operator
@@ -61,7 +62,7 @@ openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 40 --vcpus 2 --p
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type
-neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id 11 --provider:physical_network datacentre --shared --router:external 
+neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external 
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns

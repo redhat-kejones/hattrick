@@ -10,12 +10,14 @@ networks:
     cidr: 172.16.21.0/24
     defroute: true
     gateway: 172.16.21.1
-    vlan: 11
+    vlan: 21
+    fipStart: 172.16.21.30
+    fipEnd: 172.16.21.199
   provisioning:
     name: provisioning
     cidr: 172.16.20.0/24
     defroute: false
-    vlan: 10
+    vlan: 20
 
 versions:
   rhosp: 10
