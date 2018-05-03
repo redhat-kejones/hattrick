@@ -62,7 +62,7 @@ openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 40 --vcpus 2 --p
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type
-neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external 
+neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns
@@ -75,8 +75,12 @@ neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --d
 
 #Create provider networks
 #Provisioning
-neutron net-create provisioning --provider:network_type flat  --provider:physical_network prov
-neutron subnet-create provisioning 172.16.20.0/24 --name provisioning-sub --allocation-pool=start=172.16.20.70,end=172.16.20.99 --no-gateway
+neutron net-create {{ networks.provisioning.name }} --provider:network_type flat  --provider:physical_network prov
+neutron subnet-create {{ networks.provisioning.name }} {{ networks.provisioning.cidr }} --name {{ networks.provisioning.name }}-sub --allocation-pool=start={{ networks.provisioning.dhcpStart }},end={{ networks.provisioning.dhcpEnd }} --no-gateway
+
+#provider
+neutron net-create {{ networks.provider.name }} --provider:network_type vlan --provider:segmentation_id {{ networks.provider.vlan }}  --provider:physical_network datacentre
+neutron subnet-create {{ networks.provider.name }} {{ networks.provider.cidr }} --name {{ networks.provider.name }}-sub --allocation-pool=start={{ networks.provider.dhcpStart }},end={{ networks.provider.dhcpEnd }} --gateway={{ networks.provider.gateway }}  --dns-nameserver $externalDns
 
 #Create a router
 neutron router-create router-$externalNetwork
