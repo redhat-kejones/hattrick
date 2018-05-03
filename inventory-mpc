@@ -21,6 +21,11 @@ localhost
 [pod3_switch]
 172.16.30.2
 
+[switch:children]
+pod1_switch
+pod2_switch
+pod3_switch
+
 [pod1_rhel_common]
 172.16.11.10
 172.16.11.15
@@ -39,6 +44,11 @@ localhost
 172.16.31.16
 172.16.31.18
 
+[rhel_common:children]
+pod1_rhel_common
+pod2_rhel_common
+pod3_rhel_common
+
 [pod1_rhel_kvm]
 172.16.11.10
 
@@ -47,6 +57,11 @@ localhost
 
 [pod3_rhel_kvm]
 172.16.31.10
+
+[rhel_kvm]
+pod1_rhel_kvm
+pod2_rhel_kvm
+pod3_rhel_kvm
 
 [pod1_vmenator]
 172.16.11.10
@@ -57,6 +72,11 @@ localhost
 [pod3_vmenator]
 172.16.31.10
 
+[vmenator]
+pod1_vmenator
+pod2_vmenator
+pod3_vmenator
+
 [pod1_rhel_idm]
 172.16.11.15
 
@@ -66,8 +86,10 @@ localhost
 [pod3_rhel_idm]
 172.16.31.15
 
-[pod1_rhosp_director]
-172.16.11.16
+[rhel_idm]
+pod1_rhel_idm
+pod2_rhel_idm
+pod3_rhel_idm
 
 [pod1_rhosp_director]
 172.16.11.16
@@ -78,8 +100,25 @@ localhost
 [pod3_rhosp_director]
 172.16.31.16
 
-[rhosp_overcloud] #TODO: refactor this group
+[rhosp_director]
+pod1_rhosp_director
+pod2_rhosp_director
+pod3_rhosp_director
+
+ #TODO: refactor this group
+[pod1_rhosp_overcloud]
 172.16.11.16
+
+[pod2_rhosp_overcloud]
+172.16.21.16
+
+[pod3_rhosp_overcloud]
+172.16.31.16
+
+[rhosp_overcloud]
+pod1_rhosp_overcloud
+pod2_rhosp_overcloud
+pod3_rhosp_overcloud
 
 [mpc_pod1:children]
 pod1_switch
