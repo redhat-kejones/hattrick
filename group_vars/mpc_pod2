@@ -162,8 +162,10 @@ vmenator:
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"
+      ip: 172.16.20.16
     - name: eth1
       config: "--type bridge --source br2 --model virtio"
+      ip: 172.16.21.16
     ram: 16384
     vcpus: 8
   - name: idm
