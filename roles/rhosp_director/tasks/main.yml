@@ -151,7 +151,7 @@
 
 - name: setting provisioning interface onboot=no
   lineinfile:
-    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface | ipaddr('address') }}
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface }}
     state: present
     regexp: '^ONBOOT'
     line: 'ONBOOT=no'
@@ -274,7 +274,7 @@
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr }}/ {print $2}')
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('address') }}/ {print $2}')
   tags: install
 
 - name: configuring fernet tokens for overcloud
