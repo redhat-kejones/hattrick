@@ -153,6 +153,7 @@ rhel_kvm:
     - 'python'
     - 'python-devel'
     - 'python-virtualenv'
+    - 'python-netaddr'
 
 vmenator:
   vms:
