@@ -320,11 +320,7 @@ cf_db_dev: '/dev/vdb'
 region_num: 20
 security_group: cfme # works with OpenStack & EC2
 dns: 192.168.0.4
-rhn_user: "{{ vault_rhn_user }}"
-rhn_pass: "{{ vault_rhn_pwd }}"
-rhn_pool: "{{ vault_rhn_pool_name }}"
 ipa_server: "idm.{{ domain }}"
-domain: "{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
 undercloud_ip: 192.168.0.5 # OpenStack specific
