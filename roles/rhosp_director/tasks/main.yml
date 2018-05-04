@@ -151,7 +151,7 @@
 
 - name: setting provisioning interface onboot=no
   lineinfile:
-    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface }}
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface | ipaddr('address') }}
     state: present
     regexp: '^ONBOOT'
     line: 'ONBOOT=no'
