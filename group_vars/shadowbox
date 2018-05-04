@@ -1,4 +1,4 @@
-domain: pod1.mpc
+domain: shadowbox.lab
 dns_server_local: 192.168.0.4
 dns_server_public: 1.1.1.1
 use_public_dns: false #Default to false (set true individually on kvm and idm)
