@@ -1,0 +1,8 @@
+TODO
+
+- make the RHOSP templates more flexible
+- storage environment ceph disk layout and params
+- nic configs
+
+- make nic configs for vmenator dynamic
+- move osp vm creation into vmenator
