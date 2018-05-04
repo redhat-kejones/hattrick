@@ -274,7 +274,7 @@
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/172.16.20/ {print $2}')
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr }}/ {print $2}')
   tags: install
 
 - name: configuring fernet tokens for overcloud
