@@ -12,7 +12,7 @@ resource_registry:
 parameter_defaults:
   # This section is where deployment-specific configuration is done
   # CIDR subnet mask length for provisioning network
-  ControlPlaneSubnetCidr: '24'
+  ControlPlaneSubnetCidr: '{{ networks.provisioning.cidr | ipaddr('prefix') }}'
   # Gateway router for the provisioning network (or Undercloud IP)
   ControlPlaneDefaultRoute: {{ networks.provisioning.gateway }}
   EC2MetadataIp: {{ rhosp_director.provisioning_ip }}  # Generally the IP of the Undercloud
