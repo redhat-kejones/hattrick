@@ -7,6 +7,6 @@ USERCTL="yes"
 PEERDNS="yes"
 IPV6INIT="yes"
 IPADDR={{ vmenator.vms[2].nics[0].ip}}
-PREFIX=24
+PREFIX={{ networks.external.cidr | ipaddr('prefix') }}
 GATEWAY={{ networks.external.gateway }}
 DNS1={{ dns_server_local }}

@@ -8,4 +8,4 @@ PEERDNS="no"
 DEFROUTE="no"
 IPV6INIT="yes"
 IPADDR={{ vmenator.vms[0].nics[0].ip}}
-PREFIX=24
+PREFIX={{ networks.provisioning.cidr | ipaddr('prefix') }}
