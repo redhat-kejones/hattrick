@@ -18,11 +18,13 @@
     state: present
   with_items:
     - "{{ rhel_kvm.repos }}"
+  when: not register_rhn
 
-#- name: enable the needed rhel repositories
-#  command: subscription-manager repos --enable={{ item }}
-#  with_items:
-#    - "{{ rhel_kvm.repos }}"
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_kvm.repos }}"
+  when: register_rhn
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo

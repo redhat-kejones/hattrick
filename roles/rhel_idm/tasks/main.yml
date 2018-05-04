@@ -22,12 +22,13 @@
     state: present
   with_items:
     - "{{ rhel_idm.repos }}"
+  when: not register_rhn
 
-#- name: enable the needed rhel repositories
-#  command: subscription-manager repos --enable={{ item }}
-#  with_items:
-#    - "{{ rhel_idm.repos }}"
-#  when: ansible_distribution == 'RedHat' and register_rhn
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_idm.repos }}"
+  when: register_rhn
 
 - name: update packages
   yum:

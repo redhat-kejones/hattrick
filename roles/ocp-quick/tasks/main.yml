@@ -10,11 +10,13 @@
       state: present
     with_items:
       - "{{ ocp.repos }}"
+    when: not register_rhn
 
-#  - name: enable the needed rhel repositories
-#    command: subscription-manager repos --enable={{ item }}
-#    with_items:
-#      - "{{ ocp.repos }}"
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ ocp.repos }}"
+     when: register_rhn
 
   - name: update packages
     yum:
@@ -52,19 +54,19 @@
 #        description: 'OCP 3.6 rpms'
 #        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-ose-3.6-rpms'
   - name: Install necessary packages
-    yum:  
+    yum:
       name: '{{ item }}'
       state: present
-    with_items: 
-    - wget 
-    - git 
-    - net-tools 
-    - bind-utils 
-    - iptables-services 
-    - bridge-utils 
-    - bash-completion 
-    - kexec-tools 
-    - sos 
+    with_items:
+    - wget
+    - git
+    - net-tools
+    - bind-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - kexec-tools
+    - sos
     - psacct
     - atomic-openshift-utils
     - docker-1.12.6
