@@ -24,9 +24,9 @@ networks:
     defroute: true
     gateway: 192.168.0.1
     vlan: 1
-    dhcpStart: 192.168.1.20
-    dhcpEnd: 192.168.1.29
-    fipStart: 192.168.1.30
+    dhcpStart: 192.168.1.40
+    dhcpEnd: 192.168.1.69
+    fipStart: 192.168.1.70
     fipEnd: 192.168.1.199
   provisioning:
     name: provisioning

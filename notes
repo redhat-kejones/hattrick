@@ -1,5 +1,7 @@
 TODO
 
+- make deploy.sh script dynamic
+
 - make the RHOSP templates more flexible
 - storage environment ceph disk layout and params
 - nic configs
