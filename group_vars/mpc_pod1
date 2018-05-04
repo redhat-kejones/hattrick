@@ -30,10 +30,11 @@ networks:
     name: provisioning
     cidr: 172.16.10.0/24
     defroute: false
+    gateway: 172.16.10.16
     vlan: 10
     dhcpStart: 172.16.10.70
     dhcpEnd: 172.16.10.99
-  interanal_api:
+  internal_api:
     name: internal_api
     cidr: 172.16.13.0/24
     defroute: false
