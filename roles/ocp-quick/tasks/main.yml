@@ -1,8 +1,22 @@
 ---
   - name: enable the needed rhel repositories
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
+    with_items:
+      - "{{ ocp.repos }}"
+    when: not register_rhn
+
+  - name: enable the needed rhel repositories
     command: subscription-manager repos --enable={{ item }}
     with_items:
       - "{{ ocp.repos }}"
+     when: register_rhn
 
 #  - name: Add Repos
 #    yum_repository:
@@ -41,19 +55,19 @@
     register: reboot_hint
 
   - name: Install necessary packages
-    yum:  
+    yum:
       name: '{{ item }}'
       state: present
-    with_items: 
-    - wget 
-    - git 
-    - net-tools 
-    - bind-utils 
-    - iptables-services 
-    - bridge-utils 
-    - bash-completion 
-    - kexec-tools 
-    - sos 
+    with_items:
+    - wget
+    - git
+    - net-tools
+    - bind-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - kexec-tools
+    - sos
     - psacct
     - atomic-openshift-utils
     - docker-1.13.1

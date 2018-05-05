@@ -3,8 +3,6 @@
 cd ~
 source ~/stackrc
 
-#	-e /home/stack/templates/firstboot-environment.yaml \
-
 openstack overcloud deploy --templates \
   -r /home/stack/templates/roles_data.yaml \
   -e /home/stack/templates/timezone.yaml \

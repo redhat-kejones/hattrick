@@ -12,10 +12,23 @@
     line: "{{ inventory_hostname }} {{ rhel_idm.hostname_short }}.{{ domain }} {{ rhel_idm.hostname_short }}"
 
 - name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhel_idm.repos }}"
+  when: not register_rhn
+
+- name: enable the needed rhel repositories
   command: subscription-manager repos --enable={{ item }}
   with_items:
     - "{{ rhel_idm.repos }}"
-  when: ansible_distribution == 'RedHat' and register_rhn
+  when: register_rhn
 
 - name: update packages
   yum:
@@ -42,17 +55,30 @@
   with_items:
     - "{{ rhel_idm.packages }}"
 
-- name: Setup IPA Server
-  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
-
 - name: restart server to get updated kernel
   shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
   async: 1
   poll: 0
   ignore_errors: true
-  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+# TODO: force reboot for now because of dbus/dnsmasq error
+#  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
 
 - name: waiting for IDM server to come back online
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
+
+- name: Setup IPA Server
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
+
+- name: waiting for IDM services to come up
   wait_for:
     host: "{{ inventory_hostname }}"
     state: started

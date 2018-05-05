@@ -40,6 +40,12 @@
   command: subscription-manager repos --disable=\*
   when: ansible_distribution == 'RedHat' and register_rhn
 
+#- name: setup local repo file repo server
+#  template:
+#    src: rhn-local.repo.j2
+#    dest: /etc/yum.repos.d/redhat-local.repo
+#  when: not register_rhn
+
 - name: turn off requiretty for sudo
   lineinfile:
     dest: /etc/sudoers

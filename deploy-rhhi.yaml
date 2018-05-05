@@ -9,50 +9,42 @@
 ###                                                                         ###
 ### Enjoy and Contribute!                                                   ###
 ###############################################################################
-
-#Configure Network Gear
-#- import_playbook: netgear-switch-config.yml
-
 - name: install and configure RHEL KVM
-  import_playbook: rhel7-kvm.yml
+  import_playbook: 01-rhel7-kvm.yml
   tags: rhel_kvm
 
 - name: create VMs for infrastructure services
   tags: infrastructure
-  import_playbook:  vmenator.yml
+  import_playbook:  02-vmenator.yml
 
 - name: create VMs for infrastructure services
   tags: infrastructure
-  import_playbook:  wait-for-vms.yml
+  import_playbook:  03-wait-for-vms.yml
 
 - name: install and configure IDM
   tags: infrastructure
-  import_playbook:  rhel7-idm-install.yml
-
-- name: install and configure reposync server
-  tags: infrastructure
-  import_playbook:  rhel7-repo-install.yml
+  import_playbook:  04-rhel7-idm-install.yml
 
 - name: install and configure RHOSP director
   tags: infrastructure
-  import_playbook:  rhosp-director-install.yml
+  import_playbook:  05-rhosp-director-install.yml
 
-#- import_playbook:  rhosp-overcloud-deploy-prep.yml
+#Note: note needed
+#- name: install and configure reposync server
+#  tags: infrastructure
+#  import_playbook:  06-rhel7-repo-install.yml
 
-#RHOSP Overcloud deployment
-#- import_playbook:  rhosp-overcloud.yml
+- name: install and configure RHOSP overcloud
+  tags: infrastructure
+  import_playbook:  07-rhosp-overcloud.yml
 
-#RHOSP Overcloud Post Configuration
-#- import_playbook:  rhosp-overcloud-post-config.yml
+- name: install and configure CloudForms
+  tags: management
+  import_playbook:  08-rhcloudforms.yml
 
-#Deploy simple RHEL7 host with Ansible Engine and OpenStack Shade on RHOSP
-#- import_playbook:  rhel7-ansible-engine-plus-shade.yml
-
-#Deploy Ansible Tower on RHOSP
-#- import_playbook:  ansible-tower.yml
-
-#Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
-#- import_playbook:  rhcloudforms.yml
+#- name: install and configure Ansible Tower
+#  tags: management
+#  import_playbook:  11-ansible-tower.yml
 
 #Deploy OpenShift Container Platform on RHOSP
 #- import_playbook:  rhocp.yml

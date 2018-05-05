@@ -1,8 +1,20 @@
 ---
   - name: enable the needed rhel repositories
-    command: subscription-manager repos --enable={{ item }}
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
     with_items:
       - "{{ ocp.repos }}"
+
+#  - name: enable the needed rhel repositories
+#    command: subscription-manager repos --enable={{ item }}
+#    with_items:
+#      - "{{ ocp.repos }}"
 
   - name: update packages
     yum:

@@ -2,17 +2,18 @@
 
 #Parameters
 user=operator
-password=redhat
+password=Redhat1993
 email=operator@redhat.com
 tenant=operators
 externalNetwork=public
-externalCidr='192.168.0.0/23'
-externalGateway='192.168.0.1'
-externalDns='192.168.0.4'
-externalFipStart='192.168.1.70'
-externalFipEnd='192.168.1.199'
+externalCidr={{ networks.external.cidr }}
+externalVlanId={{ networks.external.vlan }}
+externalGateway={{ networks.external.gateway }}
+externalDns={{ dns_server_local }}
+externalFipStart={{ networks.external.fipStart }}
+externalFipEnd={{ networks.external.fipEnd }}
 tenantNetwork=private
-tenantCidr='172.16.0.0/24'
+tenantCidr='192.168.0.0/24'
 keypairName=operator
 keypairPubkey="{{ rhosp_overcloud.operator_pub_key }}"
 
@@ -56,12 +57,12 @@ openstack flavor create --id 3 --ram 2048 --disk 20 --vcpus 2 --public m1.medium
 openstack flavor create --id 4 --ram 4096 --disk 40 --vcpus 4 --public m1.large
 openstack flavor create --id 5 --ram 8192 --disk 80 --vcpus 8 --public m1.xlarge
 openstack flavor create --id 6 --ram 12288 --disk 80 --vcpus 4 --public cf.min
-openstack flavor create --id 7 --ram 16834 --disk 40 --vcpus 2 --public ocp1.master
-openstack flavor create --id 8 --ram 8192 --disk 40 --vcpus 2 --public ocp1.node
+openstack flavor create --id 7 --ram 16834 --disk 40 --ephemeral 40 --vcpus 2 --public ocp1.master
+openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 40 --vcpus 2 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type
-neutron net-create $externalNetwork --provider:network_type flat --provider:physical_network datacentre --shared --router:external 
+neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns
@@ -74,14 +75,12 @@ neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --d
 
 #Create provider networks
 #Provisioning
-neutron net-create provisioning --provider:network_type flat  --provider:physical_network prov
-neutron subnet-create provisioning 192.168.2.0/24 --name provisioning-sub --allocation-pool=start=192.168.2.60,end=192.168.2.99 --no-gateway
-#Provider905
-neutron net-create provider905 --provider:network_type vlan --provider:segmentation_id 905 --provider:physical_network datacentre 
-neutron subnet-create provider905 192.168.105.0/24 --name provider905-sub --allocation-pool=start=192.168.105.20,end=192.168.105.199 --no-gateway
-#Provider906
-neutron net-create provider906 --provider:network_type vlan --provider:segmentation_id 906 --provider:physical_network datacentre 
-neutron subnet-create provider906 192.168.106.0/24 --name provider906-sub --allocation-pool=start=192.168.106.20,end=192.168.106.199 --no-gateway
+neutron net-create {{ networks.provisioning.name }} --provider:network_type flat  --provider:physical_network prov
+neutron subnet-create {{ networks.provisioning.name }} {{ networks.provisioning.cidr }} --name {{ networks.provisioning.name }}-sub --allocation-pool=start={{ networks.provisioning.dhcpStart }},end={{ networks.provisioning.dhcpEnd }} --no-gateway
+
+#provider
+neutron net-create {{ networks.provider.name }} --provider:network_type vlan --provider:segmentation_id {{ networks.provider.vlan }}  --provider:physical_network datacentre
+neutron subnet-create {{ networks.provider.name }} {{ networks.provider.cidr }} --name {{ networks.provider.name }}-sub --allocation-pool=start={{ networks.provider.dhcpStart }},end={{ networks.provider.dhcpEnd }} --gateway={{ networks.provider.gateway }}  --dns-nameserver $externalDns
 
 #Create a router
 neutron router-create router-$externalNetwork
@@ -91,24 +90,41 @@ neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 neutron router-gateway-set router-$externalNetwork $externalNetwork
 
 mkdir -p /home/stack/guest-images
+sudo mount {{ nfs_server }}:{{ nfs_images_path }} /home/stack/guest-images
 
-#Download the cirros test image
-curl -o /home/stack/guest-images/cirros.qcow2 http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
-qemu-img convert -f qcow2 -O raw /home/stack/guest-images/cirros.qcow2 /home/stack/guest-images/cirros035.img
-#Upload the cirros test image to glance and share publicly
-glance image-create --name cirros035 --disk-format raw \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros035.img
-#glance image-create --name rhel74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
-#glance image-create --name centos7 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
-#glance image-create --name rhel69 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
-#glance image-create --name rhelatomic74 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
-#glance image-create --name spark160 --disk-format raw --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
-#glance image-create --name cf45 --disk-format raw --min-disk 40 --min-ram 12288 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.8.1.5-1.x86_64.img
-#glance image-create --name win2012r2 --disk-format raw --min-disk 40 --min-ram 4096 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img
+#Cirros
+glance image-create --name cirros --disk-format raw \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros.img
+
+#RHEL Cloud Images
+glance image-create --name rhel74 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.img
+
+glance image-create --name rhel75 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.5-x86_64-kvm.img
+
+glance image-create --name rhel69 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.img
+
+glance image-create --name rhel610 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-6.10-beta-1-x86_64-kvm.img
+
+#RHEL Atomic
+glance image-create --name rhelatomic74 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.img
+
+#CentOS 7
+glance image-create --name centos7 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.img
+
+#Sahara Apache Spark
+glance image-create --name spark160 --disk-format raw --min-disk 10 --min-ram 1024 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.img
+
+#CloudForms
+glance image-create --name cf46 --disk-format raw --min-disk 40 --min-ram 12288 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.9.1.2-1.x86_64.img
+
+#Windows Server 2012r2 Cloud Image
+glance image-create --name win2012r2 --disk-format raw --min-disk 40 --min-ram 4096 \
+  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.img

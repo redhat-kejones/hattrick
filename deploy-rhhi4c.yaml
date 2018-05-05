@@ -1,0 +1,50 @@
+###############################################################################
+### Project Hat Trick is an Open Architecture approach to defining and      ###
+### automating the deployment of Red Hat Software Bundles on open,          ###
+### commodity hardware. The architectures and automation developed here     ###
+### can be utilized as a starting place for applying this in a datacenter   ###
+### installation.                                                           ###
+###                                                                         ###
+### Option 1: RH OpenStack Platform and Ceph Hyperconverged                 ###
+###                                                                         ###
+### Enjoy and Contribute!                                                   ###
+###############################################################################
+- name: install and configure RHEL KVM
+  import_playbook: 01-rhel7-kvm.yml
+  tags: rhel_kvm
+
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  02-vmenator.yml
+
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  03-wait-for-vms.yml
+
+- name: install and configure IDM
+  tags: infrastructure
+  import_playbook:  04-rhel7-idm-install.yml
+
+#Note: not needed
+#- name: install and configure reposync server
+#  tags: infrastructure
+#  import_playbook:  05-rhel7-repo-install.yml
+
+- name: install and configure RHOSP director
+  tags: infrastructure
+  import_playbook:  06-rhosp-director-install.yml
+
+- name: install and configure RHOSP overcloud
+  tags: infrastructure
+  import_playbook:  07-rhosp-overcloud.yml
+
+- name: install and configure CloudForms
+  tags: management
+  import_playbook:  08-rhcloudforms.yml
+
+#- name: install and configure Ansible Tower
+#  tags: management
+#  import_playbook:  11-ansible-tower.yml
+
+#Deploy OpenShift Container Platform on RHOSP
+#- import_playbook:  rhocp.yml

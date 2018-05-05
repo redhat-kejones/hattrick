@@ -1,5 +1,5 @@
-osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
-osp_ip: 192.168.1.40 # OpenStack specific
+osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
+osp_ip: 172.16.21.20 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
@@ -11,9 +11,9 @@ key_name: operator #works with OpenStack & EC2
 network_name: private # Works with all providers
 prov_net: provisioning # Works with all providers
 image_uid: cf46 # works with OpenStack
-flavor: m1.cfme # works with OSP/Azure/AWS TODO: cleanup
+flavor: cf.min # works with OSP/Azure/AWS TODO: cleanup
 flavor_name: cf.min # works with OSP/Azure/AWS TODO:cleanup
-#float_ip: 192.168.1.90 #OpenStack specific
+#float_ip: 172.16.21.90 #OpenStack specific
 ssh_user: root
 cf_db_pass: "{{ vault_cf_db_pwd }}"
 cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
@@ -21,7 +21,6 @@ cf_db_dev: '/dev/vdb'
 region_num: 20
 security_group: cfme # works with OpenStack & EC2
 dns: 192.168.0.4
-<<<<<<< HEAD
 rhn_user: xxx
 rhn_pass: xxx
 rhn_pool: 8a85f98c5fa1813e015fa1d00f441e1a
@@ -35,7 +34,6 @@ undercloud_ip: 192.168.0.10 # OpenStack specific
 undercloud_user: admin # OpenStack specific
 undercloud_pw: 'xxx' 
 tower_pw: 'xxx'
-=======
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
 rhn_pool: "{{ vault_rhn_pool_name }}"
@@ -43,10 +41,9 @@ ipa_server: "idm.{{ domain }}"
 domain: "{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
-undercloud_ip: 192.168.0.5 # OpenStack specific
+undercloud_ip: 172.16.21.16 # OpenStack specific
 undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 
 #Temporary
 #db_server: 192.168.1.74
->>>>>>> master

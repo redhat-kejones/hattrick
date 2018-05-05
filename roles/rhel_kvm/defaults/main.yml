@@ -1,7 +1,7 @@
 ---
 # defaults for all vars
 domain: two.hattrick.lab
-dns_server_local: 192.168.0.4
+dns_server_local: 172.16.21.15
 dns_server_public: 8.8.8.8
 git_repo: https://github.com/redhat-kejones/hattrick
 

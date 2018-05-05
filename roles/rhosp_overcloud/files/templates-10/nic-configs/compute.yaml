@@ -117,22 +117,13 @@ resources:
               members:
                 -
                   type: interface
-                  name: enp8s0
+                  name: enp7s0
                   primary: true
             -
               type: ovs_bridge
               name: {get_input: bridge_name}
               use_dhcp: false
-              defroute: true
-              dns_servers: {get_param: DnsServers}
-              addresses:
-                -
-                  ip_netmask: {get_param: ExternalIpSubnet}
-              routes:
-                -
-                  ip_netmask: 0.0.0.0/0
-                  default: true
-                  next_hop: {get_param: ExternalInterfaceDefaultRoute}
+              defroute: false
               members:
                 -
                   type: linux_bond
@@ -146,6 +137,21 @@ resources:
                     -
                       type: interface
                       name: enp3s0f1
+                -
+                  type: vlan
+                  device: bond0
+                  vlan_id: {get_param: ExternalNetworkVlanID}
+                  use_dhcp: false
+                  defroute: true
+                  dns_servers: {get_param: DnsServers}
+                  addresses:
+                    -
+                      ip_netmask: {get_param: ExternalIpSubnet}
+                  routes:
+                    -
+                      ip_netmask: 0.0.0.0/0
+                      default: true
+                      next_hop: {get_param: ExternalInterfaceDefaultRoute}
                 -
                   type: vlan
                   device: bond0
