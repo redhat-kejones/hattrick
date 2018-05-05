@@ -20,7 +20,20 @@ cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
 cf_db_dev: '/dev/vdb'
 region_num: 20
 security_group: cfme # works with OpenStack & EC2
-dns: 172.16.21.15
+dns: 192.168.0.4
+rhn_user: xxx
+rhn_pass: xxx
+rhn_pool: 8a85f98c5fa1813e015fa1d00f441e1a
+ipa_server: idm.int.hattrick1.local
+domain: int.hattrick1.local
+ipa_user: admin
+ipa_password: xxx
+ocppass: xxx
+ocpuser: admin
+undercloud_ip: 192.168.0.10 # OpenStack specific
+undercloud_user: admin # OpenStack specific
+undercloud_pw: 'xxx' 
+tower_pw: 'xxx'
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
 rhn_pool: "{{ vault_rhn_pool_name }}"
@@ -32,5 +45,5 @@ undercloud_ip: 172.16.21.16 # OpenStack specific
 undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 
-#Temporary: only needed if adding a worker later
-#db_server: 172.16.21.74
+#Temporary
+#db_server: 192.168.1.74

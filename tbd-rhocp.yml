@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  remote_user: root
+  vars_files:
+    - 'vars.yml'
+  vars:
+    type: master
+    master: true
+    infra: false
+    node: false
+    num: 1
+  roles:
+    - ocp-osp
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  remote_user: root
+  vars_files:
+    - 'vars.yml'
+  vars:
+    type: infra
+    master: false
+    infra: true
+    node: false
+    num: 1
+  roles:
+    - ocp-osp
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  remote_user: root
+  vars_files:
+    - 'vars.yml'
+  vars:
+    type: node
+    master: false
+    infra: false
+    node: true
+    num: 2
+  roles:
+    - ocp-osp
+
+- hosts: all
+  remote_user: cloud-user
+  become: true
+  vars_files:
+    - 'vars.yml'
+  roles:
+    - ocp-quick
