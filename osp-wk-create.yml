@@ -8,11 +8,30 @@
     db: false
     ui: false
     wk: true
-    num: 2
+    num: 1
   vars_files:
     - 'vars.yml'
   roles:
     - {role: 'roles/jritenour.osp-cf-miq'}
+
+- hosts: cfwk
+  remote_user: root
+  gather_facts: no
+  vars_files:
+    - 'vars.yml'
+  tasks:
+  - name: check that workers are online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+  - pause:
+      minutes: 1
 
 - hosts: cfwk
   remote_user: root
@@ -26,14 +45,17 @@
     - {role: 'roles/jritenour.cf-miq-wk'}
 
   tasks:
+  - name: set fact for db_server IP
+    set_fact: db_server="{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
+
   - name: copy ifcfg-eth1
     template:
-      src: ifcg
+      src: ifcfg
       dest: '/etc/sysconfig/network-scripts/ifcfg-eth1'
   - name: enable eth1
     command: ifup eth1
 
-- hosts: cfdb
+- hosts: "{{ db_server }}"
   remote_user: root
   vars_files:
     - 'vars.yml'

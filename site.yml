@@ -11,34 +11,48 @@
 ###############################################################################
 
 #Configure Network Gear
-#- import_playbook: 01-netgear-switch-config.yml
+#- import_playbook: netgear-switch-config.yml
 
-#Configure RHEL+KVM Host for holding IDM and RHOSP-director
-- import_playbook: 02-rhel7-kvm.yml
+- name: install and configure RHEL KVM
+  import_playbook: rhel7-kvm.yml
+  tags: rhel_kvm
 
-#Creae IDM VM on KVM Host, install and configure for ID and DNS
-#- import_playbook:  03.1-rhel7-idm-vm.yml
-#- import_playbook:  03.2-rhel7-idm-install.yml
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  vmenator.yml
 
-#Create RHOSP-director VM and install
-#- import_playbook:  04.1-rhosp-director-vm.yml
-#- import_playbook:  04.2-rhosp-director-install.yml
-#- import_playbook:  04.3-rhosp-overcloud-deploy-prep.yml
+- name: create VMs for infrastructure services
+  tags: infrastructure
+  import_playbook:  wait-for-vms.yml
+
+- name: install and configure IDM
+  tags: infrastructure
+  import_playbook:  rhel7-idm-install.yml
+
+- name: install and configure reposync server
+  tags: infrastructure
+  import_playbook:  rhel7-repo-install.yml
+
+- name: install and configure RHOSP director
+  tags: infrastructure
+  import_playbook:  rhosp-director-install.yml
+
+#- import_playbook:  rhosp-overcloud-deploy-prep.yml
 
 #RHOSP Overcloud deployment
-#- import_playbook:  05-rhosp-overcloud.yml
+#- import_playbook:  rhosp-overcloud.yml
 
 #RHOSP Overcloud Post Configuration
-#- import_playbook:  06-rhosp-overcloud-post-config.yml
+#- import_playbook:  rhosp-overcloud-post-config.yml
 
 #Deploy simple RHEL7 host with Ansible Engine and OpenStack Shade on RHOSP
-#- import_playbook:  07-rhel7-ansible-engine-plus-shade.yml
+#- import_playbook:  rhel7-ansible-engine-plus-shade.yml
 
 #Deploy Ansible Tower on RHOSP
-#- import_playbook:  08-ansible-tower.yml
+#- import_playbook:  ansible-tower.yml
 
 #Deploy and configure CloudForms (1 DB, 1 Worker, 1 UI) on RHOSP
-#- import_playbook:  09-rhcloudforms.yml
+#- import_playbook:  rhcloudforms.yml
 
 #Deploy OpenShift Container Platform on RHOSP
-#- import_playbook:  10-rhocp.yml
+#- import_playbook:  rhocp.yml

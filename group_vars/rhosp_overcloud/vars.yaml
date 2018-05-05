@@ -1,0 +1,4 @@
+rhosp_overcloud:
+  timezone: "US/Eastern"
+  cloud_name: openstack
+  operator_pub_key: "{{ vault_operator_pub_key }}"

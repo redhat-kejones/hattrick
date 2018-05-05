@@ -1,3 +1,5 @@
+localhost
+
 [router]
 192.168.0.1
 
@@ -14,11 +16,19 @@
 
 [rhel_kvm]
 192.168.0.3
+#localhost
+
+[vmenator]
+192.168.0.3
+localhost
 
 [rhel_idm]
 192.168.0.4
 
 [rhosp_director]
+192.168.0.5
+
+[rhosp_overcloud]
 192.168.0.5
 
 [ansible_tower]

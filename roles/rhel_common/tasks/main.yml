@@ -1,9 +1,5 @@
 ---
 # tasks file for roles/rhel_common
-- name: import secret variable file
-  include_vars: "vault"
-  no_log: true
-
 - name: disable UseDNS in the /etc/ssh/sshd_config file
   lineinfile:
     dest: /etc/ssh/sshd_config
@@ -22,9 +18,10 @@
 - name: add a temporary nameserver to /etc/resolv.conf file
   lineinfile:
     dest: /etc/resolv.conf
-    line: "nameserver {{ public_dns_nameserver }}"
+    line: "nameserver {{ dns_server_public }}"
     insertafter: "BOF"
     state: present
+  when: use_public_dns
 
 - name: enable SELinux
   selinux:

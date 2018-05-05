@@ -1,0 +1,175 @@
+---
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ ocp.repos }}"
+
+  - name: update packages
+    yum:
+      name: '*'
+      state: latest
+      skip_broken: yes
+    register: yum_result
+    async: 1000
+    poll: 30
+
+  - name: check Kernel is the Latest
+    shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+    ignore_errors: true
+    register: reboot_hint
+
+#  - name: Add Repos
+#    yum_repository:
+#      name: "{{ item.name }}"
+#      file: ocp
+#      description: "{{ item.description }}"
+#      baseurl: "{{ item.baseurl }}"
+#      gpgcheck: no
+#      enabled: yes
+#    with_items:
+#      - name: 'rhel-7-server-extras-rpms'
+#        description: 'RHEL 7 Extras'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-extras-rpms'
+#      - name: 'rhel-7-server-rpms'
+#        description: 'RHEL 7 Base'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-rpms'
+#      - name: 'rhel-7-fast-datapath-rpms'
+#        description: 'Fast datapath rpms'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-fast-datapath-rpms'
+#      - name: 'rhel-7-server-ose-3.6-rpms'
+#        description: 'OCP 3.6 rpms'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-ose-3.6-rpms'
+  - name: Install necessary packages
+    yum:  
+      name: '{{ item }}'
+      state: present
+    with_items: 
+    - wget 
+    - git 
+    - net-tools 
+    - bind-utils 
+    - iptables-services 
+    - bridge-utils 
+    - bash-completion 
+    - kexec-tools 
+    - sos 
+    - psacct
+    - atomic-openshift-utils
+    - docker-1.12.6
+    - ipa-client
+    - dnsmasq
+
+  - name: restart server to get updated kernel
+    shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+    async: 1
+    poll: 0
+    ignore_errors: true
+    when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+  - name: waiting for repo server to come back online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 80
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+  - name: add newnodes line
+    lineinfile:
+      dest: /etc/ansible/hosts
+      state: present
+      insertafter: '^nodes'
+      line: 'new_nodes'
+
+  - name: add newnodes block
+    blockinfile:
+      insertafter: EOF
+      path: /etc/ansible/hosts
+      content: |
+        [new_nodes]
+         {{ hostvars[groups['node'][0]]['inventory_hostname'] }}
+#        {{ inventory_hostname }}
+
+  - name: configure IPA client
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --ip-address='{{ inventory_hostname }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended
+    when: "'node' in group_names"
+    ignore_errors: True
+  - name: configure docker storage
+    template:
+      src: docker-storage-setup.j2
+      dest: /etc/sysconfig/docker-storage-setup
+      owner: root
+      group: root
+      mode: 0644
+  - name: start and enable Docker
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+#  - name: download docker images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-images.tar
+#      dest: /root/ose3-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+
+#  - name: load ose images on nodes
+#    command: docker load -i /root/ose3-images.tar
+#    when: "'master' not in group_names"
+
+#  - name: download docker extra images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-extra-images.tar
+#      dest: /root/ose3-extra-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+
+#  - name: load ose extra images on nodes
+#    command: docker load -i /root/ose3-extra-images.tar
+#    when: "'master' not in group_names"
+
+#  - name: download docker logging and metrics images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-logging-metrics-images.tar
+#      dest: /root/ose3-logging-metrics-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+      
+#  - name: load ose logging and metrics images on nodes
+#    command: docker load -i /root/ose3-logging-metrics-images.tar
+#    when: "'master' not in group_names"
+
+  - name: capture master public key
+    shell: "cat {{ ansible_user_dir }}/.ssh/id_rsa.pub"
+    when: "'master' in group_names"
+    register: pubkey
+
+  - debug:
+      var: pubkey.stdout_lines
+
+  - name: set the pubkey fact on the master
+    set_fact:
+      masterpubkey: "{{ pubkey.stdout }}"
+    when: "'master' in group_names"
+
+  - name: add key to authorized keys
+    authorized_key:
+      user: "{{ ssh_user }}"
+      state: present
+      key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
+  - name: Add node to cluster
+    command: ansible-playbook  -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/playbooks/byo/openshift-node/scaleup.yml
+    when: "'master' in group_names"
+    ignore_errors: True
+  - name: auth to OCP
+    shell: "oc login -u {{ ocpuser }} -p {{ ocppass }}"
+    when: "'master' in group_names"
+  - name: Clean up NotReady nodes
+    shell: 'oc delete nodes $(oc get nodes|grep NotReady|cut -d " " -f 1)'
+    when: "'master' in group_names"
+    ignore_errors: True
