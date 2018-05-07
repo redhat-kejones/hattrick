@@ -1,11 +1,14 @@
 domain: pod2.mpc
 dns_server_local: 172.16.21.15
 dns_server_public: 172.16.2.10
+ntp_server_public: time.google.com
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 git_repo: https://github.com/redhat-kejones/hattrick
 
 nfs_server: 172.16.2.10
+nfs_repos_path: /volume1/web/install/repos/
+nfs_images_path: /volume1/web/install/images/
 
 register_rhn: false
 rhn_user: "{{ vault_rhn_user }}"
@@ -200,7 +203,7 @@ rhosp_director:
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
   hostname_short: undercloud
-  ntp_servers: time.google.com #TODO: public or local NTP? maybe KVM or Cisco Switch
+  ntp_servers: "{{ ntp_server_public }}"
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
@@ -269,5 +272,10 @@ rhosp_director:
 
 rhosp_overcloud:
   timezone: "US/Eastern"
-  cloud_name: openstack
+  timeout: 60
+  cloud_name: openstack 
   operator_pub_key: "{{ vault_operator_pub_key }}"
+  controller_scale: 1
+  compute_scale: 3
+  ceph_storage_scale: 0
+  ceph_disk_layout: ""

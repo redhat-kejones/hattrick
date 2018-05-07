@@ -3,8 +3,8 @@
 - name: copy deploy.sh script
   become: yes
   become_user: stack
-  copy:
-    src: files/deploy.sh
+  template:
+    src: templates/deploy.sh
     dest: /home/stack/deploy.sh
     owner: stack
     group: stack

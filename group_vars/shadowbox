@@ -1,6 +1,7 @@
 domain: shadowbox.lab
 dns_server_local: 192.168.0.4
 dns_server_public: 1.1.1.1
+ntp_server: time.google.com
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 git_repo: https://github.com/redhat-kejones/hattrick
@@ -201,7 +202,7 @@ rhosp_director:
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
   hostname_short: undercloud
-  ntp_servers: time.google.com #TODO: public or local NTP? maybe KVM or Cisco Switch
+  ntp_servers: "{{ ntp_server }}"
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
@@ -294,8 +295,12 @@ rhosp_director:
 
 rhosp_overcloud:
   timezone: "US/Eastern"
+  timeout: 60
   cloud_name: openstack
   operator_pub_key: "{{ vault_operator_pub_key }}"
+  controller_scale: 1
+  compute_scale: 6
+  ceph_storage_scale: 0
   ceph_disk_layout: ""
 
 #CloudForms
