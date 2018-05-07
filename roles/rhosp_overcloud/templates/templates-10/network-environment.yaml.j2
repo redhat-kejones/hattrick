@@ -15,7 +15,7 @@ parameter_defaults:
   ControlPlaneSubnetCidr: '{{ networks.provisioning.cidr | ipaddr('prefix') }}'
   # Gateway router for the provisioning network (or Undercloud IP)
   ControlPlaneDefaultRoute: {{ networks.provisioning.gateway }}
-  EC2MetadataIp: {{ rhosp_director.provisioning_ip }}  # Generally the IP of the Undercloud
+  EC2MetadataIp: {{ rhosp_director.provisioning_ip | ipaddr('address') }}  # Generally the IP of the Undercloud
   # Customize the IP subnets to match the local environment
   InternalApiNetCidr: {{ networks.internal_api.cidr }}
   StorageNetCidr: {{ networks.storage.cidr }}

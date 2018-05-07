@@ -1,0 +1,48 @@
+---
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+    - 'vars.yml'
+  tasks:
+  - name: Launch Tower instance
+    os_server:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      name: "{{ vm_name }}"
+      state: present
+      key_name: "{{ key_name }}"
+      availability_zone: "{{ az }}"
+      nics:
+        - net-name: "{{ network_name }}"
+      image: "{{ image_uid }}"
+      flavor: "{{ flavor_name }}"
+      security_groups: "{{ security_group }}"
+      auto_ip: yes
+    register: osp_host
+
+  - name: wait for instance become ready to use
+    wait_for:
+     host: "{{ osp_host.openstack.public_v4 }}"
+     port: "22"
+     timeout: "320"
+     state: "started"
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
+  - name: add master server to inventory
+    add_host:
+      hostname: "{{ osp_host.openstack.public_v4 }}"
+      ansible_ssh_user: cloud-user
+      groupname: tower
+
+- hosts: tower
+  vars_files:
+    - 'vars.yml'
+  become: true
+  roles:
+    - tower

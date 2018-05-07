@@ -1,13 +1,13 @@
 ---
-# tasks file for jritenour.osp-cf-miq
-  - name: Generate  UUID
-    shell: openssl rand -hex 2
-    register: uuid_list
-  - name: Debugging instance info
-    debug:
-      var: uuid_list.stdout
+# tasks file for jritenour.ocp-osp
+#  - name: Generate  UUID
+#    shell: openssl rand -hex 2
+#    register: uuid_list
+#  - name: Debugging instance info
+#    debug:
+#      var: uuid_list.stdout
 
-  - name: Create volume for instance
+  - name: Create volume for /var for all instances
     os_volume:
       auth:
         auth_url: "{{ osp_url }}"
@@ -17,7 +17,9 @@
       state: present
       availability_zone: "{{ az }}"
       size: "{{ db_size }}"
-      display_name: "{{ db_vol_name }}-{{ uuid_list.stdout }}"
+      display_name: "{{ db_vol_name }}-{{ item }}"
+    with_sequence:
+      count={{ num }}
 
   - name: launch instances
     os_server:
@@ -26,7 +28,7 @@
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-      name: "{{ vm_name }}-{{ uuid_list.stdout }}"
+      name: "{{ vm_name }}-{{ item }}"
       state: present
       key_name: "{{ key_name }}"
       availability_zone: "{{ az }}"
@@ -34,20 +36,49 @@
         - net-name: "{{ network_name }}"
       image: "{{ image_uid }}"
       flavor: "{{ flavor_name }}"
+      security_groups: "{{ security_group }}"
+      auto_ip: yes
       volumes:
-        - "{{ db_vol_name }}-{{ uuid_list.stdout }}"
+        - "{{ db_vol_name }}-{{ item }}"
     register: osp_host
+    with_sequence:
+      count={{ num }}
 
-  - name: wait for instance become ready to use
+#  - name: debug
+#    debug:
+#      var: osp_host.results
+
+  - name: wait for instances become ready to use
     wait_for:
-     host: "{{ osp_host.openstack.public_v4 }}"
+     host: "{{ item.openstack.public_v4 }}"
      port: "22"
      timeout: "320"
      state: "started"
+    with_items: "{{ osp_host.results }}"
 
-  - name: add node to inventory
+  - name: add master server to inventory
     add_host:
-      hostname: "{{ osp_host.openstack.public_v4 }}"
+      hostname: "{{ osp_host.results[0].openstack.public_v4 }}"
+      ansible_ssh_user: cloud-user
+      groupname: master
+    when: master
+
+  - name: add nodes to inventory
+    add_host:
+      hostname: "{{ item.openstack.public_v4 }}"
       ansible_ssh_user: cloud-user
       groupname: node
-    when: node
+    with_items: "{{ osp_host.results }}"
+    when: node 
+
+  - name: add nodes to inventory
+    add_host:
+      hostname: "{{ item.openstack.public_v4 }}"
+      ansible_ssh_user: cloud-user
+      groupname: infra
+    with_items: "{{ osp_host.results }}"
+    when: infra
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30

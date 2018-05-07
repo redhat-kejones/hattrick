@@ -1,13 +1,20 @@
 # Create an OSEv3 group that contains the masters and nodes groups
 [OSEv3:children]
 masters
-nodes
 etcd
+nodes
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
 # SSH user, this user should allow ssh based auth without requiring a password
 ansible_ssh_user={{ ssh_user }}
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+openshift_metrics_cassandra_nodeselector={'region': 'infra'}
+openshift_metrics_hawkular_nodeselector={'region': 'infra'}
+openshift_metrics_heapster_nodeselector={'region': 'infra'}
+openshift_logging_es_nodeselector={'region': 'infra'}
+openshift_logging_curator_nodeselector={'region': 'infra'}
+openshift_logging_kibana_nodeselector={'region': 'infra'}
 
 # If ansible_ssh_user is not root, ansible_become must be set to true
 ansible_become=true
@@ -42,4 +49,7 @@ openshift_enable_service_catalog=true
 # host group for nodes, includes region info
 [nodes]
 {{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
-{{ hostvars[groups['node'][1]]['ansible_fqdn'] }} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+{{ hostvars[groups['infra'][0]]['ansible_fqdn'] }}  openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+{% for host in groups['node'] %}
+{{ hostvars[host].ansible_fqdn }}  openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{% endfor %}
