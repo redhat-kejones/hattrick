@@ -1,9 +1,8 @@
 ---
-- hosts: rhosp_director
-  name: playbook to shutdown all hattrick systems and services
+- hosts: rhel_kvm
+  name: playbook to shutdown all systems and services
   gather_facts: false
   remote_user: root
-  become_user: stack
   tasks:
   - name: shutdown confirmation
     pause:
@@ -49,6 +48,12 @@
     with_items:
       - "{{ openstack_servers }}"
 
+- hosts: rhosp_director
+  name: playbook to shutdown all overcloud hosts
+  gather_facts: false
+  remote_user: root
+  become_user: stack
+  tasks:
   - name: get provisioning IPs for overcloud hosts
     become: yes
     become_user: stack
