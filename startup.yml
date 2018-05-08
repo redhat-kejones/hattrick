@@ -73,6 +73,11 @@
     delegate_to: 127.0.0.1
     become: false
 
+- hosts: rhel_kvm
+  name: play to start OpenStack instances
+  gather_facts: false
+  remote_user: root
+  tasks:
   - name: Authenticate to the cloud and retrieve the service catalog
     os_auth:
       auth:
@@ -89,7 +94,8 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
-  - os_server_facts:
+  - name: get list of instances per project
+    os_server_facts:
       auth:
         auth_url: "{{ osp_url }}"
         username: "{{ osp_user }}"
@@ -98,7 +104,8 @@
     with_items:
       - "{{ openstack_projects }}"
   
-  - os_server_action:
+  - name: start all instances in each project
+    os_server_action:
       action: start
       auth:
         auth_url: "{{ osp_url }}"

@@ -21,7 +21,8 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
-  - os_server_facts:
+  - name: get list of instances per project
+    os_server_facts:
       auth:
         auth_url: "{{ osp_url }}"
         username: "{{ osp_user }}"
@@ -30,7 +31,8 @@
     with_items:
       - "{{ openstack_projects }}"
 
-  - os_server_action:
+  - name: stop all instances in each project
+    os_server_action:
       action: stop
       auth:
         auth_url: "{{ osp_url }}"
