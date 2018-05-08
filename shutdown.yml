@@ -1,6 +1,7 @@
 ---
 - hosts: rhosp_director
   name: playbook to shutdown all hattrick systems and services
+  gather_facts: false
   remote_user: root
   become_user: stack
   tasks:
@@ -12,10 +13,6 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
-  - name: Show service catalog
-    debug:
-      var: service_catalog
-
   - name: get list of openstack projects
     os_project_facts:
       auth:
@@ -24,21 +21,14 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
-  - debug:
-    var: openstack_projects
-
-  #TODO: should I loop over projects and stop all vms?
-  #      or just operators project vms?
-
   - os_server_facts:
       auth:
         auth_url: "{{ osp_url }}"
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-  
-  - debug:
-    var: openstack_servers
+    with_items:
+      - "{{ openstack_projects }}"
 
   - os_server_action:
       action: stop
@@ -47,23 +37,30 @@
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-      server: {{ item.name }}
+      server: "{{ item.name }}"
       timeout: 200
-    with_dict: openstack_servers
+    with_items:
+      - "{{ openstack_servers }}"
 
   - name: get provisioning IPs for overcloud hosts
     become: yes
-    command: "source /home/stack/stackrc && openstack server list -c Networks | awk '/192.168.2/ {print $2}' | cut -d = -f 2"
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -c Networks --format value | cut -d = -f 2"
     register: overcloud_host_prov_ips
 
   - name: poweroff overcloud hosts
-    command: "ssh heat-admin@{{ item.value }} sudo poweroff"
+    become: yes
+    become_user: stack
+    command: "ssh heat-admin@{{ item }} sudo poweroff"
     with_items:
       - "{{ overcloud_host_prov_ips.stdout_lines }}"
+    async: 1
+    poll: 0
+    ignore_errors: true
 
   - name: waiting for overcloud hosts to poweroff
     wait_for:
-      host: "{{ item.value }}"
+      host: "{{ item }}"
       state: stopped
       delay: 10
       connect_timeout: 5
@@ -75,12 +72,34 @@
     with_items:
       - "{{ overcloud_host_prov_ips.stdout_lines }}"
 
+  - name: poweroff Undercloud
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
+
+  - name: waiting for Undercloud to poweroff
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: stopped
+      delay: 10
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
 - hosts: rhel_idm
   name: play to shutdown IDM
+  gather_facts: false
   remote_user: root
   tasks:
   - name: poweroff IDM
-    command: "poweroff"
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
 
   - name: waiting for IDM to poweroff
     wait_for:
@@ -96,10 +115,14 @@
 
 - hosts: rhel_kvm
   name: play to shutdown KVM
+  gather_facts: false
   remote_user: root
   tasks:
   - name: poweroff KVM
-    command: "poweroff"
+    shell: sleep 2 && /sbin/shutdown -c && /sbin/shutdown -h now
+    async: 1
+    poll: 0
+    ignore_errors: true
 
   - name: waiting for KVM to poweroff
     wait_for:
