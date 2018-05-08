@@ -78,7 +78,7 @@
   gather_facts: false
   remote_user: root
   tasks:
-  - name: Authenticate to the cloud and retrieve the service catalog
+  - name: authenticate to the cloud and retrieve the service catalog
     os_auth:
       auth:
         auth_url: "{{ osp_url }}"

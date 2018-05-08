@@ -5,7 +5,12 @@
   remote_user: root
   become_user: stack
   tasks:
-  - name: Authenticate to the cloud and retrieve the service catalog
+  - name: shutdown confirmation
+    pause:
+      prompt:
+        'Please confirm you want to shutdown the environment. Press return to continue. Press Ctrl+c and then "a" to abort'
+
+  - name: authenticate to the cloud and retrieve the service catalog
     os_auth:
       auth:
         auth_url: "{{ osp_url }}"
