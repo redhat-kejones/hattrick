@@ -4,7 +4,7 @@
   become: yes
   become_user: stack
   template:
-    src: templates/deploy.sh
+    src: templates/deploy.sh.j2
     dest: /home/stack/deploy.sh
     owner: stack
     group: stack
