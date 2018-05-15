@@ -16,7 +16,7 @@
     command: subscription-manager repos --enable={{ item }}
     with_items:
       - "{{ ocp.repos }}"
-     when: register_rhn
+    when: register_rhn
 
 #  - name: Add Repos
 #    yum_repository:
@@ -204,7 +204,6 @@
       state: present
       key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
 
-<<<<<<< HEAD
   - name: Run prereqs playbook
     command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
     when: "'master' in group_names"
@@ -227,12 +226,12 @@
     when: "'master' in group_names"
 
 # Play below verified to work - commenting out until ready to integrate into main playbook
-#  - name: add DNS Wildcard record pointed to infra node(s)
-#    nsupdate:
-#      key_name: "{{ dns_keyname }}"
-#      key_secret: "{{ dns_key }}"
-#      key_algorithm: "{{ dns_algorith }}"
-#      server: "{{ dns_server }}"
-#      zone: "{{ domain }}"
-#      record: "{{ ansible_hostname }}"
-#      value: "{{ hostvars[groups['node'][1]]['ansible_default_ipv4']['address'] }}"
+  - name: add DNS Wildcard record pointed to infra node(s)
+    nsupdate:
+      key_name: "{{ dns_keyname }}"
+      key_secret: "{{ dns_key }}"
+      key_algorithm: "{{ dns_algorith }}"
+      server: "{{ dns_server }}"
+      zone: "{{ domain }}"
+      record: "{{ ansible_hostname }}"
+      value: "{{ hostvars[groups['node'][1]]['ansible_default_ipv4']['address'] }}"
