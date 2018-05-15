@@ -1,7 +1,7 @@
 domain: pod2.mpc
 dns_server_local: 172.16.21.15
 dns_server_public: 172.16.2.10
-ntp_server_public: time.google.com
+ntp_server: time.google.com
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 git_repo: https://github.com/redhat-kejones/hattrick
@@ -37,7 +37,7 @@ networks:
     vlan: 20
     dhcpStart: 172.16.20.70
     dhcpEnd: 172.16.20.99
-  interanal_api:
+  internal_api:
     name: internal_api
     cidr: 172.16.23.0/24
     defroute: false
@@ -203,7 +203,7 @@ rhosp_director:
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
   hostname_short: undercloud
-  ntp_servers: "{{ ntp_server_public }}"
+  ntp_servers: "{{ ntp_server }}"
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
