@@ -1,4 +1,13 @@
 ---
+- hosts: rhel_kvm
+  name: play to turn on IDM and Undercloud
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: start undercloud and idm
+    shell: virsh start idm && virsh start undercloud
+    ignore_errors: true
+
 - hosts: rhel_idm
   name: play to check on IDM
   gather_facts: false
@@ -87,12 +96,19 @@
         project_name: "{{ osp_project }}"
 
   - name: get list of openstack projects
-    os_project_facts:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+    become: yes
+    become_user: stack
+    delegate_to: 172.16.11.16
+    shell: "source /home/stack/operatorrc && openstack project list -c Name --format value"
+    register: openstack_projects
+
+#  - name: get list of openstack projects
+#    os_project_facts:
+#      auth:
+#        auth_url: "{{ osp_url }}"
+#        username: "{{ osp_user }}"
+#        password: "{{ osp_pass }}"
+#        project_name: "{{ osp_project }}"
 
   - name: get list of instances per project
     os_server_facts:

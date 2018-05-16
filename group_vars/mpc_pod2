@@ -279,3 +279,9 @@ rhosp_overcloud:
   compute_scale: 3
   ceph_storage_scale: 0
   ceph_disk_layout: ""
+
+osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
+osp_ip: 172.16.21.20 # OpenStack specific
+osp_user: "{{ vault_osp_user }}" # OpenStack specific
+osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+osp_project: operators  # OpenStack specific
