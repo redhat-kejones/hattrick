@@ -18,11 +18,13 @@
     state: present
   with_items:
     - "{{ rhel_kvm.repos }}"
+  when: not register_rhn
 
-#- name: enable the needed rhel repositories
-#  command: subscription-manager repos --enable={{ item }}
-#  with_items:
-#    - "{{ rhel_kvm.repos }}"
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_kvm.repos }}"
+  when: register_rhn
 
 - name: check if virtualization extensions exist
   command: grep -E 'svm|vmx' /proc/cpuinfo
@@ -42,7 +44,7 @@
   ignore_errors: true
   register: reboot_hint
 
-- name: install several useful utility and undercloud packages
+- name: install several useful utility and kvm packages
   yum:
     name: "{{ item }}"
     state: latest
@@ -235,21 +237,22 @@
     line: "nameserver {{ dns_server_public }}"
     state: absent
 
-- name: restart server to get updated kernel
-  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
-  async: 1
-  poll: 0
-  ignore_errors: true
-  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+#TODO: removing for now. fix kernel check later
+#- name: restart server to get updated kernel
+#  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
+#  async: 1
+#  poll: 0
+#  ignore_errors: true
+#  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
 
-- name: waiting for server to come back
-  wait_for:
-    host: "{{ inventory_hostname }}"
-    state: started
-    delay: 10
-    connect_timeout: 5
-    timeout: 300
-    port: 22
-  delegate_to: 127.0.0.1
-  become: false
-  ignore_errors: true
+#- name: waiting for server to come back
+#  wait_for:
+#    host: "{{ inventory_hostname }}"
+#    state: started
+#    delay: 10
+#    connect_timeout: 5
+#    timeout: 300
+#    port: 22
+#  delegate_to: 127.0.0.1
+#  become: false
+#  ignore_errors: true

@@ -10,25 +10,13 @@
       state: present
     with_items:
       - "{{ ocp.repos }}"
+    when: not register_rhn
 
-#  - name: enable the needed rhel repositories
-#    command: subscription-manager repos --enable={{ item }}
-#    with_items:
-#      - "{{ ocp.repos }}"
-
-  - name: update packages
-    yum:
-      name: '*'
-      state: latest
-      skip_broken: yes
-    register: yum_result
-    async: 1000
-    poll: 30
-
-  - name: check Kernel is the Latest
-    shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
-    ignore_errors: true
-    register: reboot_hint
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ ocp.repos }}"
+    when: register_rhn
 
 #  - name: Add Repos
 #    yum_repository:
@@ -51,23 +39,38 @@
 #      - name: 'rhel-7-server-ose-3.6-rpms'
 #        description: 'OCP 3.6 rpms'
 #        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-ose-3.6-rpms'
+
+  - name: update packages
+    yum:
+      name: '*'
+      state: latest
+      skip_broken: yes
+    register: yum_result
+    async: 1000
+    poll: 30
+
+  - name: check Kernel is the Latest
+    shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+    ignore_errors: true
+    register: reboot_hint
+
   - name: Install necessary packages
-    yum:  
+    yum:
       name: '{{ item }}'
       state: present
-    with_items: 
-    - wget 
-    - git 
-    - net-tools 
-    - bind-utils 
-    - iptables-services 
-    - bridge-utils 
-    - bash-completion 
-    - kexec-tools 
-    - sos 
+    with_items:
+    - wget
+    - git
+    - net-tools
+    - bind-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - kexec-tools
+    - sos
     - psacct
     - atomic-openshift-utils
-    - docker-1.12.6
+    - docker-1.13.1
     - ipa-client
     - httpd-tools
     - dnsmasq
@@ -92,7 +95,8 @@
     ignore_errors: true
 
   - name: configure IPA client
-    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --ip-address='{{ inventory_hostname }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --enable-dns-updates --unattended --force-join
+
   - name: configure docker storage
     template:
       src: docker-storage-setup.j2
@@ -100,8 +104,10 @@
       owner: root
       group: root
       mode: 0644
+
   - name: run docker storage setup
     command: docker-storage-setup
+
   - name: start and enable Docker
     service:
       name: docker
@@ -178,18 +184,37 @@
       masterpubkey: "{{ pubkey.stdout }}"
     when: "'master' in group_names"
 
+  - name: restart dbus
+    service:
+      name: dbus
+      state: restarted
+ 
+  - name: Set domain in resolve search list
+    lineinfile:
+      path: /etc/resolv.conf
+      regexp: '^search'
+      line: 'search {{ domain }}'
+      owner: root
+      group: root
+      mode: 0644
+
   - name: add key to authorized keys
-    authorized_key:
+    authorized_key: 
       user: "{{ ssh_user }}"
       state: present
       key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
 
-  - name: Install OpenShift unattended
-    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
+  - name: Run prereqs playbook
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
     when: "'master' in group_names"
     ignore_errors: True
 
-  - name: Configure htpasswd for authentication
+  - name: Run deploy_cluster playbook
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+    when: "'master' in group_names"
+    ignore_errors: True
+
+  - name: Configure htpasswd for authentication 
     htpasswd:
       path: '/etc/origin/master/htpasswd'
       name: "{{ ocpuser }}"
@@ -199,3 +224,14 @@
   - name: set htpasswd user up as a cluster-admin
     shell: 'oadm policy add-cluster-role-to-user cluster-admin admin'
     when: "'master' in group_names"
+
+# Play below verified to work - commenting out until ready to integrate into main playbook
+  - name: add DNS Wildcard record pointed to infra node(s)
+    nsupdate:
+      key_name: "{{ dns_keyname }}"
+      key_secret: "{{ dns_key }}"
+      key_algorithm: "{{ dns_algorith }}"
+      server: "{{ dns_server }}"
+      zone: "{{ domain }}"
+      record: "{{ ansible_hostname }}"
+      value: "{{ hostvars[groups['node'][1]]['ansible_default_ipv4']['address'] }}"

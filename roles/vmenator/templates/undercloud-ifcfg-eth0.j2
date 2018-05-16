@@ -7,5 +7,5 @@ USERCTL="yes"
 PEERDNS="no"
 DEFROUTE="no"
 IPV6INIT="yes"
-IPADDR=172.16.20.16
-PREFIX=24
+IPADDR={{ vmenator.vms[0].nics[0].ip}}
+PREFIX={{ networks.provisioning.cidr | ipaddr('prefix') }}

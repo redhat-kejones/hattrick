@@ -1,0 +1,162 @@
+---
+- name: rescanning for new disks
+  shell: /usr/bin/rescan-scsi-bus.sh
+##  when:  config_lvm == "true" and ansible_os_family == "RedHat"
+
+- name: creating new LVM volume group
+  lvg: vg={{ create_vgname }} pvs={{ new_disk }} state=present
+#  when:  config_lvm == "true"
+
+- name: creating cache_lv logical volume
+  lvol:
+    vg={{ create_vgname }}
+    lv={{ create_cache_lv }}
+    size={{ cache_lvsize }}
+#  when:  config_lvm == "true"
+
+- name: creating mongodb_lv logical volume
+  lvol:
+    vg={{ create_vgname }}
+    lv={{ create_mongodb_lv }}
+    size={{ mongodb_lvsize }}
+#  when:  config_lvm == "true"
+
+- name: creating pgsql_lv logical volume
+  lvol:
+    vg={{ create_vgname }}
+    lv={{ create_pgsql_lv }}
+    size={{ pgsql_lvsize }}
+#  when:  config_lvm == "true"
+
+- name: creating pulp_lv logical volume
+  lvol:
+    vg={{ create_vgname }}
+    lv={{ create_pulp_lv }}
+    size={{ pulp_lvsize }}
+#  when:  config_lvm == "true"
+
+- name: creating filesystem on cache_lv
+  filesystem:
+     fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_cache_lv }}
+#  when:  config_lvm == "true"
+
+- name: creating filesystem on pulp_lv
+  filesystem:
+     fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_pulp_lv }}
+#  when:  config_lvm == "true"
+
+- name: creating filesystem on mongodb_lv
+  filesystem:
+     fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_mongodb_lv }}
+#  when:  config_lvm == "true"
+
+- name: creating filesystem on pgsql_lv
+  filesystem:
+     fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_pgsql_lv }}
+#  when:  config_lvm == "true"
+
+- name: mount pulp_cache
+  mount: name={{ mnt_pulp_cache}} src=/dev/{{ create_vgname }}/{{ create_cache_lv }} fstype={{ filesystem }} state=mounted
+#  when:  config_lvm == "true"
+
+- name: mount pulp
+  mount: name={{ mnt_pulp }} src=/dev/{{ create_vgname }}/{{ create_pulp_lv }} fstype={{ filesystem }} state=mounted
+#  when:  config_lvm == "true"
+
+- name: mount mongodb
+  mount: name={{ mnt_mongodb }} src=/dev/{{ create_vgname }}/{{ create_mongodb_lv }} fstype={{ filesystem }} state=mounted
+#  when:  config_lvm == "true"
+
+- name: mount pgsql
+  mount: name={{ mnt_pgsql }} src=/dev/{{ create_vgname }}/{{ create_pgsql_lv }} fstype={{ filesystem }} state=mounted
+#  when:  config_lvm == "true"
+
+- name: installing satellite
+  yum:
+    name: satellite
+    disablerepo: "*"
+    enablerepo: "rhel-7-server-rpms,rhel-server-rhscl-7-rpms,rhel-7-server-satellite-6.3-rpms"
+    state: present
+# when: runtask
+
+#
+# Configure Firewall for RH Satellite
+#
+- name: SATELLITE | firewall | Enable service in firewall
+  firewalld:
+    service: "RH-Satellite-6"
+    permanent: yes
+    state: enabled
+#  when: runtask
+
+- name: Bounce firewalld
+  service:
+     name=firewalld
+     state=restarted
+#  when: runtask
+
+## Initial configuration of Satellite Server
+## Enable Standard repos
+- name: enable Repos
+  command: subscription-manager repos --enable {{ item }}
+  with_items:
+   - rhel-7-server-rpms
+   - rhel-7-server-satellite-6.3-rpms
+   - rhel-server-rhscl-7-rpms
+#  when: runtask
+
+- name: Initial configuration of Satellite
+  command:  /usr/sbin/satellite-installer --scenario satellite --foreman-initial-organization "{{ sat_org }}" --foreman-initial-location "{{ sat_location }}" --foreman-admin-username "{{ vault_sat_admin_name }}" --foreman-admin-password "{{ vault_sat_admin_pwd }}"
+  async:  3600
+  poll: 15
+#  when: runtask
+
+- name: SATELLITE | upload_manifest | Copy mainfiest file to Satellite server
+  copy:
+    src: "satellite_manifest.zip"
+    dest: /root/satellite_manifest.zip
+    mode: 0644
+    owner: root
+    group: root
+#  when: runtask
+
+- name: SATELLITE | upload_manifest | Upload manifest to Satellite server
+  command: /usr/bin/hammer --password "{{ vault_sat_admin_pwd }}" subscription upload --organization "{{ sat_org }}"  --file /root/satellite_manifest.zip
+#  when: runtask
+
+- name: SATELLITE | Set Default sync policy to "immediate"
+  command: /usr/bin/hammer --password "{{ vault_sat_admin_pwd }}" settings set --name default_download_policy --value immediate
+#  when: runtask
+
+##
+##  Enable Repositories
+
+- name: Satellite Select Repositories to be synced
+  command: /usr/bin/hammer --password "{{ vault_sat_admin_pwd }}" repository-set enable --organization "{{ sat_org }}" {{item}}
+  with_items:
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --releasever='7Server' --name 'Red Hat Enterprise Linux 7 Server (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --releasever='7Server' --name 'Red Hat Enterprise Linux 7 Server - Optional (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --name 'Red Hat Enterprise Linux 7 Server - Extras (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --name 'Red Hat Satellite Tools 6.3 (for RHEL 7 Server) (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --name 'Red Hat Enterprise Linux 7 Server - RH Common (RPMs)' --releasever='7Server'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --name 'Red Hat OpenStack Platform 10 Tools for RHEL 7 Server (RPMs)' --releasever='7Server'"
+    - "--product 'Red Hat Enterprise Linux Server' --basearch='x86_64' --name 'Red Hat OpenStack Platform 12 Tools for RHEL 7 Server (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux High Availability for RHEL Server' --basearch='x86_64' --name 'Red Hat Enterprise Linux High Availability (for RHEL 7 Server) (RPMs)' --releasever='7Server'"
+    - "--product 'Red Hat Ceph Storage OSD' --basearch='x86_64' --name 'Red Hat Ceph Storage OSD 3 for Red Hat Enterprise Linux 7 Server (RPMs)'"
+    - "--product 'Red Hat Ceph Storage MON' --basearch='x86_64' --name 'Red Hat Ceph Storage MON 3 for Red Hat Enterprise Linux 7 Server (RPMs)'"
+    - "--product 'Red Hat Ceph Storage' --basearch='x86_64' --name 'Red Hat Ceph Storage Tools 3 for Red Hat Enterprise Linux 7 Server (RPMs)'"
+    - "--product 'Red Hat CloudForms' --basearch='x86_64' --name 'Red Hat CloudForms Management Engine 5.9 (RPMs)'"
+    - "--product 'Red Hat Enterprise Linux Fast Datapath' --basearch='x86_64' --releasever='7Server' --name 'Red Hat Enterprise Linux Fast Datapath (RHEL 7 Server) (RPMs)'"
+    - "--product 'Red Hat OpenShift Container Platform' --basearch='x86_64' --name 'Red Hat OpenShift Container Platform 3.7 (RPMs)'"
+
+- name: Sync all repos in the Red Hat Enterprise Linux Server product
+  command: /usr/bin/hammer --password "{{ vault_sat_admin_pwd }}" product synchronize --organization "{{ sat_org }}" --async {{item}}
+  with_items:
+    - "--name 'Red Hat Enterprise Linux Server'"
+    - "--name 'Red Hat Enterprise Linux High Availability for RHEL Server'"
+    - "--name 'Red Hat Ceph Storage OSD'"
+    - "--name 'Red Hat Ceph Storage MON'"
+    - "--name 'Red Hat Ceph Storage'"
+    - "--name 'Red Hat CloudForms'"
+    - "--name 'Red Hat Enterprise Linux Fast Datapath'"
+    - "--name 'Red Hat OpenShift Container Platform'"

@@ -3,8 +3,8 @@
 - name: copy deploy.sh script
   become: yes
   become_user: stack
-  copy:
-    src: files/deploy.sh
+  template:
+    src: templates/deploy.sh.j2
     dest: /home/stack/deploy.sh
     owner: stack
     group: stack
@@ -60,15 +60,16 @@
     owner: stack
     group: stack
   tags: pre-overcloud
- 
+
 - name: deploy RHOSP overcloud
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && bash /home/stack/deploy.sh
+  shell: |
+    /home/stack/deploy.sh > /home/stack/overcloud-deploy.log 2>&1
   args:
     chdir: /home/stack
-  async: 3660
-  poll: 60
+  #async: 3660
+  #poll: 60
   tags: deploy-overcloud
 
 #TODO: Need to convert this script to ansible tasks
@@ -82,14 +83,16 @@
     group: stack
     mode: 0775
   tags: post-overcloud
- 
+
 - name: run overcloud post configuration
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && bash /home/stack/overcloudPostConfig.sh
+  shell: |
+    /home/stack/overcloudPostConfig.sh \
+    > /home/stack/overcloud-post-deploy.log 2>&1
   args:
     chdir: /home/stack
-  async: 300
-  poll: 10
+  #async: 300
+  #poll: 10
   tags: post-overcloud
   ignore_errors: true #TODO: Remove later

@@ -1,0 +1,337 @@
+domain: shadowbox.lab
+dns_server_local: 192.168.0.4
+dns_server_public: 1.1.1.1
+ntp_server: time.google.com
+use_public_dns: false #Default to false (set true individually on kvm and idm)
+
+git_repo: https://github.com/redhat-kejones/hattrick
+
+nfs_server: 192.168.0.3
+nfs_repos_path: /export/repos/
+nfs_images_path: /export/images/
+
+register_rhn: true
+rhn_user: "{{ vault_rhn_user }}"
+rhn_pwd: "{{ vault_rhn_pwd }}"
+rhn_pool_name: "{{ vault_rhn_pool_name }}"
+
+#MPC Synology
+local_repo_url: "http://192.168.0.8/"
+
+networks:
+  external:
+    name: external
+    cidr: 192.168.0.0/23
+    defroute: true
+    gateway: 192.168.0.1
+    vlan: 1
+    dhcpStart: 192.168.1.40
+    dhcpEnd: 192.168.1.69
+    fipStart: 192.168.1.70
+    fipEnd: 192.168.1.199
+  provisioning:
+    name: provisioning
+    cidr: 192.168.2.0/24
+    defroute: false
+    gateway: 192.168.2.5
+    vlan: 2
+    dhcpStart: 192.168.2.70
+    dhcpEnd: 192.168.2.99
+  internal_api:
+    name: internal_api
+    cidr: 192.168.100.0/24
+    defroute: false
+    vlan: 900
+    dhcpStart: 192.168.100.40
+    dhcpEnd: 192.168.100.250
+  tenant:
+    name: tenant
+    cidr: 192.168.101.0/24
+    defroute: false
+    vlan: 901
+    dhcpStart: 192.168.101.40
+    dhcpEnd: 192.168.101.250
+  storage:
+    name: storage
+    cidr: 192.168.102.0/24
+    defroute: false
+    vlan: 902
+    dhcpStart: 192.168.102.40
+    dhcpEnd: 192.168.102.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 192.168.103.0/24
+    defroute: false
+    vlan: 903
+    dhcpStart: 192.168.103.40
+    dhcpEnd: 192.168.103.250
+  provider:
+    name: provider
+    cidr: 192.168.104.0/24
+    defroute: false
+    gateway: 192.168.104.1
+    vlan: 904
+    dhcpStart: 192.168.104.40
+    dhcpEnd: 192.168.104.250
+
+versions:
+  rhosp: 10
+  satellite: 6.3
+  ocp: 3.6
+  cfme: 5.9
+
+rhel_idm:
+  hostname_short: idm
+  realm: "{{ domain | upper }}"
+  dm_pwd: "{{ vault_idm_dm_pwd }}"
+  admin_pwd: "{{ vault_idm_admin_pwd }}"
+  forward_ip: "{{ dns_server_public }}"
+  reverse_zone: "168.192.in-addr.arpa."
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - ipa-server
+    - ipa-server-dns
+  users:
+  - username: operator
+    password: redhat
+    display_name: "MPC Operator"
+    first_name: MPC
+    last_name: Operator
+    email: "mpc-support@redhat.com"
+    phone: "+18887334281"
+    title: "Mobile Portfolio Center Operator"
+  dns_records:
+  - hostname: wwan
+    record_type: A
+    ip_address: 192.168.0.1
+    reverse_record: 1.0
+  - hostname: switch
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.5
+    reverse_record: 5.0
+  - hostname: openstack
+    record_type: A
+    ip_address: 192.168.1.40
+    reverse_record: 40.1
+
+rhel_kvm:
+  hostname_full: "kvm.{{ domain }}"
+  disks:
+    root: sda
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+  packages:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'yum-utils'
+    - 'git'
+    - 'qemu-kvm'
+    - 'qemu-img'
+    - 'libvirt'
+    - 'virt-install'
+    - 'libvirt-client'
+    - 'libvirt-python'
+    - 'libguestfs-tools-c'
+    - 'rhel-guest-image-7'
+    - 'ansible'
+    - 'gcc'
+    - 'gcc-c++'
+    - 'libffi-devel'
+    - 'openssl-devel'
+    - 'python'
+    - 'python-devel'
+    - 'python-virtualenv'
+    - 'python-netaddr'
+
+vmenator:
+  vms:
+  - name: undercloud
+    disk_os_name: undercloud-os.qcow2
+    disk_os_size: 80G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br2 --model virtio"
+      ip: 192.168.2.5
+    - name: eth1
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.5
+    ram: 16384
+    vcpus: 8
+  - name: idm
+    disk_os_name: idm-os.qcow2
+    disk_os_size: 80G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.4
+    ram: 4096
+    vcpus: 1
+
+rhosp_director:
+  poweroff: true
+  bootdev: network
+  validation_errors: []
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+    - rhel-7-server-rhceph-2-osd-rpms
+    - rhel-7-server-rhceph-2-mon-rpms
+    - rhel-7-server-rhceph-2-tools-rpms
+
+  # stack user gets created and will be used for all RHOSP actions on undercloud
+  stack_user_pwd: "{{ vault_stack_user_pwd }}"
+
+  # All variables for undercloud.conf
+  cloud_domain: "{{ domain }}"
+  hostname_short: undercloud
+  ntp_servers: "{{ ntp_server }}"
+  # Network interface on the Undercloud that will be handling the PXE
+  # boots and DHCP for Overcloud instances
+  provisioning_interface: eth0
+  # IP information for the interface on the Undercloud that will be
+  # handling the PXE boots and DHCP for Overcloud instances.  The IP
+  # portion of the value will be assigned to the network interface
+  # defined by local_interface, with the netmask defined by the prefix
+  # portion of the value
+  provisioning_ip: 192.168.2.5/24
+  # Network CIDR for the Neutron-managed network for Overcloud
+  # instances. This should be the subnet used for PXE booting
+  provisioning_network_cidr: 192.168.2.0/24
+  # Network gateway for the Neutron-managed network for Overcloud
+  # instances. This should match the local_ip above when using masquerading
+  provisioning_network_gateway: 192.168.2.5
+  # Virtual IP address to use for the admin endpoints of Undercloud services.
+  admin_apis_vip: 192.168.2.6
+  # Temporary IP range that will be given to nodes during the discovery
+  # process.  Should not overlap with the range defined by dhcp_start
+  # and dhcp_end, but should be in the same network
+  inspection_dhcp_start: 192.168.2.20
+  inspection_dhcp_end: 192.168.2.39
+  # Start of DHCP allocation range for PXE and DHCP of Overcloud instances
+  deploy_dhcp_start: 192.168.2.40
+  # End of DHCP allocation range for PXE and DHCP of Overcloud instances
+  deploy_dhcp_end: 192.168.2.69
+  # Defines whether to wipe the hard drive of overcloud nodes between
+  # deployments and after the introspection
+  clean_nodes: false
+  # Set admin password for undercloud
+  admin_password: "{{ vault_undercloud_admin_pwd }}"
+
+  overcloud_nodes:
+    - name: node1
+      profile: control
+      pm_addr: "192.168.1.21"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node2
+      profile: compute
+      pm_addr: "192.168.1.22"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node3
+      profile: compute
+      pm_addr: "192.168.1.23"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node4
+      profile: compute
+      pm_addr: "192.168.1.24"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node5
+      profile: compute
+      pm_addr: "192.168.1.25"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node6
+      profile: compute
+      pm_addr: "192.168.1.26"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node7
+      profile: compute
+      pm_addr: "192.168.1.27"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+
+rhosp_overcloud:
+  timezone: "US/Eastern"
+  timeout: 60
+  cloud_name: openstack
+  operator_pub_key: "{{ vault_operator_pub_key }}"
+  controller_scale: 1
+  compute_scale: 6
+  ceph_storage_scale: 0
+  ceph_disk_layout: ""
+
+#CloudForms
+osp_ip: "{{ networks.external.dhcpStart }}" # OpenStack specific
+osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
+osp_user: "{{ vault_osp_user }}" # OpenStack specific
+osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+osp_project: operators  # OpenStack specific
+az: nova # works with OpenStack, EC2 & Azure
+db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
+db_vol_name: cf-{{ type }}-vol
+vm_name: cf-{{ type }}
+key_name: operator #works with OpenStack & EC2
+network_name: private # Works with all providers
+prov_net: provisioning # Works with all providers
+image_uid: cf46 # works with OpenStack
+flavor: cf.min # works with OSP/Azure/AWS TODO: cleanup
+flavor_name: cf.min # works with OSP/Azure/AWS TODO:cleanup
+ssh_user: root
+cf_db_pass: "{{ vault_cf_db_pwd }}"
+cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
+cf_db_dev: '/dev/vdb'
+region_num: 20
+security_group: cfme # works with OpenStack & EC2
+dns: 192.168.0.4
+ipa_server: "idm.{{ domain }}"
+ipa_user: "{{ vault_idm_admin_user }}"
+ipa_password: "{{ vault_idm_admin_pwd }}"
+undercloud_ip: 192.168.0.5 # OpenStack specific
+undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
+undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
+
+#Temporary: only needed if adding a worker later
+#db_server: 192.168.1.75

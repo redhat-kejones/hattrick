@@ -33,21 +33,22 @@
   with_items:
     - "{{ rhosp_director.repos }}"
   tags: prep
+  when: not register_rhn
 
-#- name: enable the needed rhel repositories
-#  command: subscription-manager repos --enable={{ item }}
-#  with_items:
-#    - rhel-7-server-rpms
-#    - rhel-7-server-extras-rpms
-#    - rhel-7-server-rh-common-rpms
-#    - rhel-ha-for-rhel-7-server-rpms
-#    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
-#    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-#    - rhel-7-server-rhceph-2-osd-rpms
-#    - rhel-7-server-rhceph-2-mon-rpms
-#    - rhel-7-server-rhceph-2-tools-rpms
-#  when: ansible_distribution == 'RedHat' and register_rhn
-#  tags: prep
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+    - rhel-7-server-rhceph-2-osd-rpms
+    - rhel-7-server-rhceph-2-mon-rpms
+    - rhel-7-server-rhceph-2-tools-rpms
+  when: register_rhn
+  tags: prep
 
 - name: add stack user and set password
   user:
@@ -273,7 +274,7 @@
 - name: adding dns to ctlplane subnet
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/172.16.20/ {print $2}')
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('network') }}/ {print $2}')
   tags: install
 
 - name: configuring fernet tokens for overcloud
@@ -410,6 +411,15 @@
     chdir: /home/stack
   async: 2700
   poll: 30
+  tags: introspection
+
+- name: set root devices to /dev/sda for all nodes
+  become: yes
+  become_user: stack
+  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"/dev/sda\"}' {{ item.name }}"
+  args:
+    chdir: /home/stack
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
   tags: introspection
 
 - name: success

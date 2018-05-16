@@ -1,11 +1,11 @@
-- name: wait for IDM
-  hosts: rhel_idm
+- name: wait for all VMs to come online
+  hosts: rhel_kvm
   tags: infrastructure
   gather_facts: false
   tasks:
-    - name: check that IDM is online
+    - name: check that all vms are online
       wait_for:
-        host: "{{ inventory_hostname }}"
+        host: "{{ item.1.ip }}"
         state: started
         connect_timeout: 5
         timeout: 300
@@ -13,35 +13,6 @@
       delegate_to: 127.0.0.1
       become: false
       ignore_errors: true
-
-- name: wait for reposync server
-  hosts: rhel_repo
-  tags: infrastructure
-  gather_facts: false
-  tasks:
-    - name: check that reposync server is online
-      wait_for:
-        host: "{{ inventory_hostname }}"
-        state: started
-        connect_timeout: 5
-        timeout: 300
-        port: 22
-      delegate_to: 127.0.0.1
-      become: false
-      ignore_errors: true
-
-- name: wait for RHOSP director
-  hosts: rhosp_director
-  tags: infrastructure
-  gather_facts: false
-  tasks:
-    - name: check that RHOSP director is online
-      wait_for:
-        host: "{{ inventory_hostname }}"
-        state: started
-        connect_timeout: 5
-        timeout: 300
-        port: 22
-      delegate_to: 127.0.0.1
-      become: false
-      ignore_errors: true
+      with_subelements:
+        - "{{ vmenator.vms }}"
+        - nics
