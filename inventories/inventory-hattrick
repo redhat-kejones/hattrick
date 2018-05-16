@@ -11,41 +11,41 @@
 hattrick_switch
 
 [hattrick_rhel_common]
+192.168.0.3
+192.168.0.4
 192.168.0.5
-192.168.0.10
-192.168.0.6
 192.168.0.7
 
 [rhel_common:children]
 hattrick_rhel_common
 
 [hattrick_rhel_kvm]
-192.168.0.5
+192.168.0.3
 
 [rhel_kvm:children]
 hattrick_rhel_kvm
 
 [hattrick_vmenator]
-192.168.0.5
+192.168.0.3
 
 [vmenator:children]
 hattrick_vmenator
 
 [hattrick_rhel_idm]
-192.168.0.6
+192.168.0.4
 
 [rhel_idm:children]
 hattrick_rhel_idm
 
 [hattrick_rhosp_director]
-192.168.0.10
+192.168.0.5
 
 [rhosp_director:children]
 hattrick_rhosp_director
 
  #TODO: refactor this group
 [hattrick_rhosp_overcloud]
-192.168.0.10
+192.168.0.5
 
 [rhosp_overcloud:children]
 hattrick_rhosp_overcloud
