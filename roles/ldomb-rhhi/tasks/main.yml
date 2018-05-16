@@ -1,0 +1,31 @@
+---
+# tasks file for ldomb-rhhi
+- name: add privkey
+  copy:
+    content: '{{ ssh_priv_key }}'
+    dest: /root/.ssh/id_rsa
+    owner: root
+    group: root
+    mode: 0600
+  
+- name: copy gdeploy.conf to the rhv1    
+  copy: 
+    src: files/gdeploy.conf
+    dest: /root/gdeploy.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: copy gdeploy.conf to the rhv1    
+  copy: 
+    src: files/ansible.cfg
+    dest: /root/.ansible.cfg
+    owner: root
+    group: root
+
+#- name: deploy gluster
+#  shell: gdeploy -c /root/gdeploy.conf
+#  register: gdeploy
+
+#- name: debug from gdeploy
+#  debug: msg="{{ gdeploy }}"

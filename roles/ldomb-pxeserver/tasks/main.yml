@@ -1,0 +1,64 @@
+---
+# tasks file for ldomb-pxeserver
+- name: install necessary packages
+  yum:
+    name: "{ item }"
+    state: present
+  with_items:
+    - xinetd
+    - syslinux
+    - tftp
+    - tftp-server
+    - httpd
+
+- name: copy dnsmsaq in palce
+  copy:
+    src: files/dnsmasq.conf
+    dest: /etc/dnsmasq.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: [ 'Restart dnsmasq' ]
+
+- name: copy syslinux to /var/lib/tftpboot
+  command: cp -r /usr/share/syslinux/* /var/lib/tftpboot
+
+- name: copy pxelinux.cfg recursive
+  copy:
+    directory_mode=yes
+    src: files/pxelinux.cfg
+    dest: /var/lib/tftpboot/
+    owner: root
+    group: root
+
+- name: pull down httpd content
+  shell: "cd /var/www/html && wget http://172.16.2.10:8888/content/rhvh2.tar.gz && tar -xzvf rhvh2.tar.gz"
+   
+
+- name: start xinted
+  service:
+    name: xinetd
+    state: started
+
+- name: Restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+
+- name: set boot interface 172.16.30.12 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.12 -U admin -P admin chassis bootdev pxe
+
+- name: set boot interface 172.16.30.13 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.13 -U admin -P admin chassis bootdev pxe
+
+- name: set boot interface 172.16.30.14 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.14 -U admin -P admin chassis bootdev pxe
+
+- name: powercycle 172.16.30.12 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.12 -U admin -P admin power reset
+
+- name: powercycle 172.16.30.13 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.13 -U admin -P admin power reset
+
+- name: powercycle 172.16.30.14 to pxe
+  shell: ipmitool -I lanplus -H 172.16.30.14 -U admin -P admin power reset

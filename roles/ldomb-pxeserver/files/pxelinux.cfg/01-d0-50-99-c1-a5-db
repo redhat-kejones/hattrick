@@ -1,0 +1,6 @@
+default rhv42
+prompt 0
+timeout 1
+label rhv42
+  kernel pxelinux.cfg/rhv42/vmlinuz
+  append rootflags=loop initrd=pxelinux.cfg/rhv42/initrd.img inst.stage2=http://172.16.30.10/rhvh2 inst.ks=http://172.16.30.10/rhvh3-ks.cfg
