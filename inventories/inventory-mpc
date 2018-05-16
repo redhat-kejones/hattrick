@@ -161,8 +161,8 @@ pod2_rhosp_director
 
 [mpc_pod3:children]
 pod3_switch
-pod3_rhel_kvm
-pod3_vmenator
+pod3_rhhi_infra
+pod3_rhhi
+pod3_engine
 pod3_rhel_idm
 pod3_rhel_common
-pod3_rhosp_director
