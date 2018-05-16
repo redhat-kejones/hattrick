@@ -5,8 +5,9 @@
   remote_user: root
   tasks:
   - name: start undercloud and idm
-    shell: virsh start idm && virsh start undercloud
+    shell: "virsh start {{ item.name }}"
     ignore_errors: true
+    with_items: "{{ vmenator.vms }}"
 
 - hosts: rhel_idm
   name: play to check on IDM

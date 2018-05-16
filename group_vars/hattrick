@@ -132,6 +132,7 @@ rhel_kvm:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
     - rhel-7-server-rh-common-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
   packages:
     - 'screen'
     - 'wget'
@@ -156,6 +157,7 @@ rhel_kvm:
     - 'python-devel'
     - 'python-virtualenv'
     - 'python-netaddr'
+    - 'python-openstackclient'
 
 vmenator:
   vms:
