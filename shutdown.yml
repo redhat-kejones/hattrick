@@ -3,6 +3,8 @@
   name: playbook to shutdown all systems and services
   gather_facts: false
   remote_user: root
+  vars_files:
+  - 'cf-vars.yml'
   tasks:
   - name: shutdown confirmation
     pause:
@@ -17,13 +19,23 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
+  - debug:
+      msg: "{{ osp_url }}"
+
   - name: get list of openstack projects
-    os_project_facts:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+    become: yes
+    become_user: stack
+    delegate_to: 172.16.11.16
+    shell: "source /home/stack/operatorrc && openstack project list -c Name --format value"
+    register: openstack_projects
+
+#  - name: get list of openstack projects
+#    os_project_facts:
+#      auth:
+#        auth_url: "{{ osp_url }}"
+#        username: "{{ osp_user }}"
+#        password: "{{ osp_pass }}"
+#        project_name: "{{ osp_project }}"
 
   - name: get list of instances per project
     os_server_facts:
@@ -33,7 +45,15 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
     with_items:
-      - "{{ openstack_projects }}"
+      - "{{ openstack_projects.stdout_lines }}"
+
+#  - name: get list of openstack projects
+#    become: yes
+#    become_user: stack
+#    delegate_to: 172.16.11.16
+#    shell: "source /home/stack/operatorrc && nova stop {{ item.name }}"
+#    with_items:
+#      - "{{ openstack_servers }}"
 
   - name: stop all instances in each project
     os_server_action:
@@ -63,7 +83,8 @@
   - name: poweroff overcloud hosts
     become: yes
     become_user: stack
-    command: "ssh heat-admin@{{ item }} sudo poweroff"
+    command: ssh heat-admin@{{ item }} "sleep 2 && sudo /sbin/shutdown -c && sudo /sbin/shutdown -h now"
+    #command: "ssh heat-admin@{{ item }} sudo shutdown -h now"
     with_items:
       - "{{ overcloud_host_prov_ips.stdout_lines }}"
     async: 1

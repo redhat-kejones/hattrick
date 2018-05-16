@@ -5,8 +5,7 @@
       state: present
       username: "{{ rhn_user }}"
       password: "{{ rhn_pass }}"
-      pool_ids:
-        - "{{ rhn_pool }}"
+      pool: "{{ rhn_pool }}"
 
   - name: Disable all repos
     command: subscription-manager repos --disable "*"
