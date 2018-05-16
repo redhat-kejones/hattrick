@@ -38,11 +38,13 @@ pod3_switch
 172.16.21.16
 172.16.21.18
 
-[pod3_rhel_common] #TODO: update these later
-172.16.31.10
-172.16.31.15
-172.16.31.16
-172.16.31.18
+[pod3_rhel_common]
+172.16.30.10
+172.16.30.20
+172.16.30.21
+172.16.30.22
+172.16.30.23
+172.16.30.24
 
 [rhel_common:children]
 pod1_rhel_common
@@ -76,6 +78,27 @@ pod3_rhel_kvm
 pod1_vmenator
 pod2_vmenator
 pod3_vmenator
+
+[pod3_rhhi_infra]
+172.16.30.10
+
+[rhhi_infra:children]
+pod3_rhhi_infra
+
+[pod3_rhhi]
+172.16.30.20
+172.16.30.21
+172.16.30.22
+172.16.30.23
+
+[rhhi:children]
+pod3_rhhi
+
+[pod3_engine]
+172.16.30.24
+
+[engine:children]
+pod3_engine
 
 [pod1_rhel_idm]
 172.16.11.15
