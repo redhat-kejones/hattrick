@@ -114,5 +114,6 @@
         project_name: "{{ osp_project }}"
       server: "{{ item.name }}"
       timeout: 200
+      wait: no
     with_items:
       - "{{ openstack_servers }}"
