@@ -11,6 +11,17 @@ All variables are in either group_vars/all/vars.yml or specified with the roles 
 
 We've attempted to make this setup very flexible. However, if you believe there is a better way, please contribute.
 
+Contributors
+
+Jason Ritenour
+Chris Reynolds
+Jared Hocutt
+Chris Alliey
+Laurent Domb
+Kevin Jones
+Jamie Duncan
+Steven Carter
+
 Initial Architecture
 
 The ansiblized switch and router configs have been left out of this repo. The switch we were using for this project is not fully managed. With that in mind there is a switch config file in the files directory so that you may at least see our switch configuration.
