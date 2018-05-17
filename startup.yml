@@ -76,7 +76,6 @@
     wait_for:
       host: "{{ networks.external.dhcpStart }}"
       state: started
-      delay: 10
       connect_timeout: 5
       timeout: 300
       port: 80
@@ -96,13 +95,27 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
+#- hosts: rhosp_director
+#  name: play to start OpenStack instances
+#  gather_facts: false
+#  remote_user: root
+#  tasks:
   - name: get list of openstack projects
     become: yes
     become_user: stack
-    delegate_to: 172.16.11.16
     shell: "source /home/stack/operatorrc && openstack project list -c Name --format value"
+    delegate_to: "{{ rhosp_director_ip }}"
     register: openstack_projects
 
+#  - name: set openstack_projects fact
+#    set_fact:
+#      openstack_projects: "{{ openstack_projects }}"
+
+#- hosts: localhost
+#  name: play to start OpenStack instances
+#  gather_facts: false
+#  remote_user: root
+#  tasks:
 #  - name: get list of openstack projects
 #    os_project_facts:
 #      auth:
@@ -131,6 +144,6 @@
         project_name: "{{ osp_project }}"
       server: "{{ item.name }}"
       timeout: 200
-      wait: no
+      wait: yes
     with_items:
       - "{{ openstack_servers }}"

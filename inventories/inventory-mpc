@@ -128,7 +128,6 @@ pod1_rhosp_director
 pod2_rhosp_director
 pod3_rhosp_director
 
- #TODO: refactor this group
 [pod1_rhosp_overcloud]
 172.16.11.16
 
