@@ -26,6 +26,7 @@ source /home/stack/overcloudrc
 
 #Create the operators tenant and operator user defined above
 openstack project create $tenant --description "Project intended for shared resources and testing by Operators" --enable
+openstack quota set --ram 262144 --instances 20 --cores 80 --gigabytes 1000 --volumes 40 $tenant
 openstack user create $user --project $tenant --password $password --email $email --enable
 
 #Grant the admin role to the operator admin
