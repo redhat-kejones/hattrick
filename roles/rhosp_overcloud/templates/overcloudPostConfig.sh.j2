@@ -59,8 +59,8 @@ openstack flavor create --id 3 --ram 2048 --disk 20 --vcpus 2 --public m1.medium
 openstack flavor create --id 4 --ram 4096 --disk 40 --vcpus 4 --public m1.large
 openstack flavor create --id 5 --ram 8192 --disk 80 --vcpus 8 --public m1.xlarge
 openstack flavor create --id 6 --ram 12288 --disk 80 --vcpus 4 --public cf.min
-openstack flavor create --id 7 --ram 16834 --disk 40 --ephemeral 40 --vcpus 2 --public ocp1.master
-openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 40 --vcpus 2 --public ocp1.node
+openstack flavor create --id 7 --ram 16834 --disk 40 --ephemeral 40 --vcpus 8 --public ocp1.master
+openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 300 --vcpus 8 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #Create shared external network via flat provider type

@@ -10,6 +10,9 @@ nfs_server: 172.16.2.10
 nfs_repos_path: /volume1/web/install/repos/
 nfs_images_path: /volume1/web/install/images/
 
+ocp_shared_registry_server: 172.16.2.16
+ocp_shared_registry_port: 5000
+
 register_rhn: false
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pwd: "{{ vault_rhn_pwd }}"

@@ -1,17 +1,35 @@
 ---
 # tasks file for tower
+  - name: enable the needed rhel repositories
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
+    with_items:
+      - "{{ tower.repos }}"
+    when: not register_rhn
+
   - name: Register with Red Hat Subscription Manager
     redhat_subscription:
       state: present
       username: "{{ rhn_user }}"
       password: "{{ rhn_pass }}"
       pool: "{{ rhn_pool }}"
+    when: register_rhn
 
   - name: Disable all repos
     command: subscription-manager repos --disable "*"
+    when: register_rhn
 
-  - name: Enable necessary repos
-    command: subscription-manager repos --enable="rhel-7-server-rpms"     --enable="rhel-7-server-extras-rpms" 
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ tower.repos }}"
+    when: register_rhn
 
   - name: Install & enable EPEL repo
     command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'

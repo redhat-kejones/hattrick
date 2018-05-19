@@ -2,6 +2,8 @@ domain: pod1.mpc
 dns_server_local: 172.16.11.15
 repo_server_ip: 172.16.2.10
 local_repo_url: "http://172.16.2.10:8888/repos/"
+ocp_shared_registry_server: 172.16.2.16
+ocp_shared_registry_port: 5000
 register_rhn: false
 ocp:
   repos:
@@ -10,8 +12,10 @@ ocp:
     - rhel-7-fast-datapath-rpms
     - rhel-7-server-ose-3.9-rpms
     - rhel-7-server-ansible-2.4-rpms
-osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
-osp_ip: 172.16.21.20 # OpenStack specific
+    - rh-gluster-3-client-for-rhel-7-server-rpms
+    - rh-gluster-3-for-rhel-7-server-rpms
+osp_url: http://172.16.11.20:5000/v2.0 # OpenStack specific
+osp_ip: 172.16.11.20 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
@@ -21,7 +25,8 @@ db_vol_name: ocp-{{ type }}-vol
 vm_name: ocp-{{ type }}
 image_uid: rhel75
 flavor_name: ocp1.master
-key_name: kvm #works with OpenStack & EC2
+node_flavor_name: ocp1.node
+key_name: nuc #works with OpenStack & EC2
 network_name: private # Works with all providers
 ssh_user: cloud-user
 cf_db_dev: '/dev/vdc'

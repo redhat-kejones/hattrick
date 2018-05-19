@@ -40,6 +40,7 @@
       auto_ip: yes
       volumes:
         - "{{ db_vol_name }}-{{ item }}"
+      timeout: 300
     register: osp_host
     with_sequence:
       count={{ num }}

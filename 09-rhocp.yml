@@ -41,6 +41,7 @@
     infra: false
     node: true
     num: 3
+    flavor_name: "{{ node_flavor_name }}"
   roles:
     - ocp-osp
 

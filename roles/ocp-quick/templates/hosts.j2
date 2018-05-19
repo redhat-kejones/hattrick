@@ -3,6 +3,7 @@
 masters
 etcd
 nodes
+glusterfs
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -25,8 +26,8 @@ openshift_deployment_type=openshift-enterprise
 #openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
 
-openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
-openshift_master_cluster_public_hostname={{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+openshift_master_cluster_public_hostname={{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
 
 openshift_master_default_subdomain={{ ocp_wildcard_domain }}
 
@@ -39,17 +40,45 @@ openshift_master_console_port=443
 #Enable OpenShift Service Catalog
 openshift_enable_service_catalog=true
 
+#CNS
+
+#openshift_storage_glusterfs_block_deploy=true
+#openshift_storage_glusterfs_block_host_vol_size=20
+#openshift_storage_glusterfs_block_storageclass=true
+#openshift_storage_glusterfs_block_storageclass_default=true
+#openshift_storageclass_default=false
+
+openshift_storage_glusterfs_namespace=glusterfs
+openshift_storage_glusterfs_name=storage
+openshift_storage_glusterfs_heketi_wipe=true
+openshift_storage_glusterfs_wipe=true
+openshift_storage_glusterfs_storageclass_default=true
+openshift_storage_glusterfs_block_storageclass=false
+openshift_master_dynamic_provisioning_enabled=true
+dynamic_volumes_check=False
+openshift_docker_additional_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+openshift_docker_insecure_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+
 # host group for masters
 [masters]
-{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
 
 [etcd]
-{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
 
 # host group for nodes, includes region info
 [nodes]
-{{ hostvars[groups['master'][0]]['ansible_fqdn'] }}
-{{ hostvars[groups['infra'][0]]['ansible_fqdn'] }}  openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+{{ hostvars[groups['infra'][0]]['ansible_hostname'] }}.{{ domain }} openshift_node_labels="{'region': 'infra', 'zone': 'default'}"
 {% for host in groups['node'] %}
-{{ hostvars[host].ansible_fqdn }}  openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
+{{ hostvars[host].ansible_hostname }}.{{ domain }} openshift_node_labels="{'region': 'primary', 'zone': 'default'}"
 {% endfor %}
+
+# host group for glusterfs
+[glusterfs]
+{% set glusterfs_zone = 1 %}
+{% for host in groups['node'] %}
+{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_ip={{ hostvars[host].inventory_hostname }} glusterfs_zone={{ glusterfs_zone }} glusterfs_devices='[ "/dev/vdb" ]'
+{% set glusterfs_zone = glusterfs_zone + 1 %}
+{% endfor %}
+

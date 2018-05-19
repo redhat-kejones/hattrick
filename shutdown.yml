@@ -54,6 +54,7 @@
       timeout: 200
     with_items:
       - "{{ openstack_servers }}"
+    ignore_errors: true
   
   - name: shutdown cloud confirmation
     pause:

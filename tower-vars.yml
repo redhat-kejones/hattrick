@@ -1,3 +1,11 @@
+domain: pod1.mpc
+dns_server_local: 172.16.11.15
+repo_server_ip: 172.16.2.10
+local_repo_url: "http://172.16.2.10:8888/repos/"
+tower:
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
 osp_url: http://172.16.11.20:5000/v2.0 # OpenStack specific
 osp_ip: 172.16.11.20 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
@@ -11,20 +19,20 @@ key_name: nuc #works with OpenStack & EC2
 network_name: private # Works with all providers
 prov_net: provisioning # Works with all providers
 image_uid: rhel75 # works with OpenStack
-flavor: m1.medium # works with OSP/Azure/AWS TODO: cleanup
-flavor_name: m1.medium # works with OSP/Azure/AWS TODO:cleanup
+flavor: m1.large # works with OSP/Azure/AWS TODO: cleanup
+flavor_name: m1.large # works with OSP/Azure/AWS TODO:cleanup
 ssh_user: root
 cf_db_pass: "{{ vault_cf_db_pwd }}"
 cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
 cf_db_dev: '/dev/vdb'
 region_num: 20
 security_group: default # works with OpenStack & EC2
-dns: 172.16.11.15
+dns: "{{ dns_server_local }}"
+register_rhn: false
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
 rhn_pool: "{{ vault_rhn_pool_name }}"
 ipa_server: "idm.{{ domain }}"
-domain: "{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
 undercloud_ip: 172.16.11.16 # OpenStack specific
