@@ -33,6 +33,7 @@
 
   - name: Install & enable EPEL repo
     command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+    ignore_errors: true
 
   - name: Make temp directory
     file: 
