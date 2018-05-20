@@ -100,8 +100,34 @@
     become: false
     ignore_errors: true
 
+  - name: add forward DNS entry for public hostname
+    ipa_dnsrecord:
+      ipa_host: "{{ ipa_server }}"
+      ipa_user: "{{ ipa_user }}"
+      ipa_pass: "{{ ipa_password }}"
+      state: present
+      zone_name: "{{ domain }}"
+      record_name: "{{ ocp_wildcard_domain }}"
+      record_type: "A"
+      record_value: "{{ inventory_hostname }}"
+      validate_certs: false
+    when: "'master' in group_names"
+
+  - name: add DNS Wildcard record pointed to infra node(s)
+    ipa_dnsrecord:
+      ipa_host: "{{ ipa_server }}"
+      ipa_user: "{{ ipa_user }}"
+      ipa_pass: "{{ ipa_password }}"
+      state: present
+      zone_name: "{{ domain }}"
+      record_name: "{{ ocp_wildcard_record }}"
+      record_type: "A"
+      record_value: "{{ hostvars[groups['infra'][0]]['inventory_hostname'] }}"
+      validate_certs: false
+    when: "'master' in group_names"
+
   - name: configure IPA client
-    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --ip-address='{{ inventory_hostname }}'
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --enable-dns-updates
     ignore_errors: true
 
   - name: configure docker storage
@@ -165,7 +191,7 @@
 #    command: docker load -i /root/ose3-logging-metrics-images.tar
 #    when: "'master' not in group_names"
 
-  - name: Copy hoststemplate file
+  - name: copy hoststemplate file
     template:
       src: hosts.j2
       dest: /etc/ansible/hosts
@@ -174,9 +200,18 @@
       mode: 0644
     when: "'master' in group_names"
 
+  - name: add line to default ansbile.cfg to set the log file
+    lineinfile:
+      dest: /etc/ansible/ansible.cfg
+      state: present
+      regexp: "^#log_path"
+      line: "log_path = ansible.log"
+    when: "'master' in group_names"
+
   - name: create ssh key on root account
     shell: 'ssh-keygen -b 2048 -t rsa -f {{ ansible_user_dir }}/.ssh/id_rsa -q -N ""'
     when: "'master' in group_names"
+    ignore_errors: true
 
   - name: capture master public key
     shell: "cat {{ ansible_user_dir }}/.ssh/id_rsa.pub"
@@ -231,14 +266,3 @@
   - name: set htpasswd user up as a cluster-admin
     shell: 'oadm policy add-cluster-role-to-user cluster-admin admin'
     when: "'master' in group_names"
-
-# Play below verified to work - commenting out until ready to integrate into main playbook
-  - name: add DNS Wildcard record pointed to infra node(s)
-    nsupdate:
-      key_name: "{{ dns_keyname }}"
-      key_secret: "{{ dns_key }}"
-      key_algorithm: "{{ dns_algorith }}"
-      server: "{{ dns_server }}"
-      zone: "{{ domain }}"
-      record: "{{ ansible_hostname }}"
-      value: "{{ hostvars[groups['node'][1]]['ansible_default_ipv4']['address'] }}"

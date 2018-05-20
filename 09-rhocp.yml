@@ -1,5 +1,29 @@
 ---
 - hosts: localhost
+  gather_facts: no
+  remote_user: root
+  vars_files:
+    - 'ocp-vars.yml'
+  tasks:
+  - ipa_dnszone:
+      ipa_host: "{{ ipa_server }}"
+      ipa_user: "{{ ipa_user }}"
+      ipa_pass: "{{ ipa_password }}"
+      validate_certs: no
+      state: present
+      zone_name: "{{ private_reverse_zone }}"
+
+  - name: enable dynamic updates on dns zones
+    shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-mod {{ private_reverse_zone }} --dynamic-update=TRUE"
+    delegate_to: "{{ ipa_server }}"
+    ignore_errors: true
+
+  - name: enable allow ptr sync on dns zones
+    shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-mod --allow-sync-ptr=1 {{ private_reverse_zone }}"
+    delegate_to: "{{ ipa_server }}"
+    ignore_errors: true
+
+- hosts: localhost
   connection: local
   gather_facts: no
   remote_user: root
@@ -41,7 +65,7 @@
     infra: false
     node: true
     num: 3
-    flavor_name: "{{ node_flavor_name }}"
+    flavor: "{{ node_flavor_name }}"
   roles:
     - ocp-osp
 

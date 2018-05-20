@@ -112,7 +112,7 @@
 #        {{ inventory_hostname }}
 
   - name: configure IPA client
-    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --ip-address='{{ inventory_hostname }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --enable-dns-updates
     when: "'node' in group_names"
     ignore_errors: True
   - name: configure docker storage
