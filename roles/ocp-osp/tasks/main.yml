@@ -35,6 +35,8 @@
     with_sequence:
       count={{ num }}
 
+  - debug:
+      msg: "{{ flavor_name }}"
   - name: launch instances
     os_server:
       auth:

@@ -75,11 +75,29 @@
     - httpd-tools
     - dnsmasq
 
-  - name: remove references to /dev/vdb from /etc/fstab
-    lineinfile:
-      dest: /etc/fstab
-      regexp: "^/dev/vdb"
+  - name: remove /mnt line from /etc/fstab
+    mount:
+      path: /mnt
       state: absent
+    when: wipe_cns_dev
+
+  - name: make sure ephemeral disk is not mounted
+    mount:
+      path: /mnt
+      state: unmounted
+    when: wipe_cns_dev
+
+  - name: create a xfs filesystem on cns device
+    filesystem:
+      fstype: xfs
+      dev: "{{ cns_dev }}"
+      force: yes
+    when: wipe_cns_dev
+
+  - name: wipefs run on cns devices
+    become: yes
+    command: "/usr/sbin/wipefs -a -f {{ cns_dev }}"
+    when: wipe_cns_dev
 
   - name: restart server to get updated kernel
     shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"

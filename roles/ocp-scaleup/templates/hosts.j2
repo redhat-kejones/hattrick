@@ -142,20 +142,20 @@ openshift_logging_kibana_nodeselector={'role': 'infra'}
 # Prometheus deployment
 #
 # Currently prometheus deployment is disabled by default, enable it by setting this
-openshift_hosted_prometheus_deploy=true
+#openshift_hosted_prometheus_deploy=true
 #
 # Prometheus storage config
-openshift_prometheus_storage_type=pvc
-openshift_prometheus_storage_class=glusterfs-storage
-openshift_prometheus_alertmanager_storage_type=pvc
-openshift_prometheus_alertmanager_storage_class=glusterfs-storage
-openshift_prometheus_alertbuffer_storage_type=pvc
-openshift_prometheus_alertbuffer_storageinventory_class=glusterfs-storage
+#openshift_prometheus_storage_type=pvc
+#openshift_prometheus_storage_class=glusterfs-storage
+#openshift_prometheus_alertmanager_storage_type=pvc
+#openshift_prometheus_alertmanager_storage_class=glusterfs-storage
+#openshift_prometheus_alertbuffer_storage_type=pvc
+#openshift_prometheus_alertbuffer_storageinventory_class=glusterfs-storage
 #
 # Other Prometheus Options
-openshift_prometheus_node_selector={'role': 'infra'}
+#openshift_prometheus_node_selector={'role': 'infra'}
 # The default v0.15.2 doesn't exist
-openshift_prometheus_node_exporter_image_version=v3.9
+#openshift_prometheus_node_exporter_image_version=v3.9
 
 # host group for masters
 [masters]
@@ -176,8 +176,8 @@ openshift_prometheus_node_exporter_image_version=v3.9
 [glusterfs]
 {% set glusterfs_zone = 1 %}
 {% for host in groups['node'] %}
-{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_devices='[ "/dev/vdd" ]'
-#{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_ip={{ hostvars[host].inventory_hostname }} glusterfs_zone={{ glusterfs_zone }} glusterfs_devices='[ "/dev/vdd" ]'
+{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_devices='[ "{{ cns_dev }}" ]'
+#{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_ip={{ hostvars[host].inventory_hostname }} glusterfs_zone={{ glusterfs_zone }} glusterfs_devices='[ "{{ cns_dev }}" ]'
 {% set glusterfs_zone = glusterfs_zone + 1 %}
 {% endfor %}
 

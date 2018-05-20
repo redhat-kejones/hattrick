@@ -24,12 +24,14 @@ db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just
 db_vol_name: ocp-{{ type }}-vol
 vm_name: ocp-{{ type }}
 image_uid: rhel75
-flavor_name: ocp1.master
+master_flavor_name: ocp1.master
 node_flavor_name: ocp1.node
 key_name: nuc #works with OpenStack & EC2
 network_name: private # Works with all providers
 ssh_user: cloud-user
 cf_db_dev: '/dev/vdc'
+wipe_cns_dev: false #override with --extra-vars="wipe_cns_dev=true"
+cns_dev: '/dev/vdb'
 region_num: 20
 security_group: default # works with OpenStack & EC2
 dns: "{{ dns_server_local }}"

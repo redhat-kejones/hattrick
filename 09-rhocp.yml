@@ -35,6 +35,7 @@
     infra: false
     node: false
     num: 1
+    flavor_name: "{{ master_flavor_name }}"
   roles:
     - ocp-osp
 
@@ -50,6 +51,7 @@
     infra: true
     node: false
     num: 1
+    flavor_name: "{{ master_flavor_name }}"
   roles:
     - ocp-osp
 
@@ -65,7 +67,7 @@
     infra: false
     node: true
     num: 3
-    flavor: "{{ node_flavor_name }}"
+    flavor_name: "{{ node_flavor_name }}"
   roles:
     - ocp-osp
 
