@@ -40,6 +40,10 @@
     delegate_to: 127.0.0.1
     become: false
 
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
   - name: get ironic node names for overcloud hosts
     become: yes
     become_user: stack
@@ -81,6 +85,29 @@
       port: 80
     delegate_to: 127.0.0.1
     become: false
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
+  #due to weird issue on pod1 where patternfly doesn't load
+  - name: get provisioning IPs for overcloud controllers
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -f value | grep controller | cut -d = -f 2 | cut -d ' ' -f 1"
+    register: overcloud_controller_prov_ips
+
+  - name: restart httpd on controllers
+    become: yes
+    become_user: stack
+    shell: "ssh heat-admin@{{ item }} sudo systemctl restart httpd"
+    with_items:
+      - "{{ overcloud_controller_prov_ips.stdout_lines }}"
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
 
 - hosts: rhel_kvm
   name: play to start OpenStack instances
