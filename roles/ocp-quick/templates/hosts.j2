@@ -109,6 +109,8 @@ openshift_hosted_router_selector='role=infra'
 # Registry will only be created if nodes matching this label are present.
 # Default value: 'region=infra'
 openshift_hosted_registry_selector='role=infra'
+openshift_hosted_registry_storage_kind=glusterfs
+openshift_hosted_registry_storage_volume_size={{ openshift_registry_volume_size }}Gi
 
 # Metrics deployment
 # See: https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html
