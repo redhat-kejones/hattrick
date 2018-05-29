@@ -82,6 +82,43 @@ versions:
   ocp: 3.9
   cfme: 5.9
 
+rhel_repo:
+  hostname_short: repo
+  sync_satellite: false
+  repos:
+    rhel:
+      - rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
+    osp:
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    satellite:
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    ocp:
+      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+    cfme:
+      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
+
+rhel_nfs:
+  hostname_short: nfs
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - nfs-utils
+    - nfs-utils-lib
+    - portmap
+
 rhel_idm:
   hostname_short: idm
   realm: "{{ domain | upper }}"
@@ -211,9 +248,9 @@ rhosp_director:
     - rhel-ha-for-rhel-7-server-rpms
     - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
     - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-    - rhel-7-server-rhceph-2-osd-rpms
-    - rhel-7-server-rhceph-2-mon-rpms
-    - rhel-7-server-rhceph-2-tools-rpms
+    #- rhel-7-server-rhceph-2-osd-rpms
+    #- rhel-7-server-rhceph-2-mon-rpms
+    #- rhel-7-server-rhceph-2-tools-rpms
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
@@ -230,13 +267,13 @@ rhosp_director:
   # portion of the value will be assigned to the network interface
   # defined by local_interface, with the netmask defined by the prefix
   # portion of the value
-  provisioning_ip: 192.168.2.3/24
+  provisioning_ip: 192.168.2.5/24
   # Network CIDR for the Neutron-managed network for Overcloud
   # instances. This should be the subnet used for PXE booting
   provisioning_network_cidr: 192.168.2.0/24
   # Network gateway for the Neutron-managed network for Overcloud
   # instances. This should match the local_ip above when using masquerading
-  provisioning_network_gateway: 192.168.2.3
+  provisioning_network_gateway: 192.168.2.5
   # Virtual IP address to use for the admin endpoints of Undercloud services.
   admin_apis_vip: 192.168.2.4
   # Temporary IP range that will be given to nodes during the discovery
@@ -287,6 +324,9 @@ rhosp_director:
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
+
+  optional_docker_services:
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
 
 rhosp_overcloud:
   timezone: "US/Eastern"

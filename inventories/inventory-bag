@@ -95,6 +95,34 @@ cloudlet3_rhhi
 [engine:children]
 cloudlet3_engine
 
+[cloudlet1_rhel_repo]
+192.168.0.8
+
+[cloudlet2_rhel_repo]
+192.168.21.8
+
+[cloudlet3_rhel_repo]
+192.168.31.8
+
+[rhel_repo:children]
+cloudlet1_rhel_repo
+cloudlet2_rhel_repo
+cloudlet3_rhel_repo
+
+[cloudlet1_rhel_nfs]
+192.168.0.7
+
+[cloudlet2_rhel_nfs]
+192.168.21.7
+
+[cloudlet3_rhel_nfs]
+192.168.31.7
+
+[rhel_nfs:children]
+cloudlet1_rhel_nfs
+cloudlet2_rhel_nfs
+cloudlet3_rhel_nfs
+
 [cloudlet1_rhel_idm]
 192.168.0.4
 
@@ -142,6 +170,8 @@ cloudlet1_switch
 cloudlet1_rhel_kvm
 cloudlet1_vmenator
 cloudlet1_rhel_idm
+cloudlet1_rhel_repo
+cloudlet1_rhel_nfs
 cloudlet1_rhel_common
 cloudlet1_rhosp_director
 
@@ -150,6 +180,8 @@ cloudlet2_switch
 cloudlet2_rhel_kvm
 cloudlet2_vmenator
 cloudlet2_rhel_idm
+cloudlet2_rhel_repo
+cloudlet2_rhel_nfs
 cloudlet2_rhel_common
 cloudlet2_rhosp_director
 
@@ -159,4 +191,6 @@ cloudlet3_rhhi_infra
 cloudlet3_rhhi
 cloudlet3_engine
 cloudlet3_rhel_idm
+cloudlet3_rhel_repo
+cloudlet3_rhel_nfs
 cloudlet3_rhel_common

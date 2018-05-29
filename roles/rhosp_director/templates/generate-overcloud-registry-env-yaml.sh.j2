@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+openstack overcloud container image prepare \
+  --namespace="{{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/{{ versions.rhosp }}" \
+  --prefix=openstack- \
+  --tag="{{ docker_latest.stdout }}" \
+{% for services in rhosp_director.optional_docker_services %}
+    -e {{ services }} \
+{% endfor %}
+  --output-env-file=/home/stack/templates/overcloud_images.yaml
