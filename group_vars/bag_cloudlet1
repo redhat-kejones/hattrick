@@ -1,24 +1,24 @@
 domain: cloudlet1.bag
-dns_server_local: 192.168.0.15
-dns_server_public: 172.16.2.10
+dns_server_local: 192.168.0.4
+dns_server_public: 8.8.8.8
 ntp_server: time.google.com
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 git_repo: https://github.com/redhat-kejones/hattrick
 
-nfs_server: 172.16.2.10
+nfs_server: 192.168.0.7
 nfs_repos_path: /volume1/web/install/repos/
 nfs_images_path: /volume1/web/install/images/
 
-ocp_shared_registry_server: 172.16.2.16
+ocp_shared_registry_server: 192.168.0.7
 ocp_shared_registry_port: 5000
 
-register_rhn: false
+register_rhn: true
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pwd: "{{ vault_rhn_pwd }}"
 rhn_pool_name: "{{ vault_rhn_pool_name }}"
 
-local_repo_url: "http://172.16.2.10:8888/repos/"
+local_repo_url: "http://192.168.0.3/repos/"
 
 networks:
   external:
@@ -77,9 +77,9 @@ networks:
     dhcpEnd: 192.168.104.250
 
 versions:
-  rhosp: 10
+  rhosp: 12
   satellite: 6.3
-  ocp: 3.6
+  ocp: 3.9
   cfme: 5.9
 
 rhel_idm:
@@ -113,24 +113,24 @@ rhel_idm:
     record_type: A
     ip_address: 192.168.0.2
     reverse_record: 2.0
-  - hostname: nuc
+  - hostname: kvm
     record_type: A
-    ip_address: 192.168.0.10
-    reverse_record: 10.0
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
   - hostname: undercloud
     record_type: A
     ip_address: 192.168.0.5
     reverse_record: 5.0
   - hostname: openstack
     record_type: A
-    ip_address: 192.168.0.20
-    reverse_record: 20.11
+    ip_address: 192.168.1.40
+    reverse_record: 40.1
 
 rhel_kvm:
-  hostname_full: "nuc.{{ domain }}"
+  hostname_full: "kvm.{{ domain }}"
   disks:
     root: sda
-    libvirt_images: sdb
+#    libvirt_images: sdb
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
@@ -141,6 +141,8 @@ rhel_kvm:
     - 'wget'
     - 'vim'
     - 'tree'
+    - 'rsync'
+    - 'bridge-utils'
     - 'yum-utils'
     - 'git'
     - 'qemu-kvm'
@@ -148,6 +150,9 @@ rhel_kvm:
     - 'libvirt'
     - 'virt-install'
     - 'libvirt-client'
+    - 'libvirt-daemon'
+    - 'libvirt-daemon-driver-qemu'
+    - 'libvirt-daemon-kvm'
     - 'libvirt-python'
     - 'libguestfs-tools-c'
     - 'rhel-guest-image-7'
@@ -169,10 +174,10 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "--type bridge --source br1 --model virtio"
+      config: "--type bridge --source br2 --model virtio"
       ip: 192.168.2.5
     - name: eth1
-      config: "--type bridge --source br2 --model virtio"
+      config: "--type bridge --source br1 --model virtio"
       ip: 192.168.0.5
     ram: 16384
     vcpus: 8
@@ -181,9 +186,18 @@ vmenator:
     disk_os_size: 80G
     nics:
     - name: eth0
-      config: "--type bridge --source br2 --model virtio"
-      ip: 192.168.0.15
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.4
     ram: 4096
+    vcpus: 1
+  - name: repo
+    disk_os_name: repo-os.qcow2
+    disk_os_size: 150G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.8
+    ram: 1024
     vcpus: 1
 
 rhosp_director:
@@ -216,15 +230,15 @@ rhosp_director:
   # portion of the value will be assigned to the network interface
   # defined by local_interface, with the netmask defined by the prefix
   # portion of the value
-  provisioning_ip: 192.168.2.16/24
+  provisioning_ip: 192.168.2.3/24
   # Network CIDR for the Neutron-managed network for Overcloud
   # instances. This should be the subnet used for PXE booting
   provisioning_network_cidr: 192.168.2.0/24
   # Network gateway for the Neutron-managed network for Overcloud
   # instances. This should match the local_ip above when using masquerading
-  provisioning_network_gateway: 192.168.2.1
+  provisioning_network_gateway: 192.168.2.3
   # Virtual IP address to use for the admin endpoints of Undercloud services.
-  admin_apis_vip: 192.168.2.17
+  admin_apis_vip: 192.168.2.4
   # Temporary IP range that will be given to nodes during the discovery
   # process.  Should not overlap with the range defined by dhcp_start
   # and dhcp_end, but should be in the same network
@@ -276,7 +290,7 @@ rhosp_director:
 
 rhosp_overcloud:
   timezone: "US/Eastern"
-  timeout: 60
+  timeout: 90
   cloud_name: openstack
   operator_pub_key: "{{ vault_operator_pub_key }}"
   controller_scale: 1
