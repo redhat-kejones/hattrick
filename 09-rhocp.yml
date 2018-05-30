@@ -77,4 +77,5 @@
   vars_files:
     - 'ocp-vars.yml'
   roles:
+    - rhel_common
     - ocp-quick
