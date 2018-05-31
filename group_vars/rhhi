@@ -1,4 +1,117 @@
 ---
+domain: rhhi.lab
+dns_server_local: 192.168.0.4
+
+nfs_server: 192.168.0.8
+nfs_repos_path: /var/www/html/repos/
+nfs_images_path: /var/www/html/images/
+
+ocp_shared_registry_server: 192.168.0.8
+ocp_shared_registry_port: 5000
+
+local_repo_url: "http://192.168.0.8/repos/"
+
+networks:
+  ovirtmgmt:
+    name: ovirtmgmt
+    cidr: 192.168.0.0/23
+    defroute: true
+    gateway: 192.168.0.1
+    vlan: 1
+    dhcpStart: 192.168.1.20
+    dhcpEnd: 192.168.1.199
+  migration:
+    name: migration
+    cidr: 192.168.2.0/24
+    defroute: false
+    gateway: 192.168.2.16
+    vlan: 2
+    dhcpStart: 192.168.2.70
+    dhcpEnd: 192.168.2.99
+  storage:
+    name: storage
+    cidr: 192.168.101.0/24
+    defroute: false
+    vlan: 901
+    dhcpStart: 192.168.101.40
+    dhcpEnd: 192.168.101.250
+
+rhel_idm:
+  hostname_short: idm
+  realm: "{{ domain | upper }}"
+  dm_pwd: "{{ vault_idm_dm_pwd }}"
+  admin_pwd: "{{ vault_idm_admin_pwd }}"
+  forward_ip: "{{ dns_server_public }}"
+  reverse_zone: "168.192.in-addr.arpa."
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - ipa-server
+    - ipa-server-dns
+  users:
+  - username: operator
+    password: redhat
+    display_name: "RHHI Operator"
+    first_name: RHHI
+    last_name: Operator
+    email: "rhhi-support@redhat.com"
+    phone: "+18887334281"
+    title: "RHHI Operator"
+  dns_records:
+  - hostname: wwan
+    record_type: A
+    ip_address: 192.168.0.1
+    reverse_record: 1.0
+  - hostname: switch
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.5
+    reverse_record: 5.0
+  - hostname: repo
+    record_type: A
+    ip_address: 192.168.0.8
+    reverse_record: 8.0
+  - hostname: rhvm
+    record_type: A
+    ip_address: 192.168.0.20
+    reverse_record: 20.0
+  - hostname: rhvh1
+    record_type: A
+    ip_address: 192.168.0.21
+    reverse_record: 21.0
+  - hostname: rhvh2
+    record_type: A
+    ip_address: 192.168.0.22
+    reverse_record: 22.0
+  - hostname: rhvh3
+    record_type: A
+    ip_address: 192.168.0.23
+    reverse_record: 23.0
+  - hostname: rhvh4
+    record_type: A
+    ip_address: 192.168.0.24
+    reverse_record: 24.0
+  - hostname: tower
+    record_type: A
+    ip_address: 192.168.1.20
+    reverse_record: 20.1
+  - hostname: satellite
+    record_type: A
+    ip_address: 192.168.1.21
+    reverse_record: 21.1
+  - hostname: cloudforms
+    record_type: A
+    ip_address: 192.168.1.30
+    reverse_record: 30.1
+
 rhvurl: "192.168.1.20"
 rhv_pass: "{{ vault_rhv_pass }}"
 domain: rhhi.lab
