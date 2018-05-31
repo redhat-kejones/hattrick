@@ -12,7 +12,7 @@ ocp_shared_registry_port: 5000
 local_repo_url: "http://192.168.0.8/repos/"
 
 networks:
-  ovirtmgmt:
+  external:
     name: ovirtmgmt
     cidr: 192.168.0.0/23
     defroute: true
@@ -20,7 +20,7 @@ networks:
     vlan: 1
     dhcpStart: 192.168.1.20
     dhcpEnd: 192.168.1.199
-  migration:
+  provisioning:
     name: migration
     cidr: 192.168.2.0/24
     defroute: false
@@ -37,7 +37,7 @@ networks:
     dhcpEnd: 192.168.101.250
 
 rhel_idm:
-  hostname_short: idm
+  hostname_short: idmidm.rhhi.lab
   realm: "{{ domain | upper }}"
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
