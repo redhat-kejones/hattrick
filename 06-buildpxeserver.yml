@@ -1,0 +1,5 @@
+- name: buildrhhi
+  hosts: rhhi_infra
+  gather_facts: false
+  roles:
+    - role: ldomb-pxeserver

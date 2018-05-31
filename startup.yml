@@ -1,4 +1,14 @@
 ---
+- hosts: rhel_kvm
+  name: play to turn on IDM and Undercloud
+  gather_facts: false
+  remote_user: root
+  tasks:
+  - name: start undercloud and idm
+    shell: "virsh start {{ item.name }}"
+    ignore_errors: true
+    with_items: "{{ vmenator.vms }}"
+
 - hosts: rhel_idm
   name: play to check on IDM
   gather_facts: false
@@ -29,6 +39,10 @@
       port: 22
     delegate_to: 127.0.0.1
     become: false
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
 
   - name: get ironic node names for overcloud hosts
     become: yes
@@ -66,12 +80,34 @@
     wait_for:
       host: "{{ networks.external.dhcpStart }}"
       state: started
-      delay: 10
       connect_timeout: 5
       timeout: 300
       port: 80
     delegate_to: 127.0.0.1
     become: false
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
+  #due to weird issue on pod1 where patternfly doesn't load
+  - name: get provisioning IPs for overcloud controllers
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/stackrc && openstack server list -f value | grep controller | cut -d = -f 2 | cut -d ' ' -f 1"
+    register: overcloud_controller_prov_ips
+
+  - name: restart httpd on controllers
+    become: yes
+    become_user: stack
+    shell: "ssh heat-admin@{{ item }} sudo systemctl restart httpd"
+    with_items:
+      - "{{ overcloud_controller_prov_ips.stdout_lines }}"
+
+  - name: Pause playbook execution for 30 seconds
+    pause:
+      seconds: 30
+
 
 - hosts: rhel_kvm
   name: play to start OpenStack instances
@@ -86,13 +122,34 @@
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
 
+#- hosts: rhosp_director
+#  name: play to start OpenStack instances
+#  gather_facts: false
+#  remote_user: root
+#  tasks:
   - name: get list of openstack projects
-    os_project_facts:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+    become: yes
+    become_user: stack
+    shell: "source /home/stack/operatorrc && openstack project list -c Name --format value"
+    delegate_to: "{{ rhosp_director_ip }}"
+    register: openstack_projects
+
+#  - name: set openstack_projects fact
+#    set_fact:
+#      openstack_projects: "{{ openstack_projects }}"
+
+#- hosts: localhost
+#  name: play to start OpenStack instances
+#  gather_facts: false
+#  remote_user: root
+#  tasks:
+#  - name: get list of openstack projects
+#    os_project_facts:
+#      auth:
+#        auth_url: "{{ osp_url }}"
+#        username: "{{ osp_user }}"
+#        password: "{{ osp_pass }}"
+#        project_name: "{{ osp_project }}"
 
   - name: get list of instances per project
     os_server_facts:
@@ -114,5 +171,6 @@
         project_name: "{{ osp_project }}"
       server: "{{ item.name }}"
       timeout: 200
+      wait: yes
     with_items:
       - "{{ openstack_servers }}"

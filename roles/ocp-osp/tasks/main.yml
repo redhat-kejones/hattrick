@@ -7,7 +7,7 @@
 #    debug:
 #      var: uuid_list.stdout
 
-  - name: Create volume for /var for all instances
+  - name: Create volume for docker storage for all instances
     os_volume:
       auth:
         auth_url: "{{ osp_url }}"
@@ -21,6 +21,22 @@
     with_sequence:
       count={{ num }}
 
+  - name: Create volume for cns for all instances
+    os_volume:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      availability_zone: "{{ az }}"
+      size: "100"
+      display_name: "{{ db_vol_name }}-cns-{{ item }}"
+    with_sequence:
+      count={{ num }}
+
+  - debug:
+      msg: "{{ flavor_name }}"
   - name: launch instances
     os_server:
       auth:
@@ -40,6 +56,8 @@
       auto_ip: yes
       volumes:
         - "{{ db_vol_name }}-{{ item }}"
+        - "{{ db_vol_name }}-cns-{{ item }}"
+      timeout: 300
     register: osp_host
     with_sequence:
       count={{ num }}

@@ -44,9 +44,9 @@
     - rhel-ha-for-rhel-7-server-rpms
     - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
     - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-    - rhel-7-server-rhceph-2-osd-rpms
-    - rhel-7-server-rhceph-2-mon-rpms
-    - rhel-7-server-rhceph-2-tools-rpms
+#    - rhel-7-server-rhceph-2-osd-rpms
+#    - rhel-7-server-rhceph-2-mon-rpms
+#    - rhel-7-server-rhceph-2-tools-rpms
   when: register_rhn
   tags: prep
 
@@ -426,3 +426,66 @@
   debug:
     msg: ipmi completely validated
   tags: introspection
+
+- name: Discover the tag for the latest Docker images
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
+  args:
+    chdir: /home/stack
+  register: docker_latest
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_template
+
+- name: copy generate-local-registry-images-yaml.sh script
+  become: yes
+  become_user: stack
+  template:
+    src: templates/generate-local-registry-images-yaml.sh.j2
+    dest: /home/stack/generate-local-registry-images-yaml.sh
+    owner: stack
+    group: stack
+    mode: 0775
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_template
+
+- name: copy generate-overcloud-registry-env-yaml.sh script
+  become: yes
+  become_user: stack
+  template:
+    src: templates/generate-overcloud-registry-env-yaml.sh.j2
+    dest: /home/stack/generate-overcloud-registry-env-yaml.sh
+    owner: stack
+    group: stack
+    mode: 0775
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_template
+
+- name: Create a template to pull the images to the local registry
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && /home/stack/generate-local-registry-images-yaml.sh
+  args:
+    chdir: /home/stack
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_template
+
+- name: Pull the Docker images in to local registry
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_pull
+
+- name: Create a template for using the images in our local registry on the undercloud
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh
+  args:
+    chdir: /home/stack
+  when: versions.rhosp >= 12
+  tags: docker_registry,docker_registry_template

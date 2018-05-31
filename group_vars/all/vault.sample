@@ -14,10 +14,10 @@ vault_undercloud_admin_pwd: redhat
 vault_osp_user: operator
 vault_osp_pwd: redhat
 #CloudForms
-vault_cf_db_pass: redhat
-vault_cf_ssh_pass: smartvm
+vault_cf_db_pwd: redhat
+vault_cf_ssh_pwd: smartvm
 #OCP
 vault_ocp_user: admin
-vault_ocp_pass: redhat
+vault_ocp_pwd: redhat
 #Tower
-vault_tower_pass: redhat
+vault_tower_pwd: redhat

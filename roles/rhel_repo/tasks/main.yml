@@ -1,5 +1,8 @@
 ---
 # tasks file for rhel_repo
+- debug:
+    msg: "{{ rhel_repo }}"
+
 - name: set hostname
   hostname:
     name: "{{ rhel_repo.hostname_short }}.{{ domain }}"
@@ -70,7 +73,7 @@
 
 - name: Creates directory for repos
   file:
-    path: /var/www/html/
+    path: /var/www/html/repos/
     state: directory
     owner: apache
     group: apache
@@ -78,54 +81,54 @@
   tags: sync_repos
 
 - name: reposync rhel
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: sync_repos
 
 - name: reposync osp
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/htmlrepos"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: sync_repos
 
 - name: reposync satellite
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
   when: rhel_repo.sync_satellite
 
 - name: reposync ocp
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: sync_repos
 
 - name: reposync cfme
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: sync_repos
 
 - name: create rhel repo
-  command: "createrepo -v /var/www/html/{{ item }}"
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: create_repos
 
 - name: create osp repo
-  command: "createrepo -v /var/www/html/{{ item }}"
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: create_repos
 
 - name: create satellite repo
-  command: "createrepo -v /var/www/html/{{ item }}"
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
   when: rhel_repo.sync_satellite
 
 - name: create ocp repo
-  command: "createrepo -v /var/www/html/{{ item }}"
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: create_repos
 
 - name: create cfme repo
-  command: "createrepo -v /var/www/html/{{ item }}"
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: create_repos
 

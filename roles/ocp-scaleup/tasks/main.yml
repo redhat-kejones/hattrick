@@ -71,6 +71,12 @@
     - ipa-client
     - dnsmasq
 
+  - name: remove references to /dev/vdb from /etc/fstab
+    lineinfile:
+      dest: /etc/fstab
+      regexp: "^/dev/vdb"
+      state: absent
+
   - name: restart server to get updated kernel
     shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
     async: 1
@@ -78,14 +84,13 @@
     ignore_errors: true
     when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
 
-  - name: waiting for repo server to come back online
+  - name: waiting for instance to come back online
     wait_for:
       host: "{{ inventory_hostname }}"
       state: started
-      delay: 10
       connect_timeout: 5
       timeout: 300
-      port: 80
+      port: 22
     delegate_to: 127.0.0.1
     become: false
     ignore_errors: true
@@ -107,7 +112,7 @@
 #        {{ inventory_hostname }}
 
   - name: configure IPA client
-    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --ip-address='{{ inventory_hostname }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --enable-dns-updates
     when: "'node' in group_names"
     ignore_errors: True
   - name: configure docker storage

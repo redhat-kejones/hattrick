@@ -1,21 +1,13 @@
 domain: shadowbox.lab
 dns_server_local: 192.168.0.4
-dns_server_public: 1.1.1.1
-ntp_server: time.google.com
-use_public_dns: false #Default to false (set true individually on kvm and idm)
-
-git_repo: https://github.com/redhat-kejones/hattrick
 
 nfs_server: 192.168.0.3
 nfs_repos_path: /export/repos/
 nfs_images_path: /export/images/
 
-register_rhn: true
-rhn_user: "{{ vault_rhn_user }}"
-rhn_pwd: "{{ vault_rhn_pwd }}"
-rhn_pool_name: "{{ vault_rhn_pool_name }}"
+ocp_shared_registry_server: 192.168.0.7
+ocp_shared_registry_port: 5000
 
-#MPC Synology
 local_repo_url: "http://192.168.0.8/"
 
 networks:
@@ -74,12 +66,6 @@ networks:
     dhcpStart: 192.168.104.40
     dhcpEnd: 192.168.104.250
 
-versions:
-  rhosp: 10
-  satellite: 6.3
-  ocp: 3.6
-  cfme: 5.9
-
 rhel_idm:
   hostname_short: idm
   realm: "{{ domain | upper }}"
@@ -124,64 +110,8 @@ rhel_idm:
     ip_address: 192.168.1.40
     reverse_record: 40.1
 
-rhel_kvm:
-  hostname_full: "kvm.{{ domain }}"
-  disks:
-    root: sda
-  repos:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-    - rhel-7-server-rh-common-rpms
-  packages:
-    - 'screen'
-    - 'wget'
-    - 'vim'
-    - 'tree'
-    - 'yum-utils'
-    - 'git'
-    - 'qemu-kvm'
-    - 'qemu-img'
-    - 'libvirt'
-    - 'virt-install'
-    - 'libvirt-client'
-    - 'libvirt-python'
-    - 'libguestfs-tools-c'
-    - 'rhel-guest-image-7'
-    - 'ansible'
-    - 'gcc'
-    - 'gcc-c++'
-    - 'libffi-devel'
-    - 'openssl-devel'
-    - 'python'
-    - 'python-devel'
-    - 'python-virtualenv'
-    - 'python-netaddr'
-
-vmenator:
-  vms:
-  - name: undercloud
-    disk_os_name: undercloud-os.qcow2
-    disk_os_size: 80G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br2 --model virtio"
-      ip: 192.168.2.5
-    - name: eth1
-      config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.5
-    ram: 16384
-    vcpus: 8
-  - name: idm
-    disk_os_name: idm-os.qcow2
-    disk_os_size: 80G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.4
-    ram: 4096
-    vcpus: 1
-
 rhosp_director:
+  external_ip: 192.168.0.5
   poweroff: true
   bootdev: network
   validation_errors: []
@@ -198,6 +128,9 @@ rhosp_director:
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
+
+  optional_docker_services:
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
 
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
@@ -303,35 +236,9 @@ rhosp_overcloud:
   ceph_storage_scale: 0
   ceph_disk_layout: ""
 
-#CloudForms
-osp_ip: "{{ networks.external.dhcpStart }}" # OpenStack specific
+rhosp_director_ip: "{{ rhosp_director.external_ip }}"
+osp_ip: "{{ networks.external.dhcpStart }}"
 osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
-az: nova # works with OpenStack, EC2 & Azure
-db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
-db_vol_name: cf-{{ type }}-vol
-vm_name: cf-{{ type }}
-key_name: operator #works with OpenStack & EC2
-network_name: private # Works with all providers
-prov_net: provisioning # Works with all providers
-image_uid: cf46 # works with OpenStack
-flavor: cf.min # works with OSP/Azure/AWS TODO: cleanup
-flavor_name: cf.min # works with OSP/Azure/AWS TODO:cleanup
-ssh_user: root
-cf_db_pass: "{{ vault_cf_db_pwd }}"
-cf_ssh_pass: "{{ vault_cf_ssh_pwd }}"
-cf_db_dev: '/dev/vdb'
-region_num: 20
-security_group: cfme # works with OpenStack & EC2
-dns: 192.168.0.4
-ipa_server: "idm.{{ domain }}"
-ipa_user: "{{ vault_idm_admin_user }}"
-ipa_password: "{{ vault_idm_admin_pwd }}"
-undercloud_ip: 192.168.0.5 # OpenStack specific
-undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
-undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
-
-#Temporary: only needed if adding a worker later
-#db_server: 192.168.1.75

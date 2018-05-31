@@ -1,7 +1,0 @@
----
-- hosts: rhel_satellite
-  name: playbook to install satellite server and enable repos
-  remote_user: root
-  become: true
-  roles:
-    - rhel_satellite

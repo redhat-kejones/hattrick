@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+openstack overcloud container image prepare \
+  --namespace="registry.access.redhat.com/rhosp{{ versions.rhosp }}" \
+  --prefix=openstack- \
+  --tag="{{ docker_latest.stdout }}" \
+{% for services in rhosp_director.optional_docker_services %}
+    -e {{ services }} \
+{% endfor %}
+  --output-images-file /home/stack/local_registry_images.yaml

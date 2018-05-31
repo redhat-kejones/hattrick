@@ -1,0 +1,44 @@
+- name: rhhi storage domains
+  hosts: localhost
+
+  tasks:
+
+  - name: Authenticate to RHV-M
+    ovirt_auth:
+     url: "https://10.0.5.203/ovirt-engine/api"
+     username: "admin@internal"
+     password: "redhat"
+     insecure: true
+
+  -  ovirt_storage_domains:
+      auth: "{{ ovirt_auth }}"
+      name: data
+      host: rhv4.local.redhat-demo.com
+      data_center: Default
+      domain_function: data
+      glusterfs:
+        address: 10.0.4.12
+        path: /data
+        mount_options: backup-volfile-servers=10.0.4.11:10.0.4.10
+
+  -  ovirt_storage_domains:
+      auth: "{{ ovirt_auth }}"
+      name: iso
+      host: rhv4.local.redhat-demo.com
+      domain_function: iso
+      data_center: Default
+      glusterfs:
+        address: 10.0.4.12
+        path: /iso
+        mount_options: backup-volfile-servers=10.0.4.11:10.0.4.10
+
+  -  ovirt_storage_domains:
+      auth: "{{ ovirt_auth }}"
+      name: vmstore
+      host: rhv4.local.redhat-demo.com
+      domain_function: data
+      data_center: Default
+      glusterfs:
+        address: 10.0.4.12
+        path: /vmstore
+        mount_options: backup-volfile-servers=10.0.4.11:10.0.4.10

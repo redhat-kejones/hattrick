@@ -20,7 +20,7 @@ parameter_defaults:
   ## Whether to enable NFS backend for Cinder.
   # CinderEnableNfsBackend: false
   ## Whether to enable rbd (Ceph) backend for Nova ephemeral storage.
-  NovaEnableRbdBackend: false
+  NovaEnableRbdBackend: true
   ## Glance backend can be either 'rbd' (Ceph), 'swift' or 'file'.
   GlanceBackend: rbd
   ## Gnocchi backend can be either 'rbd' (Ceph), 'swift' or 'file'.
@@ -80,7 +80,7 @@ parameter_defaults:
     vms:
       pg_num: 64
       pgp_num: 64
-      size: 2
+      size: 1
     images:
       pg_num: 32
       pgp_num: 32
@@ -94,6 +94,10 @@ parameter_defaults:
       pgp_num: 32
       size: 2
     backups:
+      pg_num: 128
+      pgp_num: 128
+      size: 2
+    metrics:
       pg_num: 128
       pgp_num: 128
       size: 2

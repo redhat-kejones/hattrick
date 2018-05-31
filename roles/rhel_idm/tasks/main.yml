@@ -90,6 +90,18 @@
   become: false
   ignore_errors: true
 
+- name: enable dynamic updates on dns zones
+  command: "echo {{ rhel_idm.admin_pwd }} | kinit admin && ipa dnszone-mod {{ item }} --dynamic-update=TRUE"
+  with_items:
+    - "{{ domain }}"
+    - "{{ rhel_idm.reverse_zone}}"
+
+- name: enable allow ptr sync on dns zones
+  command: "echo {{ rhel_idm.admin_pwd }} | kinit admin && ipa dnszone-mod --allow-sync-ptr=1 {{ item }}"
+  with_items:
+    - "{{ domain }}"
+    - "{{ rhel_idm.reverse_zone}}"
+
 - name: add users to IDM
   ipa_user:
     ipa_host: "{{ rhel_idm.hostname_short }}.{{ domain }}"
