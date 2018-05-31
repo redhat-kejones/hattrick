@@ -98,7 +98,7 @@ rhhi_satellite
 [rhel_repo:children]
 rhhi_rhel_repo
 
-[shadowbox:children]
+[rhhi:children]
 rhhi_switch
 rhhi_rhel_common
 rhhi_rhel_kvm
