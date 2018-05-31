@@ -1,12 +1,18 @@
-Move CF deployment into heat stack
-Move OCP deployment into heat stack
-Deploy Masters, Infras, and app nodes all at once
-Leave capability to add OCP node
-Add CF appliances and OCP nodes to hard inventory
-Add in CAlliey Satellite playbooks
-Add Ansible Tower Playbook
-Add Playbook to wire everything together in the end
-	- ldap
-	- cf providers
-	- tower configurations
-	- ocp base deployments (like oshinko)
+- Make deploy.sh script dynamic
+- Make the RHOSP templates more flexible
+  - Storage environment ceph disk layout and params
+  - Nic configs
+- Make nic configs for vmenator dynamic
+- Move osp vm creation into vmenator
+- Move CF deployment into heat stack
+- Move OCP deployment into heat stack
+x - Deploy Masters, Infras, and app nodes all at once
+- Leave capability to add OCP node
+- Add CF appliances and OCP nodes to hard inventory
+- Add in CAlliey Satellite playbooks
+- Add Ansible Tower Playbook
+- Add Playbook to wire everything together in the end
+  - ldap
+  - cf providers
+  - tower configurations
+  - ocp base deployments (like oshinko)
