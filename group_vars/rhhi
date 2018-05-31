@@ -37,7 +37,7 @@ networks:
     dhcpEnd: 192.168.101.250
 
 rhel_idm:
-  hostname_short: idmidm.rhhi.lab
+  hostname_short: idm
   realm: "{{ domain | upper }}"
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
