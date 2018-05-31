@@ -19,7 +19,7 @@
     - dnsmasq
     - bind
 
-- name: copy dnsmsaq in palce
+- name: copy dnsmsaq in place
   copy:
     src: files/dnsmasq.conf
     dest: /etc/dnsmasq.conf
@@ -28,7 +28,7 @@
     mode: 0644
   notify: ['Restart dnsmasq']
 
-- name: copy bind zones in palce
+- name: copy bind zones in place
   copy:
     src: files/dnsmasq.conf
     dest: /var/named/{{ item }}

@@ -53,47 +53,47 @@ rhel_nfs:
     - nfs-utils-lib
     - portmap
 
-    rhel_kvm:
-      hostname_full: "nuc.{{ domain }}"
-      disks:
-        root: sda
+rhel_kvm:
+  hostname_full: "nuc.{{ domain }}"
+  disks:
+    root: sda
 #        libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
 #        content: sdc        #NOTE: only use if there is a third drive on KVM host
-      repos:
-        - rhel-7-server-rpms
-        - rhel-7-server-extras-rpms
-        - rhel-7-server-rh-common-rpms
-        - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
-      packages:
-        - 'screen'
-        - 'wget'
-        - 'vim'
-        - 'tree'
-        - 'rsync'
-        - 'bridge-utils'
-        - 'yum-utils'
-        - 'git'
-        - 'qemu-kvm'
-        - 'qemu-img'
-        - 'libvirt'
-        - 'virt-install'
-        - 'libvirt-client'
-        - 'libvirt-daemon'
-        - 'libvirt-daemon-driver-qemu'
-        - 'libvirt-daemon-kvm'
-        - 'libvirt-python'
-        - 'libguestfs-tools-c'
-        - 'rhel-guest-image-7'
-        - 'ansible'
-        - 'gcc'
-        - 'gcc-c++'
-        - 'libffi-devel'
-        - 'openssl-devel'
-        - 'python'
-        - 'python-devel'
-        - 'python-virtualenv'
-        - 'python-netaddr'
-        - 'python-openstackclient'
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+  packages:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'rsync'
+    - 'bridge-utils'
+    - 'yum-utils'
+    - 'git'
+    - 'qemu-kvm'
+    - 'qemu-img'
+    - 'libvirt'
+    - 'virt-install'
+    - 'libvirt-client'
+    - 'libvirt-daemon'
+    - 'libvirt-daemon-driver-qemu'
+    - 'libvirt-daemon-kvm'
+    - 'libvirt-python'
+    - 'libguestfs-tools-c'
+    - 'rhel-guest-image-7'
+    - 'ansible'
+    - 'gcc'
+    - 'gcc-c++'
+    - 'libffi-devel'
+    - 'openssl-devel'
+    - 'python'
+    - 'python-devel'
+    - 'python-virtualenv'
+    - 'python-netaddr'
+    - 'python-openstackclient'
 
 vmenator:
   vms:
