@@ -1,31 +1,79 @@
 ---
-# tasks file for ldomb-rhhi
-- name: add privkey
+- name: check connection
+  wait_for_connection:
+    timeout: 900
+
+- name: create ssh dir
+  file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+
+- name: add id_rsa
   copy:
-    content: '{{ ssh_priv_key }}'
+    content: "{{ id_rsa }}"
     dest: /root/.ssh/id_rsa
+    group: root
+    owner: root
+    mode: 0600
+
+- name: add id_rsa_pub
+  copy:
+    content: "{{ id_rsa.pub }}"
+    dest: /root/.ssh/id_rsa.pub
+    group: root
+    owner: root
+    mode: 0644
+
+- name: Set authorized key
+  authorized_key:
+    user: root
+    state: present
+    key: "{{ id_rsa.pub }}"
+
+# tasks file for ldomb-rhhi
+- name: copy ansible.cfg for gdeploy
+  copy:
+    src: files/ansible.cfg
+    dest: /root/
+
+- name: copy ssh config
+  copy:
+    src: files/config
+    dest: /root/.ssh/config
     owner: root
     group: root
     mode: 0600
-  
-- name: copy gdeploy.conf to the rhv1    
-  copy: 
-    src: files/gdeploy.conf
-    dest: /root/gdeploy.conf
+
+- name: copy gdeploy.conf
+  template:
+    src: templates/gdeploy.conf.redbox.j2
+    dest: /tmp/gdeploy.conf
     owner: root
     group: root
-    mode: 0644
+    mode: 0600
 
-- name: copy gdeploy.conf to the rhv1    
-  copy: 
-    src: files/ansible.cfg
-    dest: /root/.ansible.cfg
+- name: configure gluster if needed - check .gdeploy/logs on host
+  command: gdeploy -c /tmp/gdeploy.conf -vv --trace
+  register: gdeploy_run
+
+- name: debug gdeploy.conf  
+  debug: msg="{{ gdeploy_run }}"
+
+- name: copy hosted-engine answer file
+  template:
+    src: templates/redbox-he-answers.conf.j2
+    dest: /root/answer.cfg
     owner: root
     group: root
+    mode: 0600
+  when: redbox
 
-#- name: deploy gluster
-#  shell: gdeploy -c /root/gdeploy.conf
-#  register: gdeploy
+- name: run hosted-engine 
+  shell: hosted-engine --deploy --config-append=/root/answer.cfg < /dev/null
+  register: hostedengine
 
-#- name: debug from gdeploy
-#  debug: msg="{{ gdeploy }}"
+- name: debug hosted-engine
+  debug: msg="{{ hostedengine }}"

@@ -1,0 +1,129 @@
+dns_server_public: 8.8.8.8
+use_public_dns: false #Default to false (set true individually on kvm and idm)
+
+ntp_server: time.google.com
+
+git_repo: https://github.com/redhat-kejones/hattrick
+
+register_rhn: true
+rhn_user: "{{ vault_rhn_user }}"
+rhn_pwd: "{{ vault_rhn_pwd }}"
+rhn_pool_name: "{{ vault_rhn_pool_name }}"
+
+versions:
+  rhosp: 10
+  satellite: 6.3
+  ocp: 3.6
+  cfme: 5.9
+
+rhel_repo:
+  hostname_short: repo
+  sync_satellite: false
+  repos:
+    rhel:
+      - rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
+    osp:
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    satellite:
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    ocp:
+      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+    cfme:
+      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
+
+rhel_nfs:
+  hostname_short: nfs
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - nfs-utils
+    - nfs-utils-lib
+    - portmap
+
+    rhel_kvm:
+      hostname_full: "nuc.{{ domain }}"
+      disks:
+        root: sda
+#        libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
+#        content: sdc        #NOTE: only use if there is a third drive on KVM host
+      repos:
+        - rhel-7-server-rpms
+        - rhel-7-server-extras-rpms
+        - rhel-7-server-rh-common-rpms
+        - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+      packages:
+        - 'screen'
+        - 'wget'
+        - 'vim'
+        - 'tree'
+        - 'rsync'
+        - 'bridge-utils'
+        - 'yum-utils'
+        - 'git'
+        - 'qemu-kvm'
+        - 'qemu-img'
+        - 'libvirt'
+        - 'virt-install'
+        - 'libvirt-client'
+        - 'libvirt-daemon'
+        - 'libvirt-daemon-driver-qemu'
+        - 'libvirt-daemon-kvm'
+        - 'libvirt-python'
+        - 'libguestfs-tools-c'
+        - 'rhel-guest-image-7'
+        - 'ansible'
+        - 'gcc'
+        - 'gcc-c++'
+        - 'libffi-devel'
+        - 'openssl-devel'
+        - 'python'
+        - 'python-devel'
+        - 'python-virtualenv'
+        - 'python-netaddr'
+        - 'python-openstackclient'
+
+vmenator:
+  vms:
+  - name: undercloud
+    disk_os_name: undercloud-os.qcow2
+    disk_os_size: 80G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br2 --model virtio"
+      ip: 192.168.2.5
+    - name: eth1
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.5
+    ram: 16384
+    vcpus: 8
+  - name: idm
+    disk_os_name: idm-os.qcow2
+    disk_os_size: 80G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.4
+    ram: 4096
+    vcpus: 1
+  - name: repo
+    disk_os_name: repo-os.qcow2
+    disk_os_size: 150G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.8
+    ram: 1024
+    vcpus: 1

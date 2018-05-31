@@ -1,0 +1,28 @@
+- name: rhhi network
+  hosts: localhost
+
+  tasks:
+  - name: include vars again
+    include_vars:
+      file: group_vars/all/vars
+
+  - name: Authenticate to RHV-M
+    ovirt_auth:
+     url: "https://{{ rhvurl }}/ovirt-engine/api"
+     username: "admin@internal"
+     password: "redhat"
+     insecure: true
+
+  - name: add hosts
+    ovirt_hosts:
+      auth: "{{ ovirt_auth }}"
+      cluster: Default
+      name: "{{ item }}"
+      password: redhat
+      address: "{{ item }}"
+      override_iptables: true
+      hosted_engine: deploy
+    with_items: 
+      - "{{ rhv3_mpc_hostname }}"
+      - "{{ rhv2_mpc_hostname }}"
+

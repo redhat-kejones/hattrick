@@ -1,10 +1,5 @@
 domain: cloudlet1.bag
 dns_server_local: 192.168.0.4
-dns_server_public: 8.8.8.8
-ntp_server: time.google.com
-use_public_dns: false #Default to false (set true individually on kvm and idm)
-
-git_repo: https://github.com/redhat-kejones/hattrick
 
 nfs_server: 192.168.0.7
 nfs_repos_path: /volume1/web/install/repos/
@@ -13,12 +8,13 @@ nfs_images_path: /volume1/web/install/images/
 ocp_shared_registry_server: 192.168.0.7
 ocp_shared_registry_port: 5000
 
-register_rhn: true
-rhn_user: "{{ vault_rhn_user }}"
-rhn_pwd: "{{ vault_rhn_pwd }}"
-rhn_pool_name: "{{ vault_rhn_pool_name }}"
-
 local_repo_url: "http://192.168.0.3/repos/"
+
+versions:
+  rhosp: 12
+  satellite: 6.3
+  ocp: 3.9
+  cfme: 5.9
 
 networks:
   external:
@@ -76,49 +72,6 @@ networks:
     dhcpStart: 192.168.104.40
     dhcpEnd: 192.168.104.250
 
-versions:
-  rhosp: 12
-  satellite: 6.3
-  ocp: 3.9
-  cfme: 5.9
-
-rhel_repo:
-  hostname_short: repo
-  sync_satellite: false
-  repos:
-    rhel:
-      - rhel-{{ ansible_distribution_major_version }}-server-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
-      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
-    osp:
-      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
-    satellite:
-      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
-    ocp:
-      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
-    cfme:
-      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
-
-rhel_nfs:
-  hostname_short: nfs
-  repos:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-  packages:
-    - nfs-utils
-    - nfs-utils-lib
-    - portmap
-
 rhel_idm:
   hostname_short: idm
   realm: "{{ domain | upper }}"
@@ -163,81 +116,8 @@ rhel_idm:
     ip_address: 192.168.1.40
     reverse_record: 40.1
 
-rhel_kvm:
-  hostname_full: "kvm.{{ domain }}"
-  disks:
-    root: sda
-#    libvirt_images: sdb
-  repos:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-    - rhel-7-server-rh-common-rpms
-    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
-  packages:
-    - 'screen'
-    - 'wget'
-    - 'vim'
-    - 'tree'
-    - 'rsync'
-    - 'bridge-utils'
-    - 'yum-utils'
-    - 'git'
-    - 'qemu-kvm'
-    - 'qemu-img'
-    - 'libvirt'
-    - 'virt-install'
-    - 'libvirt-client'
-    - 'libvirt-daemon'
-    - 'libvirt-daemon-driver-qemu'
-    - 'libvirt-daemon-kvm'
-    - 'libvirt-python'
-    - 'libguestfs-tools-c'
-    - 'rhel-guest-image-7'
-    - 'ansible'
-    - 'gcc'
-    - 'gcc-c++'
-    - 'libffi-devel'
-    - 'openssl-devel'
-    - 'python'
-    - 'python-devel'
-    - 'python-virtualenv'
-    - 'python-netaddr'
-    - 'python-openstackclient'
-
-vmenator:
-  vms:
-  - name: undercloud
-    disk_os_name: undercloud-os.qcow2
-    disk_os_size: 80G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br2 --model virtio"
-      ip: 192.168.2.5
-    - name: eth1
-      config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.5
-    ram: 16384
-    vcpus: 8
-  - name: idm
-    disk_os_name: idm-os.qcow2
-    disk_os_size: 80G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.4
-    ram: 4096
-    vcpus: 1
-  - name: repo
-    disk_os_name: repo-os.qcow2
-    disk_os_size: 150G
-    nics:
-    - name: eth0
-      config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.8
-    ram: 1024
-    vcpus: 1
-
 rhosp_director:
+  external_ip: 192.168.0.5
   poweroff: true
   bootdev: network
   validation_errors: []
@@ -254,6 +134,9 @@ rhosp_director:
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
+
+  optional_docker_services:
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
 
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
@@ -325,9 +208,6 @@ rhosp_director:
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
 
-  optional_docker_services:
-    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
-
 rhosp_overcloud:
   timezone: "US/Eastern"
   timeout: 90
@@ -338,7 +218,7 @@ rhosp_overcloud:
   ceph_storage_scale: 0
   ceph_disk_layout: ""
 
-rhosp_director_ip: 192.168.0.5
+rhosp_director_ip: "{{ rhosp_director.external_ip }}"
 osp_ip: "{{ networks.external.dhcpStart }}"
 osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific

@@ -1,10 +1,7 @@
 domain: pod1.mpc
 dns_server_local: 172.16.11.15
 dns_server_public: 172.16.2.10
-ntp_server: time.google.com
-use_public_dns: false #Default to false (set true individually on kvm and idm)
-
-git_repo: https://github.com/redhat-kejones/hattrick
+ntp_server: 172.16.21.1
 
 nfs_server: 172.16.2.10
 nfs_repos_path: /volume1/web/install/repos/
@@ -14,11 +11,7 @@ ocp_shared_registry_server: 172.16.2.16
 ocp_shared_registry_port: 5000
 
 register_rhn: false
-rhn_user: "{{ vault_rhn_user }}"
-rhn_pwd: "{{ vault_rhn_pwd }}"
-rhn_pool_name: "{{ vault_rhn_pool_name }}"
 
-#MPC Synology
 local_repo_url: "http://172.16.2.10:8888/repos/"
 
 networks:
@@ -77,12 +70,6 @@ networks:
     dhcpStart: 172.16.12.40
     dhcpEnd: 172.16.12.250
 
-versions:
-  rhosp: 10
-  satellite: 6.3
-  ocp: 3.6
-  cfme: 5.9
-
 rhel_idm:
   hostname_short: idm
   realm: "{{ domain | upper }}"
@@ -131,7 +118,7 @@ rhel_kvm:
   hostname_full: "nuc.{{ domain }}"
   disks:
     root: sda
-    libvirt_images: sdb
+    libvirt_images: sdb #NOTE: override all of rhel_kvm dict to add second drive
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
@@ -188,6 +175,7 @@ vmenator:
     vcpus: 1
 
 rhosp_director:
+  external_ip: 172.16.11.16
   poweroff: true
   bootdev: network
   validation_errors: []
@@ -204,6 +192,9 @@ rhosp_director:
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
+
+  optional_docker_services:
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
 
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
@@ -285,7 +276,7 @@ rhosp_overcloud:
   ceph_storage_scale: 0
   ceph_disk_layout: ""
 
-rhosp_director_ip: 172.16.11.16
+rhosp_director_ip: "{{ rhosp_director.external_ip }}"
 osp_ip: "{{ networks.external.dhcpStart }}"
 osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific

@@ -1,8 +1,0 @@
-- name: buildrhhi
-  hosts: 172.16.30.23
-  gather_facts: false
-
-  roles:
-    - role: ldomb-rhhi
- 
-

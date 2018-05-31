@@ -1,4 +1,4 @@
-DEFAULT vesamenu.c32 
+DEFAULT vesamenu.c32
 TIMEOUT 600
 ONTIMEOUT BootLocal
 PROMPT 0
@@ -10,14 +10,24 @@ LABEL BootLocal
         Boot to local hard disk
         ENDTEXT
 
+label rhel7.5
+  menu label ^Install rhel7.5
+  menu default
+  kernel pxelinux.cfg/rhel75/vmlinuz
+  append initrd=pxelinux.cfg/rhel75/initrd.img net.ifnames=0 ipv6.disable=1 inst.repo=http://192.168.0.3/rhel75
+
 label rhv42
   menu label ^rhv42
   menu default
   kernel pxelinux.cfg/rhv42/vmlinuz
-  append rootflags=loop initrd=pxelinux.cfg/rhv42/initrd.img inst.stage2=http://172.16.30.10/rhvh2 
+  append rootflags=loop initrd=pxelinux.cfg/rhv42/initrd.img inst.stage2=http://192.168.0.3/rhvh2 inst.ks=http://192.168.0.3:8888/kickstart/rhvh1-ks.cfg
+
+label local
+  menu label Boot from ^local drive
+  localboot 0xffff
 
 LABEL autonuke
-   menu label Dban 
+   menu label Dban
    kernel pxelinux.cfg/dban/dban.bzi
    append nuke="dwipe --autonuke" silent
 APPEND nuke="dwipe --autonuke" silent
