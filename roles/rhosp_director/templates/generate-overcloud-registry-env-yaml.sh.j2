@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 
 openstack overcloud container image prepare \
-  --namespace="{{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/{{ versions.rhosp }}" \
+  --namespace="{{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/rhosp{{ versions.rhosp }}" \
   --prefix=openstack- \
   --tag="{{ docker_latest.stdout }}" \
 {% for services in rhosp_director.optional_docker_services %}
-    -e {{ services }} \
+  -e {{ services }} \
 {% endfor %}
+{% if rhosp_director.ceph_enabled == true %}
+{% if rhosp_director.ceph_namespace != None %}
+  --set  ceph_namespace={{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/{{ rhosp_director.ceph_namespace.split("/")[1] }} \
+{% endif %}
+{% if rhosp_director.ceph_image != None %}
+  --set  ceph_image={{ rhosp_director.ceph_image }} \
+{% endif %}
+{% if rhosp_director.ceph_tag != None %}
+  --set  ceph_tag={{ rhosp_director.ceph_tag }} \
+{% endif %}
+{% endif %}
   --output-env-file=/home/stack/templates/overcloud_images.yaml

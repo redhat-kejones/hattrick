@@ -86,7 +86,7 @@
   tags: sync_repos
 
 - name: reposync osp
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/htmlrepos"
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: sync_repos
 

@@ -31,7 +31,7 @@ networks:
     name: provisioning
     cidr: 192.168.2.0/24
     defroute: false
-    gateway: 192.168.2.16
+    gateway: 192.168.2.5
     vlan: 2
     dhcpStart: 192.168.2.70
     dhcpEnd: 192.168.2.99
@@ -71,6 +71,55 @@ networks:
     vlan: 904
     dhcpStart: 192.168.104.40
     dhcpEnd: 192.168.104.250
+
+rhel_repo:
+  hostname_short: repo
+  sync_satellite: false
+  repos:
+    rhel:
+      - rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-supplementary-rpms
+      - jb-eap-7-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+    osp:
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    satellite:
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    ocp:
+      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+    cfme:
+      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
+    rhv:
+      - rhel-{{ ansible_distribution_major_version }}-server-rhvh-4-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4-mgmt-agent-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4.2-manager-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4-manager-tools-rpms
+    gluster:
+      - rh-gluster-3-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rh-gluster-3-samba-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rh-gluster-3-nfs-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+
+rhel_nfs:
+  hostname_short: nfs
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - nfs-utils
+    - nfs-utils-lib
+    - portmap
 
 rhel_idm:
   hostname_short: idm
@@ -137,6 +186,17 @@ rhosp_director:
 
   optional_docker_services:
     - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
+    #- /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+
+  #Docker ceph variables
+  ceph_namespace: registry.access.redhat.com/rhceph
+  ceph_image: rhceph-2-rhel7
+  ceph_tag: latest
+  ceph_enabled: false
+
+  #SSL for undercloud services
+  generate_service_certificate: true
+  local_ca_file: /etc/pki/ca-trust/source/anchors/cm-local-ca.pem
 
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"

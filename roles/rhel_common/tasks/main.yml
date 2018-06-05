@@ -28,6 +28,15 @@
     policy: targeted
     state: enforcing
 
+- name: unregister System with RHN Subscription Manager
+  redhat_subscription:
+    state: absent
+  when: ansible_distribution == 'RedHat'
+
+- name: subscription-manager clean all
+  command: subscription-manager clean
+  when: ansible_distribution == 'RedHat'
+
 - name: register System with RHN Subscription Manager
   redhat_subscription:
     state: present

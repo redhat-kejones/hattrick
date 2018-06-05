@@ -188,7 +188,7 @@
     - { key: local_mtu, value: "1550" }
     - { key: undercloud_public_vip, value: "{{ inventory_hostname }}" }
     - { key: undercloud_admin_vip, value: "{{ rhosp_director.admin_apis_vip }}" }
-    - { key: generate_service_certificate, value: "true" }
+    - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
     - { key: certificate_generate_ca, value: "local" }
     - { key: undercloud_service_certificate, value: ""}
     - { key: service_principal, value: ""}
@@ -427,65 +427,78 @@
     msg: ipmi completely validated
   tags: introspection
 
-- name: Discover the tag for the latest Docker images
+- name: Configure undercloud for local Docker repo
   become: yes
   become_user: stack
-  shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
-  args:
-    chdir: /home/stack
-  register: docker_latest
   when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_template
+  tags: docker_registry
+  block:
+    - name: Discover the tag for the latest Docker images
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
+      args:
+        chdir: /home/stack
+      register: docker_latest
+      tags: docker_registry_template
+    
+    - name: copy generate-local-registry-images-yaml.sh script
+      template:
+        src: templates/generate-local-registry-images-yaml.sh.j2
+        dest: /home/stack/generate-local-registry-images-yaml.sh
+        owner: stack
+        group: stack
+        mode: 0775
+      tags: docker_registry_template
+    
+    - name: copy generate-overcloud-registry-env-yaml.sh script
+      template:
+        src: templates/generate-overcloud-registry-env-yaml.sh.j2
+        dest: /home/stack/generate-overcloud-registry-env-yaml.sh
+        owner: stack
+        group: stack
+        mode: 0775
+      tags: docker_registry_template
+    
+    - name: Create a template to pull the images to the local registry
+      shell: source /home/stack/stackrc && /home/stack/generate-local-registry-images-yaml.sh
+      args:
+        chdir: /home/stack
+      tags: docker_registry_template
+    
+    - name: Pull the Docker images in to local registry
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+      args:
+        chdir: /home/stack
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+    
+    - name: Create a template for using the images in our local registry on the undercloud
+      shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh
+      args:
+        chdir: /home/stack
+      tags: docker_registry_template
 
-- name: copy generate-local-registry-images-yaml.sh script
+- name: Process local CA for undercloud SSL
   become: yes
   become_user: stack
-  template:
-    src: templates/generate-local-registry-images-yaml.sh.j2
-    dest: /home/stack/generate-local-registry-images-yaml.sh
-    owner: stack
-    group: stack
-    mode: 0775
-  when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_template
+  tags: inject_local_ca
+  when: ( rhosp_director.generate_service_certificate is not defined ) or ( rhosp_director.generate_service_certificate == true )
+  block:
+    - name: Check to see if local ca file exists
+      stat:
+        path: "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      register: stat_data
 
-- name: copy generate-overcloud-registry-env-yaml.sh script
-  become: yes
-  become_user: stack
-  template:
-    src: templates/generate-overcloud-registry-env-yaml.sh.j2
-    dest: /home/stack/generate-overcloud-registry-env-yaml.sh
-    owner: stack
-    group: stack
-    mode: 0775
-  when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_template
+    - name: Read in CA that is used to for Undercloud SSL services
+      shell: /bin/awk 'BEGIN{display=0};/BEGIN CERTIFICATE/ {display=1}; (display==1) {print "    "$0}; /END CERTIFICATE/ {display=0};' "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      when: stat_data.stat.exists == True
+      register: ssl_ca_certificate
 
-- name: Create a template to pull the images to the local registry
-  become: yes
-  become_user: stack
-  shell: source /home/stack/stackrc && /home/stack/generate-local-registry-images-yaml.sh
-  args:
-    chdir: /home/stack
-  when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_template
-
-- name: Pull the Docker images in to local registry
-  become: yes
-  become_user: stack
-  shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
-  args:
-    chdir: /home/stack
-  async: 2700
-  poll: 30
-  when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_pull
-
-- name: Create a template for using the images in our local registry on the undercloud
-  become: yes
-  become_user: stack
-  shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh
-  args:
-    chdir: /home/stack
-  when: versions.rhosp >= 12
-  tags: docker_registry,docker_registry_template
+    - name: Generate trust anchor environment file
+      template:
+        src: templates/inject-trust-anchor.yaml.j2
+        dest: /home/stack/templates/inject-trust-anchor.yaml
+        owner: stack
+        group: stack
+        mode: 0444
+      when: stat_data.stat.exists == True
