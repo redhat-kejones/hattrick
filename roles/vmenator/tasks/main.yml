@@ -1,18 +1,15 @@
 ---
 # tasks file for roles/vmenator
-- debug:
-    msg: "{{ vmenator.vms }}"
-
-- debug:
-    msg: "{{ item }}"
-  with_items: "{{ vmenator.vms }}"
-
 - name: create operating system disks for all vms
   command: "qemu-img create -f qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }} {{ item.disk_os_size }}"
   with_items: "{{ vmenator.vms }}"
 
 - name: push rhel 7 guest onto vm operating system disks
   command: "virt-resize --expand /dev/sda1 /var/lib/libvirt/images/rhel-guest-image-7.qcow2 /var/lib/libvirt/images/{{ item.disk_os_name }}"
+  with_items: "{{ vmenator.vms }}"
+
+- name: grow root file system to size of disk
+  command: "virt-customize -a /var/lib/libvirt/images/{{ item.disk_os_name }} --run-command 'xfs_growfs /'"
   with_items: "{{ vmenator.vms }}"
 
 - name: create the ifcfg files for vms
@@ -25,7 +22,7 @@
     - nics
 
 - name: ensure individual dirs exist for vm ifcfg files
-  file: 
+  file:
     path: "/tmp/{{ item.name }}"
     state: directory
   with_items: "{{ vmenator.vms }}"
@@ -44,9 +41,37 @@
     - "{{ vmenator.vms }}"
     - nics
 
-- name: create xml for IDM vm
-  command: "virt-install --ram {{ item.0.ram }} --vcpus {{ item.0.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.0.disk_os_name }},device=disk,bus=virtio,format=qcow2 --noautoconsole --vnc {{ item.1.config | join(' --network ') }} --name idm --cpu host --dry-run --print-xml"
-  register: idm_xml_content
+- name: create xml for vms
+  command: "virt-install --ram {{ item.ram }} --vcpus {{ item.vcpus }} --os-variant rhel7 --disk path=/var/lib/libvirt/images/{{ item.disk_os_name }},device=disk,bus=virtio,format=qcow2 --network none --noautoconsole --vnc --name {{ item.name }} --cpu host-model --autostart --dry-run --print-xml"
+  register: vm_xml_content
+  with_items:
+    - "{{ vmenator.vms }}"
+
+- debug:
+    msg: "{{ vm_xml_content }}"
+
+- name: define vms
+  become: yes
+  virt:
+    name: "{{ item.item.name }}"
+    command: define
+    xml: "{{ item.stdout }}"
+    uri: qemu:///system
+  with_items:
+    "{{vm_xml_content.results}}"
+
+- name: start up vms
+  command: "virsh start {{ item.name }}"
+  with_items:
+    - "{{ vmenator.vms }}"
+
+- name: attach network interfaces for vms
+  command: "virsh attach-interface {{ item.0.name }} {{ item.1.config }} --live --persistent"
   with_subelements:
     - "{{ vmenator.vms }}"
     - nics
+
+#- name: reboot vms
+#  command: "virsh reboot {{ item.name }}"
+#  with_items:
+#    - "{{ vmenator.vms }}"

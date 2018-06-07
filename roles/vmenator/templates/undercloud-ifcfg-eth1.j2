@@ -1,0 +1,13 @@
+DEVICE="eth1"
+BOOTPROTO="static"
+BOOTPROTOv6="none"
+ONBOOT="yes"
+TYPE="Ethernet"
+USERCTL="yes"
+PEERDNS="yes"
+DEFROUTE="yes"
+IPV6INIT="yes"
+IPADDR={{ vmenator.vms[0].nics[1].ip}}
+PREFIX={{ networks.external.cidr | ipaddr('prefix') }}
+GATEWAY={{ networks.external.gateway }}
+DNS1={{ dns_server_local }}

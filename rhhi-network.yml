@@ -1,0 +1,145 @@
+- name: rhhi network
+  hosts: localhost
+
+  tasks:
+  - name: include vars again
+    include_vars:
+      file: group_vars/all/vars
+
+  - name: Authenticate to RHV-M
+    ovirt_auth:
+     url: "https://{{ rhvurl }}/ovirt-engine/api"
+     username: "admin@internal"
+     password: "{{ rhv_pass }}"
+     insecure: true
+
+  # tasks file for ldomb-rhhi
+  - name: add gluster
+    ovirt_networks:
+      auth: "{{ ovirt_auth }}"
+      data_center: Default
+      name: gluster
+      wait: true
+      clusters:
+      - name: default
+        gluster: true
+        required: false
+      state: present
+
+  - name: add vm_net
+    ovirt_networks:
+      auth: "{{ ovirt_auth }}"
+      data_center: Default
+      name: gluster
+      wait: true
+      clusters:
+      - name: default
+        gluster: true
+        required: false
+      state: present
+
+  - name: gluster host rhv4
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv4_mpc_hostname }}"
+      interface: "{{ ifname1 }}"
+      wait: true
+      networks:
+        - name: gluster
+          boot_protocol: static
+          address: "{{ mpc_rhv4_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ gluster_gw }}"
+          version: v4
+
+  - name: vmnet host rhv4
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv4_mpc_hostname }}"
+      interface: "{{ ifname2 }}"
+      wait: true
+      networks:
+        - name: vm_net
+          boot_protocol: static
+          address: "{{ vm_mpc_rhv4_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ vm_gw }}"
+          version: v4
+
+
+  - name: sleep a little
+    pause:
+      seconds: 30
+
+  - name: add hosts
+    ovirt_hosts:
+      auth: "{{ ovirt_auth }}"
+      cluster: Default
+      name: "{{ item }}"
+      password: redhat
+      address: "{{ item }}"
+      override_iptables: true
+      hosted_engine: deploy
+      wait: true
+    with_items: 
+      - "{{ rhv3_mpc_hostname }}"
+      - "{{ rhv2_mpc_hostname }}"
+
+  - name: sleep a little
+    pause:
+      seconds: 30
+
+  - name: gluster rhv3
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv3_mpc_hostname }}"
+      interface: "{{ ifname1 }}"
+      wait: true
+      networks:
+        - name: gluster
+          boot_protocol: static
+          address: "{{ mpc_rhv3_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ gluster_gw }}"
+          version: v4
+
+  - name: vmnet host rhv3
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv3_mpc_hostname }}"
+      interface: "{{ ifname2 }}"
+      wait: true
+      networks:
+        - name: vm_net
+          boot_protocol: static
+          address: "{{ vm_mpc_rhv3_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ vm_gw }}"
+          version: v4
+
+  - name: gluster rhv2
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv2_mpc_hostname }}"
+      interface: "{{ ifname1 }}"
+      networks:
+        - name: gluster
+          boot_protocol: static
+          address: "{{ mpc_rhv2_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ gluster_gw }}"
+          version: v4
+
+  - name: vmnet host rhv2
+    ovirt_host_networks:
+      auth: "{{ ovirt_auth }}"
+      name: "{{ rhv2_mpc_hostname }}"
+      interface: "{{ ifname2 }}"
+      wait: true
+      networks:
+        - name: vm_net
+          boot_protocol: static
+          address: "{{ vm_mpc_rhv2_ip }}"
+          netmask: 255.255.255.0
+          gateway: "{{ vm_gw }}"
+          version: v4

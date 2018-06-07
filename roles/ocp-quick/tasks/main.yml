@@ -1,0 +1,286 @@
+---
+  - name: enable the needed rhel repositories
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
+    with_items:
+      - "{{ ocp.repos }}"
+    when: not register_rhn
+
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ ocp.repos }}"
+    when: register_rhn
+
+#  - name: Add Repos
+#    yum_repository:
+#      name: "{{ item.name }}"
+#      file: ocp
+#      description: "{{ item.description }}"
+#      baseurl: "{{ item.baseurl }}"
+#      gpgcheck: no
+#      enabled: yes
+#    with_items:
+#      - name: 'rhel-7-server-extras-rpms'
+#        description: 'RHEL 7 Extras'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-extras-rpms'
+#      - name: 'rhel-7-server-rpms'
+#        description: 'RHEL 7 Base'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-rpms'
+#      - name: 'rhel-7-fast-datapath-rpms'
+#        description: 'Fast datapath rpms'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-fast-datapath-rpms'
+#      - name: 'rhel-7-server-ose-3.6-rpms'
+#        description: 'OCP 3.6 rpms'
+#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-ose-3.6-rpms'
+
+  - name: update packages
+    yum:
+      name: '*'
+      state: latest
+      skip_broken: yes
+    register: yum_result
+    async: 1000
+    poll: 30
+
+  - name: check Kernel is the Latest
+    shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+    ignore_errors: true
+    register: reboot_hint
+
+  - name: Install necessary packages
+    yum:
+      name: '{{ item }}'
+      state: present
+    with_items:
+    - wget
+    - git
+    - net-tools
+    - bind-utils
+    - iptables-services
+    - bridge-utils
+    - bash-completion
+    - kexec-tools
+    - sos
+    - psacct
+    - atomic-openshift-utils
+    - docker-1.13.1
+    - ipa-client
+    - httpd-tools
+    - dnsmasq
+
+  - name: remove /mnt line from /etc/fstab
+    mount:
+      path: /mnt
+      state: absent
+    when: wipe_cns_dev
+
+  - name: make sure ephemeral disk is not mounted
+    mount:
+      path: /mnt
+      state: unmounted
+    when: wipe_cns_dev
+
+  - name: create a xfs filesystem on cns device
+    filesystem:
+      fstype: xfs
+      dev: "{{ cns_dev }}"
+      force: yes
+    when: wipe_cns_dev
+
+  - name: wipefs run on cns devices
+    become: yes
+    command: "/usr/sbin/wipefs -a -f {{ cns_dev }}"
+    when: wipe_cns_dev
+
+  - name: restart server to get updated kernel
+    shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+    async: 1
+    poll: 0
+    ignore_errors: true
+    when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+  - name: waiting for instance to come back online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      delay: 5
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+  - name: add forward DNS entry for public hostname
+    ipa_dnsrecord:
+      ipa_host: "{{ ipa_server }}"
+      ipa_user: "{{ ipa_user }}"
+      ipa_pass: "{{ ipa_password }}"
+      state: present
+      zone_name: "{{ domain }}"
+      record_name: "{{ ocp_wildcard_domain }}"
+      record_type: "A"
+      record_value: "{{ inventory_hostname }}"
+      validate_certs: false
+    when: "'master' in group_names"
+
+  - name: add DNS Wildcard record pointed to infra node(s)
+    ipa_dnsrecord:
+      ipa_host: "{{ ipa_server }}"
+      ipa_user: "{{ ipa_user }}"
+      ipa_pass: "{{ ipa_password }}"
+      state: present
+      zone_name: "{{ domain }}"
+      record_name: "{{ ocp_wildcard_record }}"
+      record_type: "A"
+      record_value: "{{ hostvars[groups['infra'][0]]['inventory_hostname'] }}"
+      validate_certs: false
+    when: "'master' in group_names"
+
+  - name: configure IPA client
+    command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --enable-dns-updates
+    ignore_errors: true
+
+  - name: configure docker storage
+    template:
+      src: docker-storage-setup.j2
+      dest: /etc/sysconfig/docker-storage-setup
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: run docker storage setup
+    command: docker-storage-setup
+
+  - name: start and enable Docker
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+#  - name: download docker images for master
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-builder-images.tar
+#      dest: /root/ose3-builder-images.tar
+#      mode: 0644
+#    when: "'master' in group_names"
+
+#  - name: load ose builder images on master
+#    command: docker load -i /root/ose3-builder-images.tar
+#    when: "'master' in group_names"
+
+#  - name: download docker images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-images.tar
+#      dest: /root/ose3-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+
+#  - name: load ose images on nodes
+#    command: docker load -i /root/ose3-images.tar
+#    when: "'master' not in group_names"
+
+#  - name: download docker extra images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-extra-images.tar
+#      dest: /root/ose3-extra-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+
+#  - name: load ose extra images on nodes
+#    command: docker load -i /root/ose3-extra-images.tar
+#    when: "'master' not in group_names"
+
+#  - name: download docker logging and metrics images for node
+#    get_url:
+#      url: http://{{ repo_server_ip }}/repos/ose3-logging-metrics-images.tar
+#      dest: /root/ose3-logging-metrics-images.tar
+#      mode: 0644
+#    when: "'master' not in group_names"
+
+#  - name: load ose logging and metrics images on nodes
+#    command: docker load -i /root/ose3-logging-metrics-images.tar
+#    when: "'master' not in group_names"
+
+  - name: copy hoststemplate file
+    template:
+      src: hosts.j2
+      dest: /etc/ansible/hosts
+      owner: root
+      group: root
+      mode: 0644
+    when: "'master' in group_names"
+
+  - name: add line to default ansbile.cfg to set the log file
+    lineinfile:
+      dest: /etc/ansible/ansible.cfg
+      state: present
+      regexp: "^#log_path"
+      line: "log_path = ansible.log"
+    when: "'master' in group_names"
+
+  - name: create ssh key on root account
+    shell: 'ssh-keygen -b 2048 -t rsa -f {{ ansible_user_dir }}/.ssh/id_rsa -q -N ""'
+    when: "'master' in group_names"
+    ignore_errors: true
+
+  - name: capture master public key
+    shell: "cat {{ ansible_user_dir }}/.ssh/id_rsa.pub"
+    when: "'master' in group_names"
+    register: pubkey
+
+  - debug:
+      var: pubkey.stdout_lines
+
+  - name: set the pubkey fact on the master
+    set_fact:
+      masterpubkey: "{{ pubkey.stdout }}"
+    when: "'master' in group_names"
+
+#  - name: restart dbus
+#    service:
+#      name: dbus
+#      state: restarted
+ 
+  - name: Set domain in resolve search list
+    lineinfile:
+      path: /etc/resolv.conf
+      regexp: '^search'
+      line: 'search {{ domain }}'
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: add key to authorized keys
+    authorized_key: 
+      user: "{{ ssh_user }}"
+      state: present
+      key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
+
+  - name: Run prereqs playbook
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+    when: "'master' in group_names"
+    ignore_errors: True
+
+  - name: Run deploy_cluster playbook
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+    when: "'master' in group_names"
+    ignore_errors: True
+
+  - name: Configure htpasswd for authentication 
+    htpasswd:
+      path: '/etc/origin/master/htpasswd'
+      name: "{{ ocpuser }}"
+      password: "{{ ocppass }}"
+    when: "'master' in group_names"
+
+  - name: set htpasswd user up as a cluster-admin
+    shell: 'oadm policy add-cluster-role-to-user cluster-admin admin'
+    when: "'master' in group_names"

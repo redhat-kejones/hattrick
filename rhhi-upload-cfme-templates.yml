@@ -1,0 +1,29 @@
+---
+- name: Create a template from qcow
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    engine_url: https://engine.pod3.mpc/ovirt-engine/api
+    engine_user: admin@internal
+    engine_password: "{{ rhv_pass }}"
+    engine_cafile: /etc/pki/ovirt-engine/ca.pem
+    validate_certs: False
+
+    qcow_url: http://172.16.2.10:8888/images/cfme_rhv_5.9.1-2.4.1.qcow2
+    template_cluster: Default
+    template_name: cfme_rhv_5.9.1-2.4.1
+    template_memory: 12GiB
+    template_cpu: 4
+    template_disk_size: 40GiB
+    template_disk_storage: data
+
+
+  pre_tasks:
+    - name: include vars again
+      include_vars:
+        file: group_vars/all/vars
+
+  roles:
+    - oVirt.image-template

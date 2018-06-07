@@ -1,0 +1,37 @@
+---
+#Needed because of delegation situation where IDM doesn't exist yet
+#Note the host is 127.0.0.1. This is meant to be run directly on host that
+#will be rhel_kvm
+- hosts: 127.0.0.1
+  remote_user: root
+  tasks:
+  - name: disable UseDNS in the /etc/ssh/sshd_config file
+    lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "^UseDNS"
+      line: "UseDNS no"
+      insertafter: EOF
+      state: present
+    register: ssh_config
+
+  - name: reload ssh
+    service:
+      name: sshd
+      state: reloaded
+    when: ssh_config.changed
+
+  - name: add a temporary nameserver to /etc/resolv.conf file
+    lineinfile:
+      dest: /etc/resolv.conf
+      line: "nameserver {{ dns_server_public }}"
+      insertafter: "BOF"
+      state: present
+
+- hosts: rhel_kvm
+  name: playbook to complete KVM configuration and installation
+  remote_user: root
+  vars:
+    use_public_dns: true
+  roles:
+    - rhel_common
+    - rhel_kvm

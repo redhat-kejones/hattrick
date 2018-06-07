@@ -1,0 +1,504 @@
+---
+# tasks file for roles/rhosp_director
+- name: set hostname
+  hostname:
+    name: "{{ rhosp_director.hostname_short }}.{{ domain }}"
+  tags: prep
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ inventory_hostname }}"
+    line: "{{ inventory_hostname }} {{ rhosp_director.hostname_short }}.{{ domain }} {{ rhosp_director.hostname_short }}"
+  tags: prep
+
+- sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+  tags: prep
+
+- name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhosp_director.repos }}"
+  tags: prep
+  when: not register_rhn
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+#    - rhel-7-server-rhceph-2-osd-rpms
+#    - rhel-7-server-rhceph-2-mon-rpms
+#    - rhel-7-server-rhceph-2-tools-rpms
+  when: register_rhn
+  tags: prep
+
+- name: add stack user and set password
+  user:
+    name: stack
+    password: "{{ rhosp_director.stack_user_pwd }}"
+  tags: prep
+
+- name: allow stack user to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^stack'
+    line: 'stack ALL=(ALL) NOPASSWD:ALL'
+  tags: prep
+
+- name: turn off requiretty for sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: "{{ item.line }}"
+    state: "{{ item.state }}"
+  with_items:
+     - { line: "Defaults !requiretty", state: present }
+     - { line: "Defaults requiretty", state: absent }
+  tags: prep
+
+- name: check sudoers
+  shell: cat /etc/sudoers | grep tty
+  register: sudoers_output
+  tags: prep
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'screen'
+    - 'wget'
+    - 'vim'
+    - 'tree'
+    - 'yum-utils'
+    - 'facter'
+    - 'crudini'
+    - 'git'
+    - 'libguestfs-tools-c'
+    - 'python-tripleoclient'
+    - 'rhosp-director-images'
+    - 'rhosp-director-images-ipa'
+  tags: prep
+
+- name: install ceph ansible if RHOSP 12+
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'ceph-ansible'
+  when: versions.rhosp >= 12
+  tags: prep
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+  tags: prep
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+  tags: prep
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+  tags: prep
+
+- name: restart undercloud machine to get updated kernel
+  shell: sleep 2 && shutdown -r now "Ansible restart triggered for RHOSP Director install"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+  tags: prep
+
+- name: waiting for Server to come back
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
+  tags: prep
+
+- name: setting provisioning interface onboot=no
+  lineinfile:
+    dest: /etc/sysconfig/network-scripts/ifcfg-{{ rhosp_director.provisioning_interface }}
+    state: present
+    regexp: '^ONBOOT'
+    line: 'ONBOOT=no'
+  tags: prep
+
+- name: copy undercloud.conf template
+  become: yes
+  become_user: stack
+  copy:
+    src: /usr/share/instack-undercloud/undercloud.conf.sample
+    dest: /home/stack/undercloud.conf
+    remote_src: true
+    owner: stack
+    group: stack
+    mode: 0644
+  tags: install
+
+- name: set undercloud.conf variables in the default section
+  become: yes
+  become_user: stack
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    section: DEFAULT
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    mode: 0644
+    backup: no
+  with_items:
+    - { key: image_path, value: "/home/stack/images" }
+    - { key: undercloud_hostname, value: "{{ rhosp_director.hostname_short }}.{{ domain }}" }
+    - { key: overcloud_domain_name, value: "{{ rhosp_director.cloud_domain }}" }
+    - { key: local_ip, value: "{{ rhosp_director.provisioning_ip }}" }
+    - { key: local_interface, value: "{{ rhosp_director.provisioning_interface }}" }
+    - { key: local_mtu, value: "1550" }
+    - { key: undercloud_public_vip, value: "{{ inventory_hostname }}" }
+    - { key: undercloud_admin_vip, value: "{{ rhosp_director.admin_apis_vip }}" }
+    - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
+    - { key: certificate_generate_ca, value: "local" }
+    - { key: undercloud_service_certificate, value: ""}
+    - { key: service_principal, value: ""}
+    - { key: network_cidr, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: network_gateway, value: "{{ rhosp_director.provisioning_network_gateway }}" }
+    - { key: masquerade_network, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: dhcp_start, value: "{{ rhosp_director.deploy_dhcp_start }}" }
+    - { key: dhcp_end, value: "{{ rhosp_director.deploy_dhcp_end }}" }
+    - { key: inspection_interface, value: "br-ctlplane"}
+    - { key: inspection_iprange, value: "{{ rhosp_director.inspection_dhcp_start }},{{ rhosp_director.inspection_dhcp_end }}" }
+    - { key: inspection_runbench, value: "false"}
+    - { key: inspection_enable_uefi, value: "true"}
+    - { key: undercloud_debug, value: "false"}
+    - { key: enable_tempest, value: "true"}
+    - { key: enable_validations, value: "true"}
+    - { key: enable_mistral, value: "true"}
+    - { key: enable_zaqar, value: "true"}
+    - { key: enable_telemetry, value: "true"}
+    - { key: enable_ui, value: "true"}
+    - { key: ipxe_enabled, value: "true"}
+    - { key: store_events, value: "true" }
+    - { key: clean_nodes, value: "{{ rhosp_director.clean_nodes }}"}
+    - { key: undercloud_name_servers, value: "{{ dns_server_local }}"}
+    - { key: undercloud_ntp_servers, value: "{{ rhosp_director.ntp_servers }}"}
+  tags: install
+
+- name: set undercloud.conf variables in the auth section
+  become: yes
+  become_user: stack
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    option: undercloud_admin_password
+    section: auth
+    value: "{{ rhosp_director.admin_password }}"
+    mode: 0644
+    backup: no
+  tags: install
+
+- name: make images and templates directories
+  become: yes
+  become_user: stack
+  file:
+    path: "/home/stack/{{ item }}"
+    state: directory
+    mode: 0755
+    owner: stack
+    group: stack
+  with_items:
+    - 'images'
+    - 'templates'
+  tags: install
+
+- name: unpacking overcloud and ironic images
+  become: yes
+  become_user: stack
+  unarchive:
+    src: "{{ item }}"
+    remote_src: true
+    dest: /home/stack/images
+  with_items:
+    - '/usr/share/rhosp-director-images/overcloud-full-latest-{{ versions.rhosp }}.0.tar'
+    - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ versions.rhosp }}.0.tar'
+  tags: install
+
+- name: install the Undercloud
+  become: yes
+  become_user: stack
+  shell: openstack undercloud install
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  tags: install
+
+- name: adding overcloud images to OSPD
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud image upload
+  args:
+    chdir: /home/stack/images
+  tags: install
+
+- name: adding dns to ctlplane subnet
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('network') }}/ {print $2}')
+  tags: install
+
+- name: configuring fernet tokens for overcloud
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && sudo keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone && sudo tar -zcf /home/stack/keystone-fernet-keys.tar.gz /etc/keystone/fernet-keys && upload-swift-artifacts -f /home/stack/keystone-fernet-keys.tar.gz
+  tags: install
+
+- name: set debug flag to false in DEFAULT section
+  ini_file:
+    dest: "{{ item }}"
+    section: DEFAULT
+    option: debug
+    value: false
+    backup: no
+  with_items:
+    - '/etc/nova/nova.conf'
+    - '/etc/neutron/neutron.conf'
+    - '/etc/heat/heat.conf'
+    - '/etc/ironic/ironic.conf'
+  tags: install
+
+- name: fix ceilometer database ttls
+  ini_file:
+    dest: /etc/ceilometer/ceilometer.conf
+    section: database
+    option: "{{ item }}"
+    value: 259200
+    backup: no
+  with_items:
+    - 'metering_time_to_live'
+    - 'event_time_to_live'
+  tags: install
+
+- name: Change dhcp_domain in nova.conf
+  lineinfile:
+    dest: /etc/nova/nova.conf
+    regexp: '^dhcp_domain='
+    line: "dhcp_domain={{ rhosp_director.cloud_domain }}"
+  tags: install
+
+- name: restart openstack services
+  service:
+    name: "{{ item }}"
+    state: restarted
+  with_items:
+    - 'openstack-*'
+    - 'neutron-*'
+    - 'httpd'
+  tags: install
+
+- name: install several useful utility and undercloud packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - python-pyghmi
+  tags: introspection
+
+- name: create instackenv file
+  copy:
+    content: "{{ lookup('template', 'templates/instackenv.json.j2') | to_nice_json }}"
+    dest: "/home/stack/instackenv.json"
+  tags: introspection
+
+- name: ping check on IPMI IP
+  command: ping -c 2 -w 5 {{ item.pm_addr }}
+  register: ping_response
+  ignore_errors: true
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  tags: introspection
+
+- name: debug ping responses
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: set validation errors for failed pings
+  set_fact:
+    validation_errors: "{{ validation_errors }} + [ 'unable to ping {{ item.item.pm_addr }}' ]"
+  when: "item.rc != 0"
+  with_items: "{{ ping_response.results }}"
+  tags: introspection
+
+- name: ensure ipmi boot network
+  ipmi_boot:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    bootdev: "{{ rhosp_director.bootdev|default('network') }}"
+    state: present
+  when: "item.pm_driver == 'pxe_ipmitool'"
+  register: ipmi_boot
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  ignore_errors: true
+  tags: introspection
+
+- name: set validation errors as needed for ipmi issues
+  set_fact:
+    validation_errors: "{{ rhosp_director.validation_errors }} + [ 'error checking ipmi on {{ item.item.pm_addr }} - please confirm credentials access and IPMI configuration ' ]"
+  when: "{{ item.failed|default('false')|bool }}"
+  with_items: "{{ ipmi_boot.results }}"
+  tags: introspection
+
+- name: debug validation errors
+  debug:
+    msg: "{{ item }}"
+  with_items: "{{ rhosp_director.validation_errors }}"
+  tags: introspection
+
+- name: poweroff all servers when poweroff == true
+  ipmi_power:
+    name: "{{ item.pm_addr }}"
+    user: "{{ item.pm_user }}"
+    password: "{{ item.pm_pwd }}"
+    state: off
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  when: 'rhosp_director.poweroff|bool'
+  ignore_errors: true
+  tags: introspection
+
+- name: check failure
+  fail:
+    msg: "\n - {{ rhosp_director.validation_errors|join('\n') }}"
+  when: validation_errors is defined and validation_errors|length > 0
+  tags: introspection
+
+- name: import introspect and provide nodes
+  become: yes
+  become_user: stack
+  shell: source /home/stack/stackrc && openstack overcloud node import --introspect --provide instackenv.json
+  args:
+    chdir: /home/stack
+  async: 2700
+  poll: 30
+  tags: introspection
+
+- name: set root devices to /dev/sda for all nodes
+  become: yes
+  become_user: stack
+  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"/dev/sda\"}' {{ item.name }}"
+  args:
+    chdir: /home/stack
+  with_items: "{{ rhosp_director.overcloud_nodes }}"
+  tags: introspection
+
+- name: success
+  debug:
+    msg: ipmi completely validated
+  tags: introspection
+
+- name: Configure undercloud for local Docker repo
+  become: yes
+  become_user: stack
+  when: versions.rhosp >= 12
+  tags: docker_registry
+  block:
+    - name: Discover the tag for the latest Docker images
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
+      args:
+        chdir: /home/stack
+      register: docker_latest
+      tags: docker_registry_template
+    
+    - name: copy generate-local-registry-images-yaml.sh script
+      template:
+        src: templates/generate-local-registry-images-yaml.sh.j2
+        dest: /home/stack/generate-local-registry-images-yaml.sh
+        owner: stack
+        group: stack
+        mode: 0775
+      tags: docker_registry_template
+    
+    - name: copy generate-overcloud-registry-env-yaml.sh script
+      template:
+        src: templates/generate-overcloud-registry-env-yaml.sh.j2
+        dest: /home/stack/generate-overcloud-registry-env-yaml.sh
+        owner: stack
+        group: stack
+        mode: 0775
+      tags: docker_registry_template
+    
+    - name: Create a template to pull the images to the local registry
+      shell: source /home/stack/stackrc && /home/stack/generate-local-registry-images-yaml.sh
+      args:
+        chdir: /home/stack
+      tags: docker_registry_template
+    
+    - name: Pull the Docker images in to local registry
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+      args:
+        chdir: /home/stack
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+    
+    - name: Create a template for using the images in our local registry on the undercloud
+      shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh
+      args:
+        chdir: /home/stack
+      tags: docker_registry_template
+
+- name: Process local CA for undercloud SSL
+  become: yes
+  become_user: stack
+  tags: inject_local_ca
+  when: ( rhosp_director.generate_service_certificate is not defined ) or ( rhosp_director.generate_service_certificate == true )
+  block:
+    - name: Check to see if local ca file exists
+      stat:
+        path: "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      register: stat_data
+
+    - name: Read in CA that is used to for Undercloud SSL services
+      shell: /bin/awk 'BEGIN{display=0};/BEGIN CERTIFICATE/ {display=1}; (display==1) {print "    "$0}; /END CERTIFICATE/ {display=0};' "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      when: stat_data.stat.exists == True
+      register: ssl_ca_certificate
+
+    - name: Generate trust anchor environment file
+      template:
+        src: templates/inject-trust-anchor.yaml.j2
+        dest: /home/stack/templates/inject-trust-anchor.yaml
+        owner: stack
+        group: stack
+        mode: 0444
+      when: stat_data.stat.exists == True

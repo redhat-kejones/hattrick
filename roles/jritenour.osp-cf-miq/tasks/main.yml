@@ -1,5 +1,107 @@
 ---
 # tasks file for jritenour.osp-cf-miq
+  - name: Make sure cfme security group exists
+    os_security_group:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      name: "{{ security_group }}"
+      description: security group for CFME servers
+  
+  - name: creat SSH rule
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: tcp
+      port_range_min: 22
+      port_range_max: 22
+      remote_ip_prefix: 0.0.0.0/0
+
+  - name: create HTTP rule
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: tcp
+      port_range_min: 80
+      port_range_max: 80
+      remote_ip_prefix: 0.0.0.0/0
+
+  - name: create HTTPS rule
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: tcp
+      port_range_min: 443
+      port_range_max: 443
+      remote_ip_prefix: 0.0.0.0/0
+
+  - name: allow all TCP within CF security group
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: tcp
+      port_range_min: 1
+      port_range_max: 65535
+      remote_group: "{{ security_group }}"
+
+  - name: allow all UDP within CF security group
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: udp
+      port_range_min: 1
+      port_range_max: 65535
+      remote_group: "{{ security_group }}"
+
+  - name: create HTTPS rule
+    os_security_group_rule:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      security_group: "{{ security_group }}"
+      protocol: tcp
+      port_range_min: 443
+      port_range_max: 443
+      remote_ip_prefix: 0.0.0.0/0
+
+  - name: Make sure CF flavor exists
+    os_nova_flavor:
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      name: "{{ flavor }}"
+      ram: 12288
+      vcpus: 1
+      disk: 45
+
   - name: Create CFME volume for instance
     os_volume:
       auth:
@@ -36,7 +138,7 @@
     register: osp_host
     when: db or ui
 
-  - name: Add second interface to workers
+  - name: Launch workers with second interface on provisioning network
     os_server:
       auth:
         auth_url: "{{ osp_url }}"
@@ -70,6 +172,7 @@
       server: cf-wk-{{ item }}
       network: public
       nat_destination: "{{ network_name }}" 
+      state: present
       wait: True
     register: float
     with_sequence:
@@ -109,10 +212,13 @@
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfdb
     when: db
+ 
+  - debug:
+      msg: "{{ float }}"
 
   - name: add Worker to inventory
     add_host:
-      hostname: "{{ item.private_v4 }}"
+      hostname: "{{ item.addresses.private[1].addr }}"
       ansible_ssh_user: root
       ansible_ssh_pass: "{{ cf_ssh_pass }}"
       groupname: cfwk

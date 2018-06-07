@@ -3,32 +3,53 @@
   connection: local
   gather_facts: no
   remote_user: root
+  vars_files:
+    - cf-vars.yml
   vars: 
     type: wk
     db: false
     ui: false
     wk: true
-    num: 2
-  vars_files:
-    - 'vars.yml'
+    num: 1
   roles:
     - {role: 'roles/jritenour.osp-cf-miq'}
 
 - hosts: cfwk
   remote_user: root
+  gather_facts: no
   vars_files:
-    - 'vars.yml'
+    - cf-vars.yml
+  tasks:
+  - name: check that workers are online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+  - pause:
+      minutes: 1
+
+- hosts: cfwk
+  remote_user: root
+  vars_files:
+    - cf-vars.yml
   vars:
     zone_name: OpenStack
     zone_desc: OpenStack Zone
     db_server: "{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
   roles: 
     - {role: 'roles/jritenour.cf-miq-wk'}
-
   tasks:
+  - name: set fact for db_server IP
+    set_fact: db_server="{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
+
   - name: copy ifcfg-eth1
     template:
-      src: ifcg
+      src: ifcfg
       dest: '/etc/sysconfig/network-scripts/ifcfg-eth1'
   - name: enable eth1
     command: ifup eth1
@@ -36,8 +57,33 @@
 - hosts: cfdb
   remote_user: root
   vars_files:
-    - 'vars.yml'
+    - cf-vars.yml
+  vars:
+    db_server: "{{ hostvars[groups['cfdb'][0]]['ansible_default_ipv4']['address'] }}"
   tasks:
+  - name: Add undercloud as provider
+    uri:
+      url: "https://{{ db_server }}/api/providers"
+      method: POST
+      user: admin
+      password: "{{ cf_ssh_pass }}"
+      validate_certs: no
+      headers:
+        Content-Type:  application/json
+      body_format: json
+      body:
+        type: "ManageIQ::Providers::Openstack::InfraManager"
+        name:  OSP Undercloud 
+        hostname: "{{ undercloud_ip }}"
+        ipaddress: "{{ undercloud_ip }}"
+        port: "13000"
+        security_protocol: "ssl_without_validation"
+        zone:
+          href: "https://{{ db_server }}/api/zone/{{ region_num }}000000000004"
+        credentials:
+          userid: "{{ undercloud_user }}"
+          password: "{{ undercloud_pw }}"
+
   - name: Add Overcloud as provider
     uri:
       url: "https://{{ db_server }}/api/providers"
@@ -56,30 +102,8 @@
         port: "5000"
         security_protocol: "non_ssl"
         zone:
-          href: "https://{{ db_server }}/api/zone/{{ region }}000000000004"
+          href: "https://{{ db_server }}/api/zone/{{ region_num }}000000000004"
         credentials:
           userid: "{{ osp_user }}"
           password: "{{ osp_pass }}"
 
-  - name: Add undercloud as provider
-    uri:
-      url: "https://{{ db_server }}/api/providers"
-      method: POST
-      user: admin
-      password: "{{ cf_ssh_pass }}"
-      validate_certs: no
-      headers:
-        Content-Type:  application/json
-      body_format: json
-      body:
-        type: "ManageIQ::Providers::Openstack::InfraManager"
-        name:  OSP Undercloud 
-        hostname: "{{ undercloud_ip }}"
-        ipaddress: "{{ undercloud_ip }}"
-        port: "13000"
-        security_protocol: "non_ssl"
-        zone:
-          href: "https://{{ db_server }}/api/zone/{{ region }}000000000004"
-        credentials:
-          userid: "{{ undercloud_user }}"
-          password: "{{ undercloud_pw }}"

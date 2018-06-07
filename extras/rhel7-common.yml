@@ -1,0 +1,8 @@
+---
+#TODO: Need to find or write playbook to prep initial host to be KVM, Gateway,
+#      and with networking in place
+- hosts: all
+  name: playbook to complete KVM configuration and installation
+  remote_user: root
+  roles:
+    - ../roles/rhel_common

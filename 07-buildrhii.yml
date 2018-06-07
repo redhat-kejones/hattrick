@@ -1,0 +1,28 @@
+- name: buildrhhi
+  hosts: 172.16.31.23
+  gather_facts: false
+
+  pre_tasks:
+    - name: ipmireboot
+      shell: ipmitool -I lanplus -H {{ item }} -U admin -P admin chassis bootdev pxe
+      with_items:
+        - "{{ ipmi2 }}"
+        - "{{ ipmi3 }}"
+        - "{{ ipmi4 }}"
+      delegate_to: localhost
+
+    - name: ipmireboot
+      shell: ipmitool -I lanplus -H {{ item }} -U admin -P admin chassis power reset
+      with_items:
+        - "{{ ipmi2 }}"
+        - "{{ ipmi3 }}"
+        - "{{ ipmi4 }}"
+      delegate_to: localhost
+
+  roles:
+    - role: ldomb-rhhi
+
+- import_playbook: rhhi-network.yml
+- import_playbook: rhhi-storage.yml
+- import_playbook: rhhi-upload-rhel75-templates.yml
+- import_playbook: rhhi-upload-cfme-templates.yml

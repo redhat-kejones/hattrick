@@ -1,0 +1,71 @@
+- hosts: ansible-shade
+  name: playbook to install Ansible core and OpenStack Shade
+  remote_user: cloud-user
+  become: yes
+  vars:
+    repos:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+  roles:
+    - rhel_common
+  tasks:
+
+    - name: enable the needed rhel repositories
+      yum_repository:
+        name: "{{ item }}"
+        description: "{{ item }}"
+        baseurl: "{{ local_repo_url }}{{ item }}"
+        gpgcheck: no
+        enabled: yes
+        file: rhn-local
+        state: present
+      with_items:
+        - "{{ repos }}"
+
+#    - name: enable the needed rhel repositories
+#      command: subscription-manager repos --enable={{ item }}
+#      with_items:
+#        - rhel-7-server-rpms
+#        - rhel-7-server-extras-rpms
+
+    - name: install the epel rpm from a remote repo
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+
+    - name: install ansible and other packages
+      yum: 
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - git
+        - ansible
+        - gcc
+        - gcc-c++
+        - libffi-devel
+        - openssl-devel
+        - python
+        - python-devel
+        - python-virtualenv
+        - python-pip
+
+    - name: make sure pip is latest
+      pip:
+        name: pip
+        state: latest
+
+    - name: make sure setuptools is latest
+      pip:
+        name: setuptools
+        state: latest
+
+    - name: install shade
+      pip:
+        name: shade
+        version: 1.27.1
+        extra_args: "-Iv"
+
+    - name: copy over ansible.cfg
+      copy:
+        src: files/.ansible.cfg
+        dest: /home/cloud-user/.ansible.cfg

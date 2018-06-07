@@ -1,0 +1,47 @@
+domain: pod2.mpc
+dns_server_local: 172.16.21.15
+repo_server_ip: 172.16.2.10
+local_repo_url: "http://172.16.2.10:8888/repos/"
+ocp_shared_registry_server: 172.16.2.16
+ocp_shared_registry_port: 5000
+register_rhn: false
+ocp:
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-fast-datapath-rpms
+    - rhel-7-server-ose-3.9-rpms
+    - rhel-7-server-ansible-2.4-rpms
+    - rh-gluster-3-client-for-rhel-7-server-rpms
+    - rh-gluster-3-for-rhel-7-server-rpms
+osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
+osp_ip: 172.16.21.20 # OpenStack specific
+osp_user: "{{ vault_osp_user }}" # OpenStack specific
+osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+osp_project: operators  # OpenStack specific
+az: nova # works with OpenStack, EC2 & Azure
+db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
+db_vol_name: ocp-{{ type }}-vol
+vm_name: ocp-{{ type }}
+image_uid: rhel75
+master_flavor_name: ocp1.master
+node_flavor_name: ocp1.node
+key_name: nuc #works with OpenStack & EC2
+network_name: private # Works with all providers
+ssh_user: cloud-user
+cf_db_dev: '/dev/vdc'
+wipe_cns_dev: false #override with --extra-vars="wipe_cns_dev=true"
+cns_dev: '/dev/vdb'
+openshift_registry_volume_size: 50
+region_num: 20
+security_group: default # works with OpenStack & EC2
+dns: "{{ dns_server_local }}"
+ipa_server: "idm.{{ domain }}"
+ipa_user: "{{ vault_idm_admin_user }}"
+ipa_password: "{{ vault_idm_admin_pwd }}"
+ocpuser: "{{ vault_ocp_user }}"
+ocppass: "{{ vault_ocp_pwd }}"
+ocp_wildcard_record: "*.ocp"
+ocp_wildcard_domain: "ocp.{{ domain }}"
+private_reverse_zone: "0.168.192.in-addr.arpa."
+#master1: "osp-master-0c6a.{{ domain }}"

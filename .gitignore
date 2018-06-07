@@ -1,3 +1,7 @@
 *.retry
 *.swp
+vault.yml
 vault
+vars.yml
+*id_rsa*
+files/*-ifcfg-eth*

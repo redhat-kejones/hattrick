@@ -1,0 +1,177 @@
+---
+# tasks file for rhel_repo
+- debug:
+    msg: "{{ rhel_repo }}"
+
+- name: set hostname
+  hostname:
+    name: "{{ rhel_repo.hostname_short }}.{{ domain }}"
+
+- name: enable the needed repos for rhel
+  command: "subscription-manager repos --enable {{ item }}"
+  with_items: "{{ rhel_repo.repos.rhel }}"
+  tags: enable_repos
+
+- name: enable the needed repos for osp
+  command: "subscription-manager repos --enable {{ item }}"
+  with_items: "{{ rhel_repo.repos.osp }}"
+  tags: enable_repos
+
+- name: enable the needed repos for ocp
+  command: "subscription-manager repos --enable {{ item }}"
+  with_items: "{{ rhel_repo.repos.ocp }}"
+  tags: enable_repos
+
+- name: enable the needed repos for cfme
+  command: "subscription-manager repos --enable {{ item }}"
+  with_items: "{{ rhel_repo.repos.cfme }}"
+  tags: enable_repos
+
+#NOTE: requires satellite subscription
+- name: enable the needed repos for satellite
+  command: "subscription-manager repos --enable {{ item }}"
+  with_items: "{{ rhel_repo.repos.satellite }}"
+  tags: enable_repos
+  when: rhel_repo.sync_satellite
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+    skip_broken: yes
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+
+- name: install the latest version of Apache
+  yum:
+    name: httpd
+    state: present
+  tags: apache
+
+- name: install the latest version of createrepo
+  yum:
+    name: createrepo
+    state: present
+  tags: create_repos
+
+- name: install the latest version of git
+  yum:
+    name: git
+    state: present
+  tags: clone_deploy
+
+- name: Creates directory for repos
+  file:
+    path: /var/www/html/repos/
+    state: directory
+    owner: apache
+    group: apache
+    mode: 0775
+  tags: sync_repos
+
+- name: reposync rhel
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  with_items: "{{ rhel_repo.repos.rhel }}"
+  tags: sync_repos
+
+- name: reposync osp
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  with_items: "{{ rhel_repo.repos.osp }}"
+  tags: sync_repos
+
+- name: reposync satellite
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  with_items: "{{ rhel_repo.repos.satellite }}"
+  tags: sync_satellite
+  when: rhel_repo.sync_satellite
+
+- name: reposync ocp
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  with_items: "{{ rhel_repo.repos.ocp }}"
+  tags: sync_repos
+
+- name: reposync cfme
+  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  with_items: "{{ rhel_repo.repos.cfme }}"
+  tags: sync_repos
+
+- name: create rhel repo
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
+  with_items: "{{ rhel_repo.repos.rhel }}"
+  tags: create_repos
+
+- name: create osp repo
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
+  with_items: "{{ rhel_repo.repos.osp }}"
+  tags: create_repos
+
+- name: create satellite repo
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
+  with_items: "{{ rhel_repo.repos.satellite }}"
+  tags: sync_satellite
+  when: rhel_repo.sync_satellite
+
+- name: create ocp repo
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
+  with_items: "{{ rhel_repo.repos.ocp }}"
+  tags: create_repos
+
+- name: create cfme repo
+  command: "createrepo -v /var/www/html/repos/{{ item }}"
+  with_items: "{{ rhel_repo.repos.cfme }}"
+  tags: create_repos
+
+- name: Creates directory
+  file:
+    path: /var/www/html/deploy
+    state: directory
+    owner: apache
+    group: apache
+    mode: 0775
+  tags: clone_deploy
+
+- name: Clone the code repository to the docroot.
+  git:
+    repo: "{{ git_repo }}"
+    dest: /var/www/html/deploy
+    accept_hostkey: yes
+    key_file: /var/www/.ssh/deploy_key
+  become_user: apache
+  tags: clone_deploy
+
+- name: starting the httpd service
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+  tags: apache
+
+#- name: restart server to get updated kernel
+#  shell: sleep 2 && shutdown -r now "Ansible restart triggered for latest kernel"
+#  async: 1
+#  poll: 0
+#  ignore_errors: true
+#  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+
+#- name: waiting for repo server to come back online
+#  wait_for:
+#    host: "{{ inventory_hostname }}"
+#    state: started
+#    delay: 10
+#    connect_timeout: 5
+#    timeout: 300
+#    port: 80
+#  delegate_to: 127.0.0.1
+#  become: false
+#  ignore_errors: true

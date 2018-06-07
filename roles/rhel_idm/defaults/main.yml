@@ -1,0 +1,43 @@
+---
+# defaults for all
+domain: two.hattrick.lab
+dns_server_local: 172.16.21.15
+dns_server_public: 8.8.8.8
+git_repo: https://github.com/redhat-kejones/hattrick
+
+# defaults file for roles/rhel_idm
+rhel_idm:
+  hostname_short: idm
+  realm: "{{ domain | upper }}"
+  dm_pwd: "{{ vault_idm_dm_pwd }}"
+  admin_pwd: "{{ vault_idm_admin_pwd }}"
+  forward_ip: 8.8.8.8
+  reverse_zone: "168.192.in-addr.arpa."
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - ipa-server
+    - ipa-server-dns
+  users:
+  - username: hattrick
+    password: redhat
+    display_name: "Hat Trick"
+    first_name: Hat
+    last_name: Trick
+    email: "hattrick@redhat.com"
+    phone: "+12345678901"
+    title: "Cloud in-a-box"
+  dns_records:
+  - hostname: switch
+    record_type: A
+    ip_address: 172.16.21.2
+    reverse_record: 2.0
+  - hostname: router
+    record_type: A
+    ip_address: 172.16.0.1
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 172.16.21.10
+    reverse_record: 3.0

@@ -1,0 +1,38 @@
+---
+- name: add authorized keys to repo server
+  hosts: rhel_repo
+  gather_facts: false
+  remote_user: root
+  vars:
+    ansible_ssh_user: root
+    ansible_ssh_pass: redhat
+  tasks:
+  - name: check that repo server is online
+    wait_for:
+      host: "{{ inventory_hostname }}"
+      state: started
+      connect_timeout: 5
+      timeout: 300
+      port: 22
+    delegate_to: 127.0.0.1
+    become: false
+    ignore_errors: true
+
+  - name: add authorized key from root@kvm
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', 'files/kvm_root_id_rsa.pub') }}"
+
+  - name: add authorized key from machine running this playbook
+    authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: install and configure repo server
+  hosts: rhel_repo
+  remote_user: root
+  roles:
+    - rhel_common
+    - rhel_repo

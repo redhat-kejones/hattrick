@@ -1,0 +1,286 @@
+domain: cloudlet1.bag
+dns_server_local: 192.168.0.4
+
+nfs_server: 192.168.0.7
+nfs_repos_path: /volume1/web/install/repos/
+nfs_images_path: /volume1/web/install/images/
+
+ocp_shared_registry_server: 192.168.0.7
+ocp_shared_registry_port: 5000
+
+local_repo_url: "http://192.168.0.3/repos/"
+
+versions:
+  rhosp: 12
+  satellite: 6.3
+  ocp: 3.9
+  cfme: 5.9
+
+networks:
+  external:
+    name: external
+    cidr: 192.168.0.0/23
+    defroute: true
+    gateway: 192.168.0.1
+    vlan: 1
+    dhcpStart: 192.168.1.40
+    dhcpEnd: 192.168.1.69
+    fipStart: 192.168.1.70
+    fipEnd: 192.168.1.199
+  provisioning:
+    name: provisioning
+    cidr: 192.168.2.0/24
+    defroute: false
+    gateway: 192.168.2.5
+    vlan: 2
+    dhcpStart: 192.168.2.70
+    dhcpEnd: 192.168.2.99
+  internal_api:
+    name: internal_api
+    cidr: 192.168.100.0/24
+    defroute: false
+    vlan: 900
+    dhcpStart: 192.168.100.40
+    dhcpEnd: 192.168.100.250
+  tenant:
+    name: tenant
+    cidr: 192.168.103.0/24
+    defroute: false
+    vlan: 903
+    dhcpStart: 192.168.103.40
+    dhcpEnd: 192.168.103.250
+  storage:
+    name: storage
+    cidr: 192.168.101.0/24
+    defroute: false
+    vlan: 901
+    dhcpStart: 192.168.101.40
+    dhcpEnd: 192.168.101.250
+  storage_mgmt:
+    name: storage_mgmt
+    cidr: 192.168.102.0/24
+    defroute: false
+    vlan: 902
+    dhcpStart: 192.168.102.40
+    dhcpEnd: 192.168.102.250
+  provider:
+    name: provider
+    cidr: 192.168.104.0/24
+    defroute: false
+    gateway: 192.168.104.1
+    vlan: 904
+    dhcpStart: 192.168.104.40
+    dhcpEnd: 192.168.104.250
+
+rhel_repo:
+  hostname_short: repo
+  sync_satellite: false
+  repos:
+    rhel:
+      - rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+      - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-supplementary-rpms
+      - jb-eap-7-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+    osp:
+      - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    satellite:
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
+    ocp:
+      - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+    cfme:
+      - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
+    rhv:
+      - rhel-{{ ansible_distribution_major_version }}-server-rhvh-4-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4-mgmt-agent-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4.2-manager-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhv-4-manager-tools-rpms
+    gluster:
+      - rh-gluster-3-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rh-gluster-3-samba-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rh-gluster-3-nfs-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+
+rhel_nfs:
+  hostname_short: nfs
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - nfs-utils
+    - nfs-utils-lib
+    - portmap
+
+rhel_idm:
+  hostname_short: idm
+  realm: "{{ domain | upper }}"
+  dm_pwd: "{{ vault_idm_dm_pwd }}"
+  admin_pwd: "{{ vault_idm_admin_pwd }}"
+  forward_ip: "{{ dns_server_public }}"
+  reverse_zone: "168.192.in-addr.arpa."
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+  packages:
+    - ipa-server
+    - ipa-server-dns
+  users:
+  - username: operator
+    password: redhat
+    display_name: "BAG Operator"
+    first_name: BAG
+    last_name: Operator
+    email: "bag-support@redhat.com"
+    phone: "+18887334281"
+    title: "Bag Operator"
+  dns_records:
+  - hostname: wwan
+    record_type: A
+    ip_address: 192.168.0.1
+    reverse_record: 1.0
+  - hostname: switch
+    record_type: A
+    ip_address: 192.168.0.2
+    reverse_record: 2.0
+  - hostname: kvm
+    record_type: A
+    ip_address: 192.168.0.3
+    reverse_record: 3.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.5
+    reverse_record: 5.0
+  - hostname: openstack
+    record_type: A
+    ip_address: 192.168.1.40
+    reverse_record: 40.1
+
+rhosp_director:
+  external_ip: 192.168.0.5
+  poweroff: true
+  bootdev: network
+  validation_errors: []
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
+    #- rhel-7-server-rhceph-2-osd-rpms
+    #- rhel-7-server-rhceph-2-mon-rpms
+    #- rhel-7-server-rhceph-2-tools-rpms
+
+  # stack user gets created and will be used for all RHOSP actions on undercloud
+  stack_user_pwd: "{{ vault_stack_user_pwd }}"
+
+  optional_docker_services:
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
+    #- /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+
+  #Docker ceph variables
+  ceph_namespace: registry.access.redhat.com/rhceph
+  ceph_image: rhceph-2-rhel7
+  ceph_tag: latest
+  ceph_enabled: false
+
+  #SSL for undercloud services
+  generate_service_certificate: true
+  local_ca_file: /etc/pki/ca-trust/source/anchors/cm-local-ca.pem
+
+  # All variables for undercloud.conf
+  cloud_domain: "{{ domain }}"
+  hostname_short: undercloud
+  ntp_servers: "{{ ntp_server }}"
+  # Network interface on the Undercloud that will be handling the PXE
+  # boots and DHCP for Overcloud instances
+  provisioning_interface: eth0
+  # IP information for the interface on the Undercloud that will be
+  # handling the PXE boots and DHCP for Overcloud instances.  The IP
+  # portion of the value will be assigned to the network interface
+  # defined by local_interface, with the netmask defined by the prefix
+  # portion of the value
+  provisioning_ip: 192.168.2.5/24
+  # Network CIDR for the Neutron-managed network for Overcloud
+  # instances. This should be the subnet used for PXE booting
+  provisioning_network_cidr: 192.168.2.0/24
+  # Network gateway for the Neutron-managed network for Overcloud
+  # instances. This should match the local_ip above when using masquerading
+  provisioning_network_gateway: 192.168.2.5
+  # Virtual IP address to use for the admin endpoints of Undercloud services.
+  admin_apis_vip: 192.168.2.4
+  # Temporary IP range that will be given to nodes during the discovery
+  # process.  Should not overlap with the range defined by dhcp_start
+  # and dhcp_end, but should be in the same network
+  inspection_dhcp_start: 192.168.2.20
+  inspection_dhcp_end: 192.168.2.39
+  # Start of DHCP allocation range for PXE and DHCP of Overcloud instances
+  deploy_dhcp_start: 192.168.2.40
+  # End of DHCP allocation range for PXE and DHCP of Overcloud instances
+  deploy_dhcp_end: 192.168.2.69
+  # Defines whether to wipe the hard drive of overcloud nodes between
+  # deployments and after the introspection
+  clean_nodes: false
+  # Set admin password for undercloud
+  admin_password: "{{ vault_undercloud_admin_pwd }}"
+
+  overcloud_nodes:
+    - name: node1
+      profile: control
+      pm_addr: "192.168.1.21"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node2
+      profile: compute
+      pm_addr: "192.168.1.22"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node3
+      profile: compute
+      pm_addr: "192.168.1.23"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+    - name: node4
+      profile: compute
+      pm_addr: "192.168.1.24"
+      pm_user: "ADMIN"
+      pm_pwd: "ADMIN"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+      pm_driver: "pxe_ipmitool"
+
+rhosp_overcloud:
+  timezone: "US/Eastern"
+  timeout: 90
+  cloud_name: openstack
+  operator_pub_key: "{{ vault_operator_pub_key }}"
+  controller_scale: 1
+  compute_scale: 3
+  ceph_storage_scale: 0
+  ceph_disk_layout: ""
+
+rhosp_director_ip: "{{ rhosp_director.external_ip }}"
+osp_ip: "{{ networks.external.dhcpStart }}"
+osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
+osp_user: "{{ vault_osp_user }}" # OpenStack specific
+osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+osp_project: operators  # OpenStack specific

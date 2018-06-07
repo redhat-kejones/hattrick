@@ -1,0 +1,87 @@
+## A Heat environment file which can be used to set up storage
+## backends. Defaults to Ceph used as a backend for Cinder, Glance and
+## Nova ephemeral storage.
+resource_registry:
+
+{% if rhosp_director.ceph_enabled == true %}
+ OS::TripleO::Services::CephMon: /usr/share/openstack-tripleo-heat-templates/docker/services/ceph-ansible/ceph-mon.yaml
+ OS::TripleO::Services::CephOSD: /usr/share/openstack-tripleo-heat-templates/docker/services/ceph-ansible/ceph-osd.yaml
+ OS::TripleO::Services::CephRgw: /usr/share/openstack-tripleo-heat-templates/docker/services/ceph-ansible/ceph-rgw.yaml
+ OS::TripleO::Services::CephClient: /usr/share/openstack-tripleo-heat-templates/docker/services/ceph-ansible/ceph-client.yaml
+{% endif %}
+
+parameter_defaults:
+
+  #### BACKEND SELECTION ####
+
+{% if rhosp_director.ceph_enabled == true %}
+  CephAnsiblePlaybook: /usr/share/ceph-ansible/site-docker.yml.sample
+  CinderEnableIscsiBackend: false
+  CinderEnableRbdBackend: true
+  CinderBackupBackend: ceph
+  CinderEnableNfsBackend: false
+  NovaEnableRbdBackend: true
+  GlanceBackend: rbd
+  GnocchiBackend: rbd
+{% else %}
+  CinderEnableIscsiBackend: false
+  CinderEnableRbdBackend: false
+  CinderBackupBackend: swift
+  CinderEnableNfsBackend: true
+  NovaEnableRbdBackend: false
+  GlanceBackend: file
+  GnocchiBackend: swift
+{% endif %}
+
+
+{% if rhosp_director.ceph_enabled == true %}
+
+  #### CEPH SETTINGS ####
+
+  ## When deploying Ceph Nodes through the oscplugin CLI, the following
+  ## parameters are set automatically by the CLI. When deploying via
+  ## heat stack-create or ceph on the controller nodes only,
+  ## they need to be provided manually.
+
+  ## Number of Ceph storage nodes to deploy
+  # CephStorageCount: 0
+  ## Ceph FSID, e.g. '4b5c8c0a-ff60-454b-a1b4-9747aa737d19'
+  # CephClusterFSID: ''
+  ## Ceph monitor key, e.g. 'AQC+Ox1VmEr3BxAALZejqeHj50Nj6wJDvs96OQ=='
+  # CephMonKey: ''
+  ## Ceph admin key, e.g. 'AQDLOh1VgEp6FRAAFzT7Zw+Y9V6JJExQAsRnRQ=='
+  # CephAdminKey: ''
+  ## Ceph client key, e.g 'AQC+vYNXgDAgAhAAc8UoYt+OTz5uhV7ItLdwUw=='
+  # CephClientKey: ''
+  ## OSDs configuration
+  ## See https://github.com/ceph/ceph-ansible/blob/stable-3.0/docs/source/osds/scenarios.rst
+  # CephAnsibleDisksConfig:
+  #   devices:
+  #   - /dev/vdb
+  #   osd_scenario: collocated
+
+{% else %}
+
+  #### CINDER NFS SETTINGS ####
+
+  ## NFS mount options
+  CinderNfsMountOptions: 'nosharecache'
+  ## NFS mount point, e.g. '192.168.122.1:/export/cinder'
+  CinderNfsServers: '{{ nfs_server }}:/export/cinder'
+
+
+  #### GLANCE NFS SETTINGS ####
+
+  ## Make sure to set `GlanceBackend: file` when enabling NFS
+  ##
+  ## Whether to make Glance 'file' backend a NFS mount
+  GlanceNfsEnabled: True
+  ## NFS share for image storage, e.g. '192.168.122.1:/export/glance'
+  ## (If using IPv6, use both double- and single-quotes,
+  ## e.g. "'[fdd0::1]:/export/glance'")
+  GlanceNfsShare: '{{ nfs_server }}:/export/glance'
+  ## Mount options for the NFS image storage mount point
+  GlanceNfsOptions: 'intr,context=system_u:object_r:glance_var_lib_t:s0'
+
+{% endif %}
+

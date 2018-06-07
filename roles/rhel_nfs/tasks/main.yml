@@ -1,0 +1,143 @@
+---
+# tasks file for roles/rhel_nfs
+- name: set hostname
+  hostname:
+    name: "{{ rhel_nfs.hostname_short }}.{{ domain }}"
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ inventory_hostname }}"
+    line: "{{ inventory_hostname }} {{ rhel_nfs.hostname_short }}.{{ domain }} {{ rhel_nfs.hostname_short }}"
+
+- name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhel_nfs.repos }}"
+  when: not register_rhn
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_nfs.repos }}"
+  when: register_rhn
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+
+- name: creates directory to export for cinder
+  file:
+    path: /export/cinder
+    state: directory
+    owner: root
+    group: root
+    mode: 0777
+  tags: configure_nfs
+
+- name: creates directory to export for glance
+  file:
+    path: /export/glance
+    state: directory
+    owner: root
+    group: root
+    mode: 0777
+  tags: configure_nfs
+
+- name: install the required packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ rhel_nfs.packages }}"
+  tags: configure_nfs
+
+- name: add cinder export line to /etc/exports
+  lineinfile:
+    dest: /etc/exports
+    line: "/export/cinder   	 *(rw,sync,no_root_squash,no_all_squash,insecure)"
+    insertafter: "BOF"
+    state: present
+
+- name: add glance export line to /etc/exports
+  lineinfile:
+    dest: /etc/exports
+    line: "/export/glance   	 *(rw,sync,no_root_squash,no_all_squash,insecure)"
+    insertafter: "BOF"
+    state: present
+
+- name: starting the rpcbind service
+  service:
+    name: rpcbind
+    state: started
+    enabled: yes
+  tags: configure_nfs
+
+- name: starting the nfs service
+  service:
+    name: nfs-server
+    state: started
+    enabled: yes
+  tags: configure_nfs
+
+- name: Add nfs service to firewalld config
+  firewalld:
+    service: nfs
+    permanent: true
+    state: enabled
+
+- name: Add mountd service to firewalld config
+  firewalld:
+    service: mountd
+    permanent: true
+    state: enabled
+
+- name: Add rpc-bind service to firewalld config
+  firewalld:
+    service: rpc-bind
+    permanent: true
+    state: enabled
+
+- name: restart firewalld
+  service: name=firewalld state=restarted
+
+- name: restart nfs machine to get updated kernel
+  shell: sleep 2 && shutdown -r now "ansible restart triggered for nfs install"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+    
+- name: waiting for server to come back
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true

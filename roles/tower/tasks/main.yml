@@ -1,0 +1,67 @@
+---
+# tasks file for tower
+  - name: enable the needed rhel repositories
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
+    with_items:
+      - "{{ tower.repos }}"
+    when: not register_rhn
+
+  - name: Register with Red Hat Subscription Manager
+    redhat_subscription:
+      state: present
+      username: "{{ rhn_user }}"
+      password: "{{ rhn_pass }}"
+      pool: "{{ rhn_pool }}"
+    when: register_rhn
+
+  - name: Disable all repos
+    command: subscription-manager repos --disable "*"
+    when: register_rhn
+
+  - name: enable the needed rhel repositories
+    command: subscription-manager repos --enable={{ item }}
+    with_items:
+      - "{{ tower.repos }}"
+    when: register_rhn
+
+  - name: Install & enable EPEL repo
+    command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+    ignore_errors: true
+
+  - name: Make temp directory
+    file: 
+      path: /temp
+      state: directory
+      mode: 0755
+
+  - name: Download latest Ansible setup
+    get_url:
+      url: http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
+      dest: /temp/ansible.tar.gz
+      mode: 0755
+   
+  - name: extract Ansible tar
+    unarchive:
+      src: /temp/ansible.tar.gz
+      dest: /temp/
+      remote_src: yes
+
+  - name: move the extracted directory
+    shell : ' mv /temp/ansible-tower-setup-* /temp/ansible'
+  - name: template out the tower inventory
+    template:
+      src: inventory.j2
+      dest: /temp/ansible/inventory
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install tower
+    shell: /temp/ansible/setup.sh

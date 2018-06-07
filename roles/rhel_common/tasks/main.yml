@@ -1,9 +1,5 @@
 ---
 # tasks file for roles/rhel_common
-- name: import secret variable file
-  include_vars: "vault"
-  no_log: true
-
 - name: disable UseDNS in the /etc/ssh/sshd_config file
   lineinfile:
     dest: /etc/ssh/sshd_config
@@ -22,14 +18,24 @@
 - name: add a temporary nameserver to /etc/resolv.conf file
   lineinfile:
     dest: /etc/resolv.conf
-    line: "nameserver {{ public_dns_nameserver }}"
+    line: "nameserver {{ dns_server_public }}"
     insertafter: "BOF"
     state: present
+  when: use_public_dns
 
 - name: enable SELinux
   selinux:
     policy: targeted
     state: enforcing
+
+- name: unregister System with RHN Subscription Manager
+  redhat_subscription:
+    state: absent
+  when: ansible_distribution == 'RedHat'
+
+- name: subscription-manager clean all
+  command: subscription-manager clean
+  when: ansible_distribution == 'RedHat'
 
 - name: register System with RHN Subscription Manager
   redhat_subscription:
@@ -42,6 +48,12 @@
 - name: disable all repositories
   command: subscription-manager repos --disable=\*
   when: ansible_distribution == 'RedHat' and register_rhn
+
+#- name: setup local repo file repo server
+#  template:
+#    src: rhn-local.repo.j2
+#    dest: /etc/yum.repos.d/redhat-local.repo
+#  when: not register_rhn
 
 - name: turn off requiretty for sudo
   lineinfile:
