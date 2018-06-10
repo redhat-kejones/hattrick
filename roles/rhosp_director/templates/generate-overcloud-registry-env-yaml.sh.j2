@@ -3,11 +3,15 @@
 openstack overcloud container image prepare \
   --namespace="{{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/rhosp{{ versions.rhosp }}" \
   --prefix=openstack- \
+{% if docker_latest is defined and docker_latest.stdout is defined%}
   --tag="{{ docker_latest.stdout }}" \
+{% elif rhosp_director.docker_disconnected_installation is defined and rhosp_director.docker_disconnected_installation.docker_latest_tag is defined %}
+  --tag="{{ rhosp_director.docker_disconnected_installation.docker_latest_tag }}" \
+{% endif -%} 
 {% for services in rhosp_director.optional_docker_services %}
   -e {{ services }} \
 {% endfor %}
-{% if rhosp_director.ceph_enabled == true %}
+{% if rhosp_director.ceph_enabled | bool %}
 {% if rhosp_director.ceph_namespace != None %}
   --set  ceph_namespace={{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/{{ rhosp_director.ceph_namespace.split("/")[1] }} \
 {% endif %}

@@ -10,6 +10,8 @@ ocp_shared_registry_port: 5000
 
 local_repo_url: "http://192.168.0.3/repos/"
 
+register_rhn: true
+
 versions:
   rhosp: 12
   satellite: 6.3
@@ -184,14 +186,20 @@ rhosp_director:
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
 
+  docker_disconnected_installation:
+    docker_source: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.tgz
+    docker_tag_file: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.list
+    docker_latest_tag: 12.0-20180522.1
+
   optional_docker_services:
     - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
-    #- /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
 
   #Docker ceph variables
   ceph_namespace: registry.access.redhat.com/rhceph
   ceph_image: rhceph-2-rhel7
   ceph_tag: latest
+  ceph_containerized: false
   ceph_enabled: false
 
   #SSL for undercloud services
