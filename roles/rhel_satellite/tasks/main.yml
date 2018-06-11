@@ -38,21 +38,25 @@
 - name: creating filesystem on cache_lv
   filesystem:
      fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_cache_lv }}
+     force: "{{ destructive_filesystem }}"
 #  when:  config_lvm == "true"
 
 - name: creating filesystem on pulp_lv
   filesystem:
      fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_pulp_lv }}
+     force: "{{ destructive_filesystem }}"
 #  when:  config_lvm == "true"
 
 - name: creating filesystem on mongodb_lv
   filesystem:
      fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_mongodb_lv }}
+     force: "{{ destructive_filesystem }}"
 #  when:  config_lvm == "true"
 
 - name: creating filesystem on pgsql_lv
   filesystem:
      fstype={{ filesystem }} dev=/dev/{{ create_vgname }}/{{ create_pgsql_lv }}
+     force: "{{ destructive_filesystem }}"
 #  when:  config_lvm == "true"
 
 - name: mount pulp_cache
