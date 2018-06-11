@@ -1,5 +1,6 @@
 dns_server_public: 8.8.8.8
 use_public_dns: false #Default to false (set true individually on kvm and idm)
+destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
 
 ntp_server: time.google.com
 
