@@ -13,6 +13,7 @@ vault_undercloud_admin_pwd: redhat
 #RHOSP Overcloud
 vault_osp_user: operator
 vault_osp_pwd: redhat
+vault_operator_pub_key: pubkey_goes_here
 #CloudForms
 vault_cf_db_pwd: redhat
 vault_cf_ssh_pwd: smartvm
