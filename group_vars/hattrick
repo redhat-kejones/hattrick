@@ -1,4 +1,4 @@
-domain: shadowbox.lab
+domain: int.hattrick.lab
 dns_server_local: 192.168.0.4
 
 nfs_server: 192.168.0.3
