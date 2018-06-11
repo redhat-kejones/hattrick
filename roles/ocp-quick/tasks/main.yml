@@ -91,7 +91,7 @@
     filesystem:
       fstype: xfs
       dev: "{{ cns_dev }}"
-      force: yes
+      force: "{{ destructive_filesystem }}"
     when: wipe_cns_dev
 
   - name: wipefs run on cns devices
@@ -248,7 +248,7 @@
 #    service:
 #      name: dbus
 #      state: restarted
- 
+
   - name: Set domain in resolve search list
     lineinfile:
       path: /etc/resolv.conf
@@ -259,7 +259,7 @@
       mode: 0644
 
   - name: add key to authorized keys
-    authorized_key: 
+    authorized_key:
       user: "{{ ssh_user }}"
       state: present
       key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
@@ -274,7 +274,7 @@
     when: "'master' in group_names"
     ignore_errors: True
 
-  - name: Configure htpasswd for authentication 
+  - name: Configure htpasswd for authentication
     htpasswd:
       path: '/etc/origin/master/htpasswd'
       name: "{{ ocpuser }}"
