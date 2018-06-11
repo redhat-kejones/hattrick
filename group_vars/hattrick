@@ -171,61 +171,37 @@ rhosp_director:
   overcloud_nodes:
     - name: node1
       profile: control
-      pm_addr: "192.168.1.21"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
+      pm_addr: "192.168.2.201"
+      pm_user: "admin"
+      pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
     - name: node2
       profile: compute
-      pm_addr: "192.168.1.22"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
+      pm_addr: "192.168.2.202"
+      pm_user: "admin"
+      pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
     - name: node3
       profile: compute
-      pm_addr: "192.168.1.23"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
+      pm_addr: "192.168.2.203"
+      pm_user: "admin"
+      pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
     - name: node4
       profile: compute
-      pm_addr: "192.168.1.24"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
+      pm_addr: "192.168.2.204"
+      pm_user: "admin"
+      pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node5
-      profile: compute
-      pm_addr: "192.168.1.25"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
-      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
-      #      should be a list of IPs to check and register
-      pm_driver: "pxe_ipmitool"
-    - name: node6
-      profile: compute
-      pm_addr: "192.168.1.26"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
-      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
-      #      should be a list of IPs to check and register
-      pm_driver: "pxe_ipmitool"
-    - name: node7
-      profile: compute
-      pm_addr: "192.168.1.27"
-      pm_user: "ADMIN"
-      pm_pwd: "ADMIN"
-      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
-      #      should be a list of IPs to check and register
-      pm_driver: "pxe_ipmitool"
-
+    
 rhosp_overcloud:
   timezone: "US/Eastern"
   timeout: 60
