@@ -103,6 +103,7 @@
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    force: "{{ destructive_filesystem }}"
   when: rhel_kvm.disks.libvirt_images is defined
 
 - name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
@@ -116,6 +117,7 @@
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
+    force: "{{ destructive_filesystem }}"
   when: rhel_kvm.disks.libvirt_images is defined
 
 - name: "read {{ rhel_kvm.disks.content }} device information (always use unit when probing)"
@@ -146,6 +148,7 @@
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.content }}1"
+    force: "{{ destructive_filesystem }}"
   when: rhel_kvm.disks.content is defined
 
 - name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
