@@ -57,8 +57,8 @@ rhel_kvm:
   hostname_full: "nuc.{{ domain }}"
   disks:
     root: sda
-#        libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
-#        content: sdc        #NOTE: only use if there is a third drive on KVM host
+#   libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
+#   content: sdc        #NOTE: only use if there is a third drive on KVM host
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
