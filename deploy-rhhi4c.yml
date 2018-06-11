@@ -38,6 +38,9 @@
   tags: infrastructure
   import_playbook:  07-rhosp-overcloud.yml
 
+  ## Need to get 10 floating ips for below
+  ## see https://github.com/redhat-kejones/hattrick/issues/17
+
 - name: install and configure CloudForms
   tags: management
   import_playbook:  08-rhcloudforms.yml
@@ -45,6 +48,10 @@
 #- name: install and configure Ansible Tower
 #  tags: management
 #  import_playbook:  11-ansible-tower.yml
+
+#- name: install and configure Satellite
+#  tags: management
+#  import_playbook:  11-rhel7-satellite.yml
 
 #Deploy OpenShift Container Platform on RHOSP
 #- import_playbook:  rhocp.yml

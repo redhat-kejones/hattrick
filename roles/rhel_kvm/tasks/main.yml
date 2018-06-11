@@ -51,14 +51,16 @@
   with_items:
     - "{{ rhel_kvm.packages }}"
 
-- copy:
+- name: copying kvm.conf file
+  copy:
     src: files/kvm.conf
     dest: /etc/modprobe.d/kvm.conf
     owner: root
     group: root
     mode: 0644
 
-- service:
+- name: Stop libvirtd since it has a mount on a partition on the second disk
+  service:
     name: libvirtd
     enabled: yes
     state: stopped
@@ -103,22 +105,28 @@
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
-    force: "{{ destructive_filesystem }}"
-  when: rhel_kvm.disks.libvirt_images is defined
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
 
 - name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
   parted:
     device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     number: 1
     state: present
-  when: rhel_kvm.disks.libvirt_images is defined
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
 
 - name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
-    force: "{{ destructive_filesystem }}"
-  when: rhel_kvm.disks.libvirt_images is defined
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
 
 - name: "read {{ rhel_kvm.disks.content }} device information (always use unit when probing)"
   parted:
@@ -148,8 +156,10 @@
   filesystem:
     fstype: xfs
     dev: "/dev/{{ rhel_kvm.disks.content }}1"
-    force: "{{ destructive_filesystem }}"
-  when: rhel_kvm.disks.content is defined
+    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
+  when:
+    - rhel_kvm.disks.content is defined
+    - rhel_kvm.disks.destructive_filesystem == "yes"
 
 - name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
   mount:
@@ -169,7 +179,8 @@
     state: mounted
   when: rhel_kvm.disks.content is defined
 
-- service:
+- name: starting libvirtd back up
+  service:
     name: libvirtd
     enabled: yes
     state: started
