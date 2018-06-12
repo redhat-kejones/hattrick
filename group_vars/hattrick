@@ -208,7 +208,7 @@ rhosp_overcloud:
   cloud_name: openstack
   operator_pub_key: "{{ vault_operator_pub_key }}"
   controller_scale: 1
-  compute_scale: 6
+  compute_scale: 3
   ceph_storage_scale: 0
   ceph_disk_layout: ""
 
