@@ -117,7 +117,7 @@ resources:
               members:
                 -
                   type: interface
-                  name: enp7s0
+                  name: nic1
                   primary: true
             -
               type: ovs_bridge
@@ -132,11 +132,11 @@ resources:
                   members:
                     -
                       type: interface
-                      name: enp3s0f0
+                      name: nic2
                       primary: true
                     -
                       type: interface
-                      name: enp3s0f1
+                      name: nic3
                 -
                   type: vlan
                   device: bond0
