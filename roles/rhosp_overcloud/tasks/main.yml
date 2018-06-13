@@ -78,7 +78,7 @@
       state: directory
       owner: stack
       group: stack
-      mode 0775
+      mode: 0775
 
  - name: copy guest_images to Undercloud
    synchronize:
