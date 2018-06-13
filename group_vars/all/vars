@@ -130,37 +130,37 @@ vmenator:
     ram: 1024
     vcpus: 1
 
- rhosp_guest_images:
-    guest:
-      - name: cirros
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/cirros-0.4.0-x86_64-disk.qcow2
-      - name: rhel75
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/rhel-server-7.5-x86_64-kvm.qcow2
-      - name: rhel69
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/rhel-server-6.9-update-9-x86_64-kvm.qcow2
-      - name: rhelatomic75
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/rhel-atomic-cloud-7.5.1.1-1.x86_64.qcow2
-      - name: centos7
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/CentOS-7-x86_64-GenericCloud.qcow2
-      - name: spark160
-        min_disk: 10
-        min_ram: 1024
-        qcow_loc: guest_images/sahara-newton-spark-1.6.0-ubuntu.qcow2
-      - name: cf46
-        min_disk: 40
-        min_ram: 12288
-        qcow_loc: guest_images/cfme-rhos-5.9.2.4-1.x86_64.qcow2
-      - name: win2012r2
-        min_disk: 40
-        min_ram: 4096
-        qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20170321.qcow2
+rhosp_guest_images:
+  guest:
+    - name: cirros
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/cirros-0.4.0-x86_64-disk.qcow2
+    - name: rhel75
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/rhel-server-7.5-x86_64-kvm.qcow2
+    - name: rhel69
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/rhel-server-6.9-update-9-x86_64-kvm.qcow2
+    - name: rhelatomic75
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/rhel-atomic-cloud-7.5.1.1-1.x86_64.qcow2
+    - name: centos7
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/CentOS-7-x86_64-GenericCloud.qcow2
+    - name: spark160
+      min_disk: 10
+      min_ram: 1024
+      qcow_loc: guest_images/sahara-newton-spark-1.6.0-ubuntu.qcow2
+    - name: cf46
+      min_disk: 40
+      min_ram: 12288
+      qcow_loc: guest_images/cfme-rhos-5.9.2.4-1.x86_64.qcow2
+    - name: win2012r2
+      min_disk: 40
+      min_ram: 4096
+      qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20170321.qcow2
