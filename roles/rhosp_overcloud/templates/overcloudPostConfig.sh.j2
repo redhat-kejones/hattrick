@@ -95,10 +95,10 @@ mkdir -p /home/stack/guest_images
 sudo mount {{ nfs_server }}:{{ nfs_images_path }} /home/stack/guest_images
 
 # uploading of images into osp
-{% for name in rhosp_guest_images %}
-glance image-create --name {{ rhosp_guest_images.guest.name }} --disk-format qcow2 -- min-disk {{ rhosp_guest_images.name.min_disk }} \
---min-ram {{ rhosp_guest_images.name.min_disk }} --container-format bare --visibility public --progress \
---file {{ rhosp_guest_images.name.qcow_loc }}
+{% for os in rhosp_guest_images %}
+glance image-create --name {{ os.name }} --disk-format qcow2 -- min-disk {{ os.min_disk }} \
+--min-ram {{ os.min_disk }} --container-format bare --visibility public --progress \
+--file {{ os.qcow_loc }}
 {% endfor %}
 
 #Cirros
