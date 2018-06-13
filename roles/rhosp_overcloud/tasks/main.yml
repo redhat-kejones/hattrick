@@ -82,7 +82,7 @@
 
 - name: copy guest_images to Undercloud
   synchronize:
-    src: guest_images/*.qcow2
+    src: guest_images/
     dest: /home/stack/guest_images
 
 
