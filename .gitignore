@@ -6,3 +6,4 @@ vars.yml
 *id_rsa*
 files/*-ifcfg-eth*
 01-rhel7-kvm-networking.yml
+guest_images/*.qcow2

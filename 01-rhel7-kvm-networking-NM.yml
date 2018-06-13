@@ -1,0 +1,111 @@
+---
+#Configures all networking for the kvm host
+- hosts: 127.0.0.1
+  remote_user: root
+  vars:
+    - nmcli_packages:
+        - python-gobject
+        - NetworkManager-glib
+    - external_bridge_iface_name: br1
+    - provisioning_bridge_iface_name: br2
+    - ifname1: enp0s20u1
+    - ifname2: enp0s20u1
+
+      #bond vars
+    - nmcli_bond:
+         - conn_name: bond0
+           mode: 802.3ad
+           miimon: 100
+           updelay: 1000
+         - conn_name: bond0.2
+           mode: balance-rr
+
+      # bond-slave vars
+    - nmcli_bond_slave:
+         - conn_name: "{{ ifname1 }}"
+           ifname: "{{ ifname1 }}"
+           master: bond0
+           slave: yes
+         - conn_name: "{{ ifname2 }}"
+           ifname: "{{ ifname2 }}"
+           master: bond0.2
+           slave: yes
+
+    #ethernet vars
+    - nmcli_ethernet:
+         - conn_name: "{{ ifname1 }}"
+           ifname: "{{ ifname1 }}"
+           master: bond0
+           slave: yes
+         - conn_name: "{{ ifname2 }}"
+           ifname: "{{ ifname2 }}"
+           master: bond0
+           slave: yes
+
+      #bridge vars
+    - nmcli_bridge:
+         - conn_name: external_bridge_iface_name
+           ifname: external_bridge_iface_name
+           ip4: 192.168.0.1
+           dns4: 192.168.0.4
+         - conn_name: provisioning_bridge_iface_name
+           ifname: provisioning_bridge_iface_name
+           ip4: 192.168.2.5
+
+  tasks:
+    - name: Installing required packages for nmcli module
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - "{{ nmcli_packages }}"
+      when: ansible_os_family == "RedHat"
+
+#    - name: creating ethernet
+#      nmcli:
+#        type: ethernet
+#        conn_name: '{{ item.conn_name }}'
+#        master: "{{ item.conn_name }}"
+#        #slave: yes
+#        state: present
+#      with_items:
+#        - '{{ nmcli_ethernet }}'
+#      tags:
+#        - setup_ethernet
+
+    - name: setting up bond "{{ item.conn_name }}"
+      nmcli:
+        type: bond
+        conn_name: "{{ item.conn_name }}"
+        autoconnect: yes
+        mode: "{{ item.mode }}"
+        state: present
+      with_items:
+        - '{{ nmcli_bond }}'
+      tags:
+        - setup_bonds
+
+    - name: setting up bond slave "{{ item.conn_name }}"
+      nmcli:
+        type: bond-slave
+        conn_name: "{{ item.conn_name }}"
+        ifname: "{{ item.ifname }}"
+        master: "{{ item.master }}"
+        autoconnect: yes
+        state: present
+      with_items:
+        - '{{ nmcli_bond_slave }}'
+      tags:
+        - setup_bonds
+
+    - name: Adding bridges
+      nmcli:
+        type: bridge
+        conn_name: "{{ item.conn_name }}"
+        ifname: "{{ item.ifname }}"
+        ip4: "{{ item.ip4 }}"
+        dns4: "{{ item.dns4 }}"
+        autoconnect: yes
+        state: present
+      tags:
+        - bridge_setup

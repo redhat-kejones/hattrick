@@ -91,42 +91,49 @@ neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 #Set the external gateway on the new router
 neutron router-gateway-set router-$externalNetwork $externalNetwork
 
-mkdir -p /home/stack/guest-images
-sudo mount {{ nfs_server }}:{{ nfs_images_path }} /home/stack/guest-images
+mkdir -p /home/stack/guest_images
+sudo mount {{ nfs_server }}:{{ nfs_images_path }} /home/stack/guest_images
+
+# uploading of images into osp
+{% for names in rhosp_guest_images.guest %}
+glance image-create --name {{ rhosp_guest_images.guest.name }} --disk-format qcow2 -- min-disk {{ rhosp_guest_images.name.min_disk }} \
+--min-ram {{ rhosp_guest_images.name.min_disk }} --container-format bare --visibility public --progress \
+--file {{ rhosp_guest_images.name.qcow_loc }}
+{% endfor %}
 
 #Cirros
-glance image-create --name cirros --disk-format qcow2 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros.qcow2
+#glance image-create --name cirros --disk-format qcow2 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros.qcow2
 
 #RHEL Cloud Images
-glance image-create --name rhel74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.qcow2
+#glance image-create --name rhel74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.qcow2
 
-glance image-create --name rhel75 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.5-x86_64-kvm.qcow2
+#glance image-create --name rhel75 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.5-x86_64-kvm.qcow2
 
-glance image-create --name rhel69 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.qcow2
+#glance image-create --name rhel69 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.qcow2
 
-glance image-create --name rhel610 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-6.10-beta-1-x86_64-kvm.qcow2
+#glance image-create --name rhel610 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-6.10-beta-1-x86_64-kvm.qcow2
 
 #RHEL Atomic
-glance image-create --name rhelatomic74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.qcow2
+#glance image-create --name rhelatomic74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.qcow2
 
 #CentOS 7
-glance image-create --name centos7 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.qcow2
+#glance image-create --name centos7 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.qcow2
 
 #Sahara Apache Spark
-glance image-create --name spark160 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.qcow2
+#glance image-create --name spark160 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.qcow2
 
 #CloudForms
-glance image-create --name cf46 --disk-format qcow2 --min-disk 40 --min-ram 12288 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.9.1.2-1.x86_64.qcow2
+#glance image-create --name cf46 --disk-format qcow2 --min-disk 40 --min-ram 12288 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.9.1.2-1.x86_64.qcow2
 
 #Windows Server 2012r2 Cloud Image
-glance image-create --name win2012r2 --disk-format qcow2 --min-disk 40 --min-ram 4096 \
-  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.qcow2
+#glance image-create --name win2012r2 --disk-format qcow2 --min-disk 40 --min-ram 4096 \
+#  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.qcow2

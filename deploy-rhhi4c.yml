@@ -47,7 +47,7 @@
 
 #- name: install and configure Ansible Tower
 #  tags: management
-#  import_playbook:  11-ansible-tower.yml
+#  import_playbook:  10-ansible-tower.yml
 
 #- name: install and configure Satellite
 #  tags: management
