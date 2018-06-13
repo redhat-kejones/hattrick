@@ -81,7 +81,7 @@
     mode: 0775
 
 - name: copy guest_images to Undercloud
-  synchronize:
+  copy:
     src: guest_images/
     dest: /home/stack/guest_images
 
