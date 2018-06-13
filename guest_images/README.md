@@ -24,4 +24,4 @@ http://sahara-files.mirantis.com/images/upstream/newton/
 `access.redhat.com`
 
 ## Post download
-Once you have downloaded the guest images to `hattrick/guest_images` fill out the `group_vars/all/vars` file and update the names with the latest versions.
+Once you have downloaded the guest images to `hattrick/guest_images` fill out the `group_vars/all/vars` file and update the fields with the needed info.
