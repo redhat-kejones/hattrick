@@ -96,7 +96,7 @@ neutron router-gateway-set router-$externalNetwork $externalNetwork
 
 # uploading of images into osp
 {% for images in rhosp_guest_images %}
-glance image-create --name {{ images.name }} --disk-format qcow2 -- min-disk {{ images.min_disk }} --min-ram {{ images.min_disk }} --container-format bare --visibility public --progress --file ./{{ images.qcow_loc }}
+glance image-create --name {{ images.name }} --disk-format qcow2 -- min-disk {{ images.min_disk }} --min-ram {{ images.min_ram }} --container-format bare --visibility public --progress --file ./{{ images.qcow_loc }}
 {% endfor %}
 
 #Cirros
