@@ -1,13 +1,13 @@
-domain: pod1.mpc
-dns_server_local: 172.16.21.15
-repo_server_ip: 172.16.2.10
+domain: int.hattrick.lab
+dns_server_local: 192.168.0.4
+repo_server_ip: 192.168.0.8
 local_repo_url: "http://172.16.2.10:8888/repos/"
 tower:
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
-osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
-osp_ip: 172.16.21.20 # OpenStack specific
+osp_url: http://192.168.0.40:5000/v2.0 # OpenStack specific
+osp_ip: 192.168.0.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
@@ -15,7 +15,7 @@ az: nova # works with OpenStack, EC2 & Azure
 db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
 db_vol_name: tower-vol
 vm_name: tower
-key_name: fake-nuc #works with OpenStack & EC2
+key_name: nuc #works with OpenStack & EC2
 network_name: private # Works with all providers
 prov_net: provisioning # Works with all providers
 image_uid: rhel75 # works with OpenStack
@@ -35,7 +35,7 @@ rhn_pool: "{{ vault_rhn_pool_name }}"
 ipa_server: "idm.{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
-undercloud_ip: 172.16.21.16 # OpenStack specific
+undercloud_ip: 192.168.0.5 # OpenStack specific
 undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 ocppass: "{{ vault_ocp_pwd }}"
