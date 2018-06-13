@@ -6,8 +6,8 @@ tower:
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
-osp_url: http://192.168.0.40:5000/v2.0 # OpenStack specific
-osp_ip: 192.168.0.40 # OpenStack specific
+osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
+osp_ip: 192.168.1.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
