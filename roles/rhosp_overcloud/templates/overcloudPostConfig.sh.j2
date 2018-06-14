@@ -66,8 +66,10 @@ openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
 #TODO: Need to figure out a way to make this dynamic on whether flat or vlan
 #Create shared external network via flat provider type
+
 #External is VLAN
 #neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
+
 #External is Flat
 neutron net-create $externalNetwork --provider:network_type flat --provider:physical_network datacentre --shared --router:external
 
@@ -95,9 +97,6 @@ neutron router-create router-$externalNetwork
 neutron router-interface-add router-$externalNetwork ${tenantNetwork}-sub
 #Set the external gateway on the new router
 neutron router-gateway-set router-$externalNetwork $externalNetwork
-
-#mkdir -p /home/stack/guest_images
-#sudo mount {{ nfs_server }}:{{ nfs_images_path }} /home/stack/guest_images
 
 # uploading of images into osp
 {% for images in rhosp_guest_images %}
