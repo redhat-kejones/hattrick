@@ -13,7 +13,7 @@ externalDns={{ dns_server_local }}
 externalFipStart={{ networks.external.fipStart }}
 externalFipEnd={{ networks.external.fipEnd }}
 tenantNetwork=private
-tenantCidr='192.168.0.0/24'
+tenantCidr='{{ rhosp_overcloud.operator_private_cidr }}'
 keypairName=operator
 #TODO: need to pull this from the kvm node
 keypairPubkey="{{ rhosp_overcloud.operator_pub_key }}"
@@ -63,8 +63,13 @@ openstack flavor create --id 7 --ram 16834 --disk 40 --ephemeral 40 --vcpus 8 --
 openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 300 --vcpus 8 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 
+
+#TODO: Need to figure out a way to make this dynamic on whether flat or vlan
 #Create shared external network via flat provider type
-neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
+#External is VLAN
+#neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
+#External is Flat
+neutron net-create $externalNetwork --provider:network_type flat --provider:physical_network datacentre --shared --router:external
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns
