@@ -280,11 +280,12 @@ rhosp_overcloud:
   timezone: "US/Eastern"
   timeout: 90
   cloud_name: openstack
-  operator_pub_key: "{{ vault_operator_pub_key }}"
   controller_scale: 1
   compute_scale: 3
   ceph_storage_scale: 0
   ceph_disk_layout: ""
+  operator_pub_key: "{{ vault_operator_pub_key }}"
+  operator_private_cidr: '172.16.0.0/24'
 
 rhosp_director_ip: "{{ rhosp_director.external_ip }}"
 osp_ip: "{{ networks.external.dhcpStart }}"
