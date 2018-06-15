@@ -1,8 +1,8 @@
-domain: pod2.mpc
-dns_server_local: 172.16.21.15
-repo_server_ip: 172.16.2.10
-local_repo_url: "http://172.16.2.10:8888/repos/"
-ocp_shared_registry_server: 172.16.2.16
+domain: int.hattrick.lab
+dns_server_local: 192.168.0.4
+repo_server_ip: 192.168.0.8
+local_repo_url: "http://192.168.0.8:8888/repos/"
+ocp_shared_registry_server: 192.168.0.8
 ocp_shared_registry_port: 5000
 register_rhn: false
 ocp:
@@ -14,8 +14,8 @@ ocp:
     - rhel-7-server-ansible-2.4-rpms
     - rh-gluster-3-client-for-rhel-7-server-rpms
     - rh-gluster-3-for-rhel-7-server-rpms
-osp_url: http://172.16.21.20:5000/v2.0 # OpenStack specific
-osp_ip: 172.16.21.20 # OpenStack specific
+osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
+osp_ip: 192.168.1.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
