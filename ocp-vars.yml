@@ -4,7 +4,7 @@ repo_server_ip: 192.168.0.8
 local_repo_url: "http://192.168.0.8:8888/repos/"
 ocp_shared_registry_server: 192.168.0.8
 ocp_shared_registry_port: 5000
-register_rhn: false
+register_rhn: true
 ocp:
   repos:
     - rhel-7-server-rpms
