@@ -26,7 +26,7 @@ vm_name: ocp-{{ type }}
 image_uid: rhel75
 master_flavor_name: ocp1.master
 node_flavor_name: ocp1.node
-key_name: nuc #works with OpenStack & EC2
+key_name: operator #works with OpenStack & EC2
 network_name: private # Works with all providers
 ssh_user: cloud-user
 cf_db_dev: '/dev/vdc'
