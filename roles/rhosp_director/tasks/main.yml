@@ -439,7 +439,7 @@
         chdir: /home/stack
       register: docker_latest
       tags: docker_registry_template
-      when: rhosp_director.docker_disconnected_installation is not defined
+      when: disconnected.docker is not defined
     
     - name: copy generate-local-registry-images-yaml.sh script
       template:
@@ -449,7 +449,7 @@
         group: stack
         mode: 0775
       tags: docker_registry_template
-      when: rhosp_director.docker_disconnected_installation is not defined
+      when: disconnected.docker is not defined
     
     - name: copy generate-overcloud-registry-env-yaml.sh script
       template:
@@ -465,7 +465,7 @@
       args:
         chdir: /home/stack
       tags: docker_registry_template
-      when: rhosp_director.docker_disconnected_installation is not defined
+      when: disconnected.docker is not defined
     
     - name: Pull the Docker images in to local registry
       shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
@@ -474,26 +474,26 @@
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: rhosp_director.docker_disconnected_installation is not defined
+      when: disconnected.docker is not defined
 
     - name: Pull the Docker images from a URL source
-      shell: curl "{{ rhosp_director.docker_disconnected_installation.docker_source }}" | gzip -d | sudo docker load
+      shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: rhosp_director.docker_disconnected_installation is defined
+      when: disconnected.docker is defined
 
     - name: Set tags for Docker images
-      shell: curl "{{ rhosp_director.docker_disconnected_installation.docker_tag_file }}" | while read a b c; do sudo docker tag "$c" "$a:$b"; done
+      shell: curl "{{ disconnected.docker.tag_file }}" | while read a b c; do sudo docker tag "$c" "$a:$b"; done
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: rhosp_director.docker_disconnected_installation is defined
+      when: disconnected.docker is defined
     
     - name: Push local images to local repository
       shell: for t in $(sudo docker images | sed '1d' | awk '/{{ rhosp_director.provisioning_ip | ipaddr('address') }}/ {print $1":"$2}'); do sudo docker push $t; done
       tags: docker_registry_push
-      when: rhosp_director.docker_disconnected_installation is defined
+      when: disconnected.docker is defined
 
     - name: Create a template for using the images in our local registry on the undercloud
       shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh

@@ -5,8 +5,8 @@ openstack overcloud container image prepare \
   --prefix=openstack- \
 {% if docker_latest is defined and docker_latest.stdout is defined%}
   --tag="{{ docker_latest.stdout }}" \
-{% elif rhosp_director.docker_disconnected_installation is defined and rhosp_director.docker_disconnected_installation.docker_latest_tag is defined %}
-  --tag="{{ rhosp_director.docker_disconnected_installation.docker_latest_tag }}" \
+{% elif disconnected.docker is defined and disconnected.docker.latest_tag is defined %}
+  --tag="{{ disconnected.docker.latest_tag }}" \
 {% endif -%} 
 {% for services in rhosp_director.optional_docker_services %}
   -e {{ services }} \

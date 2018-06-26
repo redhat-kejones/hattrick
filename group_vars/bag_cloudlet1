@@ -1,6 +1,19 @@
 domain: cloudlet1.bag
 dns_server_local: 192.168.0.4
 
+disconnected:
+  pip:
+    source: http://192.168.0.3/pip/pip.tar.gz
+  shade:
+    source: http://192.168.0.3/pip/shade.tar.gz
+  docker:
+    source: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.tgz
+    tag_file: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.list
+    latest_tag: 12.0-20180522.1
+  ocp:
+    source: http://192.168.0.3/ocp/ocp-3.9.27.tgz
+    tag_file: http://192.168.0.3/ocp/ocp-3.9.27.list
+
 nfs_server: 192.168.0.7
 nfs_repos_path: /volume1/web/install/repos/
 nfs_images_path: /volume1/web/install/images/
@@ -185,11 +198,6 @@ rhosp_director:
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
-
-  docker_disconnected_installation:
-    docker_source: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.tgz
-    docker_tag_file: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.list
-    docker_latest_tag: 12.0-20180522.1
 
   optional_docker_services:
     - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml

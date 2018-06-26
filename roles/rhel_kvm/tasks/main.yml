@@ -212,33 +212,57 @@
 - name: remove cloud-init and set root password on base rhel 7 guest image
   command: "virt-customize -a /var/lib/libvirt/images/rhel-guest-image-7.qcow2 --root-password password:redhat --run-command 'yum remove cloud-init* -y'"
 
-- name: install the epel rpm from a remote repo
-  yum:
-    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    state: present
-
-- name: install ansible and other packages
-  yum:
-    name: '{{ item }}'
-    state: latest
-  with_items:
-    - python-pip
-
-- name: make sure pip is latest
-  pip:
-    name: pip
-    state: latest
-
-- name: make sure setuptools is latest
-  pip:
-    name: setuptools
-    state: latest
-
+- name: Install Shade
+  tags: shade
+  when: (disconnected is not defined) or (disconnected is defined and disconnected.pip is not defined)
+  block:
+    - name: install the epel rpm from a remote repo
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+    
+    - name: install ansible and other packages
+      yum:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - python-pip
+    
+    - name: make sure pip is latest
+      pip:
+        name: pip
+        state: latest
+    
+    - name: make sure setuptools is latest
+      pip:
+        name: setuptools
+        state: latest
+    
 - name: install shade
+  tags: shade
   pip:
     name: shade
     version: 1.27.1
     extra_args: "-Iv"
+  when: (disconnected is not defined) or (disconnected is defined and disconnected.shade is not defined)
+
+- name: Install Shade
+  tags: shade
+  when: disconnected is defined
+  block:
+    - name: Disconnected pip installation
+      shell: |
+        curl "{{ disconnected.pip.source }}" -o /tmp/pip.tar.gz
+        tar zxvf /tmp/pip.tar.gz -C /tmp
+        python /tmp/pip/get-pip.py --no-index --find-links=/tmp/pip
+      when: disconnected.pip is defined
+
+    - name: Disconnected shade installation
+      shell: |
+        curl "{{ disconnected.shade.source }}" -o /tmp/shade.tar.gz
+        tar zxvf /tmp/shade.tar.gz -C /tmp
+        pip install shade --no-index --find-links=/tmp/shade
+      when: disconnected.shade is defined
 
 - name: copy over ansible.cfg
   copy:
