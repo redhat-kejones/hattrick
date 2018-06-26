@@ -270,7 +270,7 @@
     ignore_errors: True
 
   - name: Run deploy_cluster playbook
-    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml {{ deploy_cluster_extra_vars }}
     when: "'master' in group_names"
     ignore_errors: True
 

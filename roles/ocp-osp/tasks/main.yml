@@ -30,7 +30,7 @@
         project_name: "{{ osp_project }}"
       state: present
       availability_zone: "{{ az }}"
-      size: "100"
+      size: "{{ cns_size | default('100') }}"
       display_name: "{{ db_vol_name }}-cns-{{ item }}"
     with_sequence:
       count={{ num }}
