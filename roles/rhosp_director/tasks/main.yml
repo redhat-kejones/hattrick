@@ -253,7 +253,7 @@
     - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ versions.rhosp }}.0.tar'
   tags: install
 
-- name: Set root password and remove 192.168.122.1 from /etc/resolv.conf on overcloud-full image
+- name: Remove 192.168.122.1 from /etc/resolv.conf on overcloud-full image
   become: yes
   become_user: stack
   command: "virt-customize -a /home/stack/images/overcloud-full.qcow2 --no-network --run-command 'sed -i \"/nameserver 192.168.122.1/d\" /etc/resolv.conf'"
