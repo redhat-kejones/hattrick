@@ -4,6 +4,7 @@ repo_server_ip: 192.168.0.8
 local_repo_url: "http://192.168.0.8:8888/repos/"
 ocp_shared_registry_server: 192.168.0.8
 ocp_shared_registry_port: 5000
+#ocp_disconnected: False
 register_rhn: true
 ocp:
   repos:
@@ -32,6 +33,7 @@ ssh_user: cloud-user
 cf_db_dev: '/dev/vdc'
 wipe_cns_dev: false #override with --extra-vars="wipe_cns_dev=true"
 cns_dev: '/dev/vdb'
+#cns_size: 100
 openshift_registry_volume_size: 50
 region_num: 20
 security_group: default # works with OpenStack & EC2
@@ -44,4 +46,5 @@ ocppass: "{{ vault_ocp_pwd }}"
 ocp_wildcard_record: "*.ocp"
 ocp_wildcard_domain: "ocp.{{ domain }}"
 private_reverse_zone: "0.168.192.in-addr.arpa."
+#deploy_cluster_extra_vars: -e "openshift_disable_check=disk_availability,memory_availability"
 #master1: "osp-master-0c6a.{{ domain }}"

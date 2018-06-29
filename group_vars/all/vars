@@ -1,6 +1,18 @@
 dns_server_public: 8.8.8.8
 use_public_dns: false #Default to false (set true individually on kvm and idm)
 
+#disconnected:
+#  pip:
+#    source: http://192.168.0.3/pip/pip.tar.gz
+#  shade:
+#    source: http://192.168.0.3/pip/shade.tar.gz
+#  docker:
+#    source: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.tgz
+#    tag_file: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.list
+#    latest_tag: 12.0-20180522.1
+#  ocp:
+#    source: http://192.168.0.3/ocp/ocp-3.9.27.tgz
+#    tag_file: http://192.168.0.3/ocp/ocp-3.9.27.list
 
 ntp_server: time.google.com
 

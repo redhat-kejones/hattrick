@@ -75,8 +75,15 @@
   become: false
   ignore_errors: true
 
-- name: Setup IPA Server
+- name: Set up IPA Server
   command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --forwarder '{{ rhel_idm.forward_ip }}'
+  when:
+  - rhel_idm is defined
+  - rhel_idm.forward_ip is defined
+
+- name: Set up IPA Server (without DNS forwarding)
+  command: ipa-server-install -Uq -r '{{ rhel_idm.realm }}' -n '{{ domain }}' --allow-zone-overlap -p '{{ rhel_idm.dm_pwd }}' -a '{{ rhel_idm.admin_pwd }}' --setup-dns --auto-reverse --reverse-zone '{{ rhel_idm.reverse_zone }}' --no-forwarders
+  when: (rhel_idm is not defined) or (rhel_idm is defined and rhel_idm.forward_ip is not defined)
 
 - name: waiting for IDM services to come up
   wait_for:
