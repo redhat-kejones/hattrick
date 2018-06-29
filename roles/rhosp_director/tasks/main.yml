@@ -413,10 +413,10 @@
   poll: 30
   tags: introspection
 
-- name: set root devices to /dev/sda for all nodes
+- name: set root devices for all nodes (default is /dev/sda)
   become: yes
   become_user: stack
-  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"/dev/sda\"}' {{ item.name }}"
+  shell: "source /home/stack/stackrc && openstack baremetal node set --property root_device='{\"name\": \"{{ item.root_device|default('/dev/sda')}}\"}' {{ item.name }}"
   args:
     chdir: /home/stack
   with_items: "{{ rhosp_director.overcloud_nodes }}"
