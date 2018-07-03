@@ -19,7 +19,6 @@ written to a bootable USB device or could be served from a PXE server.
 ```
 # mkdir -p /mnt/iso
 # mkdir -p /mnt/working
-# mkdir -p /mnt/cloudlet
 ```
 3. Mount the RHEL-DVD.ISO file
 ```
