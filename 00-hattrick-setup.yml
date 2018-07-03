@@ -30,5 +30,8 @@
 
   - name: Copy vault sample
     copy:
-      source: /root/hattrick/group_vars/all/vault.sample
+      src: /root/hattrick/group_vars/all/vault.sample
       dest: /root/hattrick/group_vars/all/vault
+
+  - debug:
+      msg: "Now you need to populate your Anslbie vault file: # ansible-vault edit /root/hattrick/group_vars/all/vault"
