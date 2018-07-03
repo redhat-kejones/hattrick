@@ -20,6 +20,8 @@ Contributors:
 - Kevin Jones
 - Jamie Duncan
 - Steven Carter
+- Kellen Gattis
+- Russell Builta
 
 Initial Architecture
 
