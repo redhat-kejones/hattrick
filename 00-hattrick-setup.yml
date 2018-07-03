@@ -35,4 +35,7 @@
       remote_src: yes
 
   - debug:
-      msg: "Now you need to populate your Anslbie vault file: # ansible-vault edit /root/hattrick/group_vars/all/vault"
+      msg:
+        - "Now you need to populate your Ansible vault file:"
+        - "# ansible-vault encrypt /root/hattrick/group_vars/all/vault"
+        - "# ansible-vault edit /root/hattrick/group_vars/all/vault"
