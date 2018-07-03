@@ -26,7 +26,7 @@ rhn_pool_name: "{{ vault_rhn_pool_name }}"
 versions:
   rhosp: 10
   satellite: 6.3
-  ocp: 3.6
+  ocp: 3.9
   cfme: 5.9
 
 rhel_repo:
