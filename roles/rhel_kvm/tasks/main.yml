@@ -31,6 +31,9 @@
   register: virt_check
   failed_when: false
 
+- name: clean yum cache
+  command: yum clean all
+
 - name: update packages
   yum:
     name: '*'
@@ -220,24 +223,24 @@
       yum:
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         state: present
-    
+
     - name: install ansible and other packages
       yum:
         name: '{{ item }}'
         state: latest
       with_items:
         - python-pip
-    
+
     - name: make sure pip is latest
       pip:
         name: pip
         state: latest
-    
+
     - name: make sure setuptools is latest
       pip:
         name: setuptools
         state: latest
-    
+
 - name: install shade
   tags: shade
   pip:
