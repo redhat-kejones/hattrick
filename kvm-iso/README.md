@@ -17,8 +17,7 @@ written to a bootable USB device or could be served from a PXE server.
 1. Download the [latest RHEL DVD ISO](https://access.redhat.com/downloads/content/69/ver=/rhel---7/latest/x86_64/product-software)
 2. Make some directories to utilize during the process
 ```
-# mkdir -p /mnt/iso
-# mkdir -p /mnt/working
+# mkdir -p /mnt/{iso,working}
 ```
 3. Mount the RHEL-DVD.ISO file
 ```
@@ -40,7 +39,8 @@ install certain packages that are listed in the custom kickstart file
 directory.
 > NOTE: Some of the automation in the Hat Trick repo requires Ansible > 2.5.
 > The idea is that you will have the Ansible 2.5 repos available for installation
-> during the kickstart process
+> during the kickstart process.
+> [How to Create a Local Repo in RHEL](https://access.redhat.com/solutions/9892)
 7. Create the ansible 2.5 repo in the
 /mnt/working/rhel-7-server-ansible-2.5-rpms/Packages directory
 ```
@@ -61,7 +61,7 @@ custom ISO file
 11. Use the isohybrid command to specify this .iso file is used for UEFI
 ```
 # cd ../
-# isohybrid --uefi kvm.iso
+# isohybrid --uefi htkvm.iso
 ```
 12. Using the ‘dd’ command to copy the .iso over to a usable USB device
 ```
@@ -74,12 +74,15 @@ custom ISO file
 # mount /dev/sd<device name/number> /mnt/partition2
 # cd /mnt/partition2
 ```
-15. You should see in there the /EFI/BOOT/grub.cfg file - edit this file
+15. You should see a EFI/BOOT/grub.cfg file in the 2nd partition - edit the file
 ```
-*Near the bottom, the search line should look like below*
+#vi /mnt/partition2/EFI/BOOT/grub.cfg
+
+*Look for the search line and make it look like below*
 search --no-floppy --set=root -l 'htkvm'
 
-*the 'linuxefi line for the first installation option should look like below*
+*Look for the 'linuxefi line for the first installation option
+and make it look like below*
 linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=htkvm inst.ks=hd:LABEL=htkvm:/kvm-ks.cfg quiet
 ```
 16. After this is verified/changed - you can unmount the usb device
