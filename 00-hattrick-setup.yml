@@ -32,6 +32,7 @@
     copy:
       src: /root/hattrick/group_vars/all/vault.sample
       dest: /root/hattrick/group_vars/all/vault
+      remote_src: yes
 
   - debug:
       msg: "Now you need to populate your Anslbie vault file: # ansible-vault edit /root/hattrick/group_vars/all/vault"
