@@ -24,7 +24,7 @@
 
   - name: Clone the code repository to /root
     git:
-      repo: "{{ git_repo }}"
+      repo: "https://github.com/redhat-kejones/hattrick.git"
       dest: /root/hattrick
       accept_hostkey: yes
 
