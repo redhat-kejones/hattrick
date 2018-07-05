@@ -32,11 +32,12 @@
     when: register_rhn
 
   - name: Install & enable EPEL repo
-    command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
-    ignore_errors: true
+    yum:
+      name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+      state: present
 
   - name: Make temp directory
-    file: 
+    file:
       path: /temp
       state: directory
       mode: 0755
@@ -46,7 +47,7 @@
       url: http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
       dest: /temp/ansible.tar.gz
       mode: 0755
-   
+
   - name: extract Ansible tar
     unarchive:
       src: /temp/ansible.tar.gz
