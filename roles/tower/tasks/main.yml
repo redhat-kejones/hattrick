@@ -36,6 +36,11 @@
       name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       state: present
 
+  - name: Install Ansible
+    yum:
+      name: ansible
+      state: present
+      
   - name: Make temp directory
     file:
       path: /temp
