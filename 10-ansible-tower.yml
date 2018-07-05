@@ -26,6 +26,11 @@
     - name: assign floating ip to Tower instance
       os_floating_ip:
         server: "{{ vm_name }}"
+        auth:
+          auth_url: "{{ osp_url }}"
+          username: "{{ osp_user }}"
+          password: "{{ osp_pass }}"
+          project_name: "{{ osp_project }}"
 
     - name: wait for instance become ready to use
       wait_for:
