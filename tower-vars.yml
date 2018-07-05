@@ -6,6 +6,7 @@ tower:
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
+    - rhel-7-server-ansible-2.6-rpms
 osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
 osp_ip: 192.168.1.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
@@ -28,7 +29,7 @@ cf_db_dev: '/dev/vdb'
 region_num: 20
 security_group: default # works with OpenStack & EC2
 dns: "{{ dns_server_local }}"
-register_rhn: false
+register_rhn: true
 rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
 rhn_pool: "{{ vault_rhn_pool_name }}"
