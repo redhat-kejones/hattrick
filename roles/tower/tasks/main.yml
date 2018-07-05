@@ -33,7 +33,7 @@
 
   - name: Install & enable EPEL repo
     yum:
-      name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+      name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
       state: present
 
   - name: Make temp directory
