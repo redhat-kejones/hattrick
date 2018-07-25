@@ -278,6 +278,14 @@
     line: "nameserver {{ dns_server_public }}"
     state: absent
 
+- name: add NTP to firewalld
+  firewalld:
+    service: ntpd
+    permanent: true
+    state: enabled
+    immediate: yes
+
+
 #TODO: removing for now. fix kernel check later
 #- name: restart server to get updated kernel
 #  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
