@@ -27,7 +27,7 @@
        auto_ip: yes
       register: osp_host
 
-      - name: assign floating ip to Tower instance
+    - name: assign floating ip to Tower instance
       os_floating_ip:
        server: windows-{{ my_unique_id.stdout }}
        auth:
@@ -36,19 +36,13 @@
          password: "{{ osp_pass }}"
          project_name: "{{ osp_project }}"
 
-      - name: wait for instance become ready to use
+    - name: wait for instance become ready to use
       wait_for:
       host: "{{ osp_host.openstack.public_v4 }}"
       port: "22"
       timeout: "320"
       state: "started"
 
-      - name: Pause playbook execution for 30 seconds
+    - name: Pause playbook execution for 30 seconds
       pause:
       seconds: 30
-
-      #- name: add master server to inventory
-      # add_host:
-      #   hostname: "{{ osp_host.openstack.public_v4 }}"
-      #   ansible_ssh_user: cloud-user
-      #   groupname: tower
