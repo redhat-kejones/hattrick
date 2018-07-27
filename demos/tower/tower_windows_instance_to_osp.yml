@@ -4,52 +4,51 @@
   vars_files:
     - 'tower-vars.yml'
   tasks:
+    - name: Create a unique ID
+      shell: echo "`date +"%Y%m%d%H%M%S"`-$(cat /dev/urandom | tr -cd [:alpha:] | tr '[:upper:]' '[:lower:]' | head -c 4)"
+      register: my_unique_id
 
-- name: Create a unique ID
-  shell: echo "`date +"%Y%m%d%H%M%S"`-$(cat /dev/urandom | tr -cd [:alpha:] | tr '[:upper:]' '[:lower:]' | head -c 4)"
-  register: my_unique_id
+    - name: Launch a Windows Instance
+    os_server:
+     auth:
+       auth_url: "{{ osp_url }}"
+       username: "{{ osp_user }}"
+       password: "{{ osp_pass }}"
+       project_name: "{{ osp_project }}"
+     name: windows-{{ my_unique_id.stdout }}
+     state: present
+     key_name: "{{ key_name }}"
+     availability_zone: "{{ az }}"
+     nics:
+       - net-name: "{{ network_name }}"
+     image: win2012r2
+     flavor: m1.large
+     security_groups: "{{ security_group }}"
+     auto_ip: yes
+    register: osp_host
 
- - name: Launch a Windows Instance
- os_server:
-   auth:
-     auth_url: "{{ osp_url }}"
-     username: "{{ osp_user }}"
-     password: "{{ osp_pass }}"
-     project_name: "{{ osp_project }}"
-   name: windows-{{ my_unique_id.stdout }}
-   state: present
-   key_name: "{{ key_name }}"
-   availability_zone: "{{ az }}"
-   nics:
-     - net-name: "{{ network_name }}"
-   image: win2012r2
-   flavor: m1.large
-   security_groups: "{{ security_group }}"
-   auto_ip: yes
- register: osp_host
+    - name: assign floating ip to Tower instance
+    os_floating_ip:
+     server: windows-{{ my_unique_id.stdout }}
+     auth:
+       auth_url: "{{ osp_url }}"
+       username: "{{ osp_user }}"
+       password: "{{ osp_pass }}"
+       project_name: "{{ osp_project }}"
 
-- name: assign floating ip to Tower instance
- os_floating_ip:
-   server: windows-{{ my_unique_id.stdout }}
-   auth:
-     auth_url: "{{ osp_url }}"
-     username: "{{ osp_user }}"
-     password: "{{ osp_pass }}"
-     project_name: "{{ osp_project }}"
+    - name: wait for instance become ready to use
+    wait_for:
+    host: "{{ osp_host.openstack.public_v4 }}"
+    port: "22"
+    timeout: "320"
+    state: "started"
 
-- name: wait for instance become ready to use
- wait_for:
-  host: "{{ osp_host.openstack.public_v4 }}"
-  port: "22"
-  timeout: "320"
-  state: "started"
+    - name: Pause playbook execution for 30 seconds
+    pause:
+    seconds: 30
 
-- name: Pause playbook execution for 30 seconds
-  pause:
-  seconds: 30
-
-#- name: add master server to inventory
-# add_host:
-#   hostname: "{{ osp_host.openstack.public_v4 }}"
-#   ansible_ssh_user: cloud-user
-#   groupname: tower
+    #- name: add master server to inventory
+    # add_host:
+    #   hostname: "{{ osp_host.openstack.public_v4 }}"
+    #   ansible_ssh_user: cloud-user
+    #   groupname: tower
