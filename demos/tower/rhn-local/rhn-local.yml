@@ -3,7 +3,7 @@
   hosts: "{{ hostname_to_stig }}"
   gather_facts: false
   vars_files:
-      - '../../../vars'
+      - '../../../group_vars/all/vars'
 
   tasks:
   - name: enable the needed rhel repositories
