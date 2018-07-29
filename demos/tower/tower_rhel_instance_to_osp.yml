@@ -27,7 +27,7 @@
        auto_ip: yes
       register: osp_host
 
-    - name: assign floating ip to Tower instance
+    - name: assign floating ip to RHEL instance
       os_floating_ip:
        server: rhel75-{{ my_unique_id.stdout }}
        auth:
@@ -36,11 +36,15 @@
          password: "{{ osp_pass }}"
          project_name: "{{ osp_project }}"
 
-    - name: add master server to inventory
-      add_host:
-       hostname: "{{ osp_host.openstack.public_v4 }}"
-       ansible_ssh_user: cloud-user
-       groupname: rhel-stig
+
+     - debug:
+         var: osp_host
+         verbosity: 4
+
+    - name: "Setting hostname to pass in workflow"
+      set_stats:
+       data:
+         hostname_to_stig:  rhel75-{{ my_unique_id.stdout }}
 
 #    - name: wait for instance become ready to use
 #      wait_for:
