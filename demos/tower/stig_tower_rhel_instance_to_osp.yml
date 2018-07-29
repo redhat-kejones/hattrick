@@ -10,6 +10,7 @@
     key_name: operator #works with OpenStack & EC2
     network_name: private # Works with all providers
     security_group: default # works with OpenStack & EC2
+    az: nova # works with OpenStack, EC2 & Azure
 
   tasks:
     - name: Create a unique ID
