@@ -1,0 +1,78 @@
+---
+- hosts: tower
+  gather_facts: no
+  vars_files:
+    - '../../tower-vars.yml'
+  tasks:
+    - name: Create a unique ID
+      shell: echo "`date +"%Y%m%d%H%M%S"`-$(cat /dev/urandom | tr -cd [:alpha:] | tr '[:upper:]' '[:lower:]' | head -c 4)"
+      register: my_unique_id
+
+    - name: Launch a rhel instance
+      os_server:
+       auth:
+         auth_url: "{{ osp_url }}"
+         username: "{{ osp_user }}"
+         password: "{{ osp_pass }}"
+         project_name: "{{ osp_project }}"
+       name: rhel75-{{ my_unique_id.stdout }}
+       state: present
+       key_name: "{{ key_name }}"
+       availability_zone: "{{ az }}"
+       nics:
+         - net-name: "{{ network_name }}"
+       image: rhel75
+       flavor: m1.small
+       security_groups: "{{ security_group }}"
+       auto_ip: yes
+      register: osp_host
+
+    - name: assign floating ip to Tower instance
+      os_floating_ip:
+       server: rhel75-{{ my_unique_id.stdout }}
+       auth:
+         auth_url: "{{ osp_url }}"
+         username: "{{ osp_user }}"
+         password: "{{ osp_pass }}"
+         project_name: "{{ osp_project }}"
+
+    - name: add master server to inventory
+      add_host:
+       hostname: "{{ osp_host.openstack.public_v4 }}"
+       ansible_ssh_user: cloud-user
+       groupname: rhel-stig
+
+- hosts: tower
+  become: true
+  vars:
+    scap_reports_dir: /tmp
+    scap_profile: stig-rhel7-disa
+  roles:
+    - rhtps.800-53
+
+  tasks:
+    - name: determine the most recent scap report
+      command: ls -tr /tmp/scap_reports/
+      register: results
+
+    - name: create the scap directory in the web server content
+      file:
+        name: /var/www/html/scap
+        state: directory
+        mode: 0755
+
+    - name: copy SCAP reports to the web server content directory
+      copy:
+        remote_src: True
+        src: "/tmp/scap_reports/{{ item }}"
+        dest: /var/www/html/scap
+        mode: 0644
+      with_items: "{{ results.stdout_lines }}"
+      when: item | match("scan-xccdf-report-*")
+
+#    - name: wait for instance become ready to use
+#      wait_for:
+#      host: "{{ osp_host.openstack.public_v4 }}"
+#      port: "22"
+#      timeout: "90"
+#      state: "started"
