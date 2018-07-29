@@ -38,8 +38,7 @@
 
 
     - debug:
-        var: osp_host
-        verbosity: 4
+        msg: "{{ osp_host.stdout }}"
 
     - name: "Setting hostname to pass in workflow"
       set_stats:
