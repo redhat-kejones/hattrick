@@ -1,8 +1,16 @@
 ---
 - hosts: tower
   gather_facts: no
-  vars_files:
-    - '../../tower-vars.yml'
+  vars:
+    osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
+    osp_ip: 192.168.1.40 # OpenStack specific
+    osp_user: "{{ vault_osp_user }}" # OpenStack specific
+    osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
+    osp_project: operators  # OpenStack specific
+    key_name: operator #works with OpenStack & EC2
+    network_name: private # Works with all providers
+    security_group: default # works with OpenStack & EC2
+
   tasks:
     - name: Create a unique ID
       shell: echo "`date +"%Y%m%d%H%M%S"`-$(cat /dev/urandom | tr -cd [:alpha:] | tr '[:upper:]' '[:lower:]' | head -c 4)"
@@ -27,7 +35,7 @@
        auto_ip: yes
       register: osp_host
 
-    - name: assign floating ip to Tower instance
+    - name: assign floating ip to rhel instance
       os_floating_ip:
        server: rhel75-{{ my_unique_id.stdout }}
        auth:
@@ -42,7 +50,7 @@
        ansible_ssh_user: cloud-user
        groupname: rhel-stig
 
-- hosts: tower
+- hosts: rhel75-{{ my_unique_id.stdout }}
   become: true
   vars:
     scap_reports_dir: /tmp
