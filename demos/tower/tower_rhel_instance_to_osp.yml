@@ -38,17 +38,7 @@
 
 
     - debug:
-        msg: osp_host.stdout_lines
-
-    - os_server_facts:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
-        server: rhel75-{{ my_unique_id.stdout }}
-    - debug:
-        var: openstack_servers.stdout_lines
+        msg: "Instance ID is {{ osp_host.server.id }}"
 
     - name: "Setting hostname to pass in workflow"
       set_stats:
