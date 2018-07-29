@@ -1,0 +1,19 @@
+---
+- name: add local repo to rhel client
+  hosts: "{{ hostname_to_stig }}"
+  gather_facts: false
+  vars_files:
+      - '../../../vars'
+
+  tasks:
+  - name: enable the needed rhel repositories
+    yum_repository:
+      name: "{{ item }}"
+      description: "{{ item }}"
+      baseurl: "{{ local_repo_url }}{{ item }}"
+      gpgcheck: no
+      enabled: yes
+      file: rhn-local
+      state: present
+    with_items:
+      - "{{ rhel_repo.repos.rhel }}"
