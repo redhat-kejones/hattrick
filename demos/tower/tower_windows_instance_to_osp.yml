@@ -35,10 +35,3 @@
          username: "{{ osp_user }}"
          password: "{{ osp_pass }}"
          project_name: "{{ osp_project }}"
-
-    - name: wait for instance become ready to use
-      wait_for:
-      host: "{{ osp_host.openstack.public_v4 }}"
-      port: "3389"
-      timeout: "320"
-      state: "started"

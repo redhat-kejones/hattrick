@@ -36,9 +36,15 @@
          password: "{{ osp_pass }}"
          project_name: "{{ osp_project }}"
 
-    - name: wait for instance become ready to use
-      wait_for:
-      host: "{{ osp_host.openstack.public_v4 }}"
-      port: "22"
-      timeout: "90"
-      state: "started"
+    - name: add master server to inventory
+      add_host:
+       hostname: "{{ osp_host.openstack.public_v4 }}"
+       ansible_ssh_user: cloud-user
+       groupname: rhel-stig
+
+#    - name: wait for instance become ready to use
+#      wait_for:
+#      host: "{{ osp_host.openstack.public_v4 }}"
+#      port: "22"
+#      timeout: "90"
+#      state: "started"
