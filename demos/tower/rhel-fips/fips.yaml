@@ -1,4 +1,3 @@
-# file: fips.yaml
 ---
 - hostis: "{{ hostname_to_stig }}"
   become: yes
