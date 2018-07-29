@@ -1,5 +1,5 @@
 ---
-- hosts: tower
+- hosts: localhost
   gather_facts: no
   vars:
     osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
