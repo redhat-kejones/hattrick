@@ -37,9 +37,9 @@
          project_name: "{{ osp_project }}"
 
 
-     - debug:
-         var: osp_host
-         verbosity: 4
+    - debug:
+        var: osp_host
+        verbosity: 4
 
     - name: "Setting hostname to pass in workflow"
       set_stats:
