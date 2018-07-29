@@ -42,11 +42,6 @@
        ansible_ssh_user: cloud-user
        groupname: rhel-stig
 
-    - name: "Setting hostname to pass in workflow"
-      set_stats:
-       data:
-         hostname_to_stig:  rhel75-{{ my_unique_id.stdout }}
-
 #    - name: wait for instance become ready to use
 #      wait_for:
 #      host: "{{ osp_host.openstack.public_v4 }}"
