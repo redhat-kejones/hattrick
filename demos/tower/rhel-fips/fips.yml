@@ -1,5 +1,5 @@
 ---
-- hostis: "{{ hostname_to_stig }}"
+- hosts: "{{ hostname_to_stig }}"
   become: yes
   roles:
     - ansible.fips
