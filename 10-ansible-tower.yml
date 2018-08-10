@@ -23,10 +23,6 @@
         auto_ip: yes
       register: osp_host
 
-    - name: assign floating ip to Tower instance
-      os_floating_ip:
-        server: "{{ vm_name }}"
-
     - name: wait for instance become ready to use
       wait_for:
        host: "{{ osp_host.openstack.public_v4 }}"

@@ -7,6 +7,9 @@
   hostname:
     name: "{{ rhel_kvm.hostname_full }}"
 
+- name: remove any repo files
+  shell: rm -rf /etc/yum.repos.d/*.repo
+
 - name: enable the needed rhel repositories
   yum_repository:
     name: "{{ item }}"
@@ -224,12 +227,12 @@
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         state: present
 
-    - name: install ansible and other packages
-      yum:
-        name: '{{ item }}'
-        state: latest
-      with_items:
-        - python-pip
+    #- name: install ansible and other packages
+    #  yum:
+    #    name: '{{ item }}'
+    #    state: latest
+    #  with_items:
+    #    - python-pip
 
     - name: make sure pip is latest
       pip:
@@ -241,7 +244,7 @@
         name: setuptools
         state: latest
 
-- name: install shade
+- name: install shade connected
   tags: shade
   pip:
     name: shade
@@ -249,20 +252,32 @@
     extra_args: "-Iv"
   when: (disconnected is not defined) or (disconnected is defined and disconnected.shade is not defined)
 
-- name: Install Shade
+- name: Install pip, shade and openstacksdk disconnected
   tags: shade
   when: disconnected is defined
   block:
-    - name: Disconnected pip installation
+    - name: create virtualenv in hattrick repo
+      shell: virtualenv /root/hattrick
+
+#    - name: Disconnected pip installation
+#      shell: |
+#        cp "{{ disconnected.pip.source }}" /tmp/pip.tar.gz
+#        tar zxvf /tmp/pip.tar.gz -C /tmp
+#        python /tmp/pip/get-pip.py --no-index --find-links=/tmp/pip
+#      when: disconnected.pip is defined
+
+    - name: Disconnected openstacksdk installation
       shell: |
-        curl "{{ disconnected.pip.source }}" -o /tmp/pip.tar.gz
-        tar zxvf /tmp/pip.tar.gz -C /tmp
-        python /tmp/pip/get-pip.py --no-index --find-links=/tmp/pip
-      when: disconnected.pip is defined
+        source /root/hattrick/bin/activate
+        cp "{{ disconnected.openstacksdk.source }}" /tmp/openstacksdk.tar.gz
+        tar zxvf /tmp/openstacksdk.tar.gz -C /tmp
+        pip install openstacksdk --no-index --find-links=/tmp/openstacksdk
+      when: disconnected.openstacksdk is defined
 
     - name: Disconnected shade installation
       shell: |
-        curl "{{ disconnected.shade.source }}" -o /tmp/shade.tar.gz
+        source /root/hattrick/bin/activate
+        cp "{{ disconnected.shade.source }}" /tmp/shade.tar.gz
         tar zxvf /tmp/shade.tar.gz -C /tmp
         pip install shade --no-index --find-links=/tmp/shade
       when: disconnected.shade is defined
@@ -277,6 +292,19 @@
     dest: /etc/resolv.conf
     line: "nameserver {{ dns_server_public }}"
     state: absent
+
+- name: copy chrony.conf script for disconnected ntp master
+  template:
+    src: "templates/chrony.conf.j2"
+    dest: /etc/chrony.conf
+  when: disconnected is defined
+
+- name: restarting chronyd service
+  service:
+    name: chronyd
+    state: restarted
+    enabled: yes
+  when: disconnected is defined
 
 #TODO: removing for now. fix kernel check later
 #- name: restart server to get updated kernel

@@ -26,12 +26,16 @@
       line: "nameserver {{ dns_server_public }}"
       insertafter: "BOF"
       state: present
+    when: disconnected is not defined
 
 - hosts: rhel_kvm
   name: playbook to complete KVM configuration and installation
   remote_user: root
   vars:
     use_public_dns: true
+    #NOTE: if doing disconnected install, below vars must be used
+    #use_public_dns: false
+    #local_repo_url: "file:///repos/repos/"
   roles:
     - rhel_common
     - rhel_kvm

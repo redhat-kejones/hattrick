@@ -34,6 +34,7 @@
   - name: Install & enable EPEL repo
     command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
     ignore_errors: true
+    when: not disconnected
 
   - name: Make temp directory
     file: 
@@ -46,6 +47,14 @@
       url: http://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz
       dest: /temp/ansible.tar.gz
       mode: 0755
+    when: not disconnected
+
+  - name: copy latest Ansible bundle for disconnected install
+    copy:
+      src: /repos/ansible-tower-setup-bundle-latest.el7.tar.gz
+      dest: /temp/ansible.tar.gz
+      mode: 0755
+    when: disconnected
    
   - name: extract Ansible tar
     unarchive:

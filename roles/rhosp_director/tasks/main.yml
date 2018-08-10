@@ -166,12 +166,12 @@
     remote_src: true
     owner: stack
     group: stack
-    mode: 0644
+    mode: 0664
   tags: install
 
 - name: set undercloud.conf variables in the default section
-  become: yes
-  become_user: stack
+  #become: yes
+  #become_user: stack
   ini_file:
     dest: /home/stack/undercloud.conf
     section: DEFAULT
@@ -216,8 +216,8 @@
   tags: install
 
 - name: set undercloud.conf variables in the auth section
-  become: yes
-  become_user: stack
+  #become: yes
+  #become_user: stack
   ini_file:
     dest: /home/stack/undercloud.conf
     option: undercloud_admin_password
