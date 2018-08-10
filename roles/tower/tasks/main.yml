@@ -32,12 +32,19 @@
     when: register_rhn
 
   - name: Install & enable EPEL repo
-    command: 'yum install -y http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm'
+    yum:
+      name: http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+      state: present
     ignore_errors: true
     when: not disconnected
 
+  - name: Install Ansible
+    yum:
+      name: ansible
+      state: present
+      
   - name: Make temp directory
-    file: 
+    file:
       path: /temp
       state: directory
       mode: 0755
