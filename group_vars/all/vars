@@ -3,9 +3,11 @@ use_public_dns: false #Default to false (set true individually on kvm and idm)
 
 #disconnected:
 #  pip:
-#    source: http://192.168.0.3/pip/pip.tar.gz
+#    source: /repos/pip.tgz 
 #  shade:
-#    source: http://192.168.0.3/pip/shade.tar.gz
+#    source: /repos/shade.tgz
+#  openstacksdk:
+#    source: /repos/openstacksdk.tgz
 #  docker:
 #    source: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.tgz
 #    tag_file: http://192.168.0.3/docker/osp-docker-12.0-20180522.1.list
@@ -25,6 +27,7 @@ rhn_pool_name: "{{ vault_rhn_pool_name }}"
 
 versions:
   rhosp: 10
+  ceph: 3
   satellite: 6.3
   ocp: 3.9
   cfme: 5.9
@@ -39,7 +42,7 @@ rhel_repo:
       - rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
       - rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
-      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.5-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.6-rpms
     osp:
       - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
@@ -70,7 +73,7 @@ rhel_kvm:
   hostname_full: "nuc.{{ domain }}"
   disks:
     root: sda
-#   libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
+#    libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
 #   content: sdc        #NOTE: only use if there is a third drive on KVM host
     destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
   repos:
@@ -78,6 +81,8 @@ rhel_kvm:
     - rhel-7-server-extras-rpms
     - rhel-7-server-rh-common-rpms
     - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+    - rhel-server-rhscl-7-rpms
+    - rhel-7-server-ansible-2.6-rpms
   packages:
     - 'screen'
     - 'wget'
@@ -146,7 +151,7 @@ rhosp_guest_images:
   - name: cirros
     min_disk: 10
     min_ram: 1024
-    qcow_loc: guest_images/cirros-0.4.0-x86_64-disk.qcow2
+    qcow_loc: guest_images/cirros.qcow2
   - name: rhel75
     min_disk: 10
     min_ram: 1024
@@ -154,11 +159,7 @@ rhosp_guest_images:
   - name: rhel69
     min_disk: 10
     min_ram: 1024
-    qcow_loc: guest_images/rhel-server-6.9-update-9-x86_64-kvm.qcow2
-  - name: rhelatomic75
-    min_disk: 10
-    min_ram: 1024
-    qcow_loc: guest_images/rhel-atomic-cloud-7.5.1.1-1.x86_64.qcow2
+    qcow_loc: guest_images/rhel-guest-image-6.9-206.x86_64.qcow2
   - name: centos7
     min_disk: 10
     min_ram: 1024
@@ -167,11 +168,15 @@ rhosp_guest_images:
     min_disk: 10
     min_ram: 1024
     qcow_loc: guest_images/sahara-newton-spark-1.6.0-ubuntu.qcow2
+  - name: cf45
+    min_disk: 40
+    min_ram: 12288
+    qcow_loc: guest_images/cfme-rhos-5.8.4.5-1.x86_64.qcow2
   - name: cf46
     min_disk: 40
     min_ram: 12288
-    qcow_loc: guest_images/cfme-rhos-5.9.2.4-1.x86_64.qcow2
+    qcow_loc: guest_images/cfme-rhos-5.9.3.4-1.x86_64.qcow2
   - name: win2012r2
     min_disk: 40
     min_ram: 4096
-    qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20170321.qcow2
+    qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20151021.qcow2

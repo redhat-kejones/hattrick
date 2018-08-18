@@ -105,6 +105,7 @@
     device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     number: 1
     state: present
+    label: gpt
   when: rhel_kvm.disks.libvirt_images is defined
 
 - name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
@@ -121,6 +122,7 @@
     device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     number: 1
     state: present
+    label: gpt
   when:
     - rhel_kvm.disks.libvirt_images is defined
     - rhel_kvm.disks.destructive_filesystem == "yes"
@@ -138,6 +140,7 @@
   parted:
     device: "/dev/{{ rhel_kvm.disks.content }}"
     unit: MiB
+    label: gpt
   register: content_info
   when: rhel_kvm.disks.content is defined
 
@@ -156,6 +159,7 @@
     device: "/dev/{{ rhel_kvm.disks.content }}"
     number: 1
     state: present
+    label: gpt
   when: rhel_kvm.disks.content is defined
 
 - name: "format {{ rhel_kvm.disks.content }}1 xfs"

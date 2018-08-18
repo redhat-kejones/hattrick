@@ -8,7 +8,7 @@ nfs_images_path: /export/images/
 ocp_shared_registry_server: 192.168.0.7
 ocp_shared_registry_port: 5000
 
-local_repo_url: "http://192.168.0.8/"
+local_repo_url: "http://192.168.0.8/repos/"
 
 networks:
   external:
@@ -71,7 +71,8 @@ rhel_idm:
   realm: "{{ domain | upper }}"
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
-  forward_ip: "{{ dns_server_public }}"
+  #NOTE: if disconnected installation, comment out forward_ip
+#  forward_ip: "{{ dns_server_public }}"
   reverse_zone: "168.192.in-addr.arpa."
   repos:
     - rhel-7-server-rpms
@@ -122,9 +123,9 @@ rhosp_director:
     - rhel-ha-for-rhel-7-server-rpms
     - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
     - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-    - rhel-7-server-rhceph-2-osd-rpms
-    - rhel-7-server-rhceph-2-mon-rpms
-    - rhel-7-server-rhceph-2-tools-rpms
+    - rhel-7-server-rhceph-{{ versions.ceph }}-osd-rpms
+    - rhel-7-server-rhceph-{{ versions.ceph }}-mon-rpms
+    - rhel-7-server-rhceph-{{ versions.ceph }}-tools-rpms
 
   # stack user gets created and will be used for all RHOSP actions on undercloud
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
@@ -139,6 +140,7 @@ rhosp_director:
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
+  provisioning_interface_mtu: 1500
   # IP information for the interface on the Undercloud that will be
   # handling the PXE boots and DHCP for Overcloud instances.  The IP
   # portion of the value will be assigned to the network interface
@@ -207,7 +209,7 @@ rhosp_overcloud:
   timeout: 60
   cloud_name: openstack
   controller_scale: 1
-  compute_scale: 3
+  compute_scale: 2
   ceph_storage_scale: 0
   ceph_disk_layout: ""
   operator_pub_key: "{{ vault_operator_pub_key }}"

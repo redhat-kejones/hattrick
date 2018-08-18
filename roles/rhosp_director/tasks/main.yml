@@ -185,7 +185,7 @@
     - { key: overcloud_domain_name, value: "{{ rhosp_director.cloud_domain }}" }
     - { key: local_ip, value: "{{ rhosp_director.provisioning_ip }}" }
     - { key: local_interface, value: "{{ rhosp_director.provisioning_interface }}" }
-    - { key: local_mtu, value: "1550" }
+    - { key: local_mtu, value: "{{ rhosp_director.provisioning_interface_mtu }}" }
     - { key: undercloud_public_vip, value: "{{ inventory_hostname }}" }
     - { key: undercloud_admin_vip, value: "{{ rhosp_director.admin_apis_vip }}" }
     - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
@@ -446,7 +446,7 @@
         chdir: /home/stack
       register: docker_latest
       tags: docker_registry_template
-      when: disconnected.docker is not defined
+      when: disconnected is not defined
     
     - name: copy generate-local-registry-images-yaml.sh script
       template:
@@ -472,7 +472,7 @@
       args:
         chdir: /home/stack
       tags: docker_registry_template
-      when: disconnected.docker is not defined
+      when: disconnected is not defined
     
     - name: Pull the Docker images in to local registry
       shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
@@ -481,7 +481,7 @@
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: disconnected.docker is not defined
+      when: disconnected is not defined
 
     - name: Pull the Docker images from a URL source
       shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
