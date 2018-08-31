@@ -1,0 +1,37 @@
+# This file contains tuning for Hat Trick and Red Hat Hyperconverged. 
+# It will be moved into a playbook and set as the default once the deployment is fully automated. 
+
+gluster volume set data cluster.read-hash-mode 0
+gluster volume set data server.event-threads 4
+gluster volume set data client.event-threads 4
+gluster volume set data network.inode-lru-limit 90000
+gluster volume set data performance.md-cache-timeout 600
+gluster volume set data performance.cache-invalidation on
+gluster volume set data performance.stat-prefetch on
+gluster volume set data features.cache-invalidation-timeout 600
+gluster volume set data features.cache-invalidation on
+gluster volume set data cluster.lookup-optimize on
+gluster volume set data performance.client-io-threads off
+gluster volume set data transport.address-family inet
+gluster volume set data performance.strict-o-direct on
+gluster volume set data nfs.addr-namelookup off
+gluster volume set data nfs.enable-ino32 off
+gluster volume set data network.ping-timeout 30
+gluster volume set data server.allow-insecure on
+gluster volume set data storage.owner-gid 36
+gluster volume set data storage.owner-uid 36
+gluster volume set data user.cifs off
+gluster volume set data features.shard on
+gluster volume set data cluster.shd-wait-qlength 10000
+gluster volume set data cluster.shd-max-threads 8
+gluster volume set data cluster.locking-scheme granular
+gluster volume set data cluster.data-self-heal-algorithm full
+gluster volume set data cluster.server-quorum-type server
+gluster volume set data cluster.quorum-type auto
+gluster volume set data cluster.eager-lock enable
+gluster volume set data network.remote-dio enable
+gluster volume set data performance.low-prio-threads 8
+gluster volume set data performance.io-cache on
+gluster volume set data performance.read-ahead off
+gluster volume set data performance.quick-read off
+gluster volume set data nfs.disable off
