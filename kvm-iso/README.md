@@ -49,7 +49,7 @@ directory.
 ```
 8. Copy the custom kickstart file into the /mnt/working directory
 > NOTE: the one we are using here is called
-> [kvm-ks.cfg](https://github.com/redhat-kejones/hattrick/kvm-iso/kvm-ks.cfg)
+> [kvm-ks.cfg](https://raw.githubusercontent.com/redhat-kejones/hattrick/master/kvm-iso/kvm-ks.cfg)
 9. Edit the kvm-ks.cfg file for whatever changes are needed in your environment
 > NOTE: You will want to change the root password and most the network configs
 10. Once all the info is in the kickstart file, you are ready to create your
