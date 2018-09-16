@@ -99,7 +99,7 @@ create your own. They are located in /root/hattrick/group_vars
 ```
 12. Deploy CloudForms on top
 ```
-# ansible-playbook --ask-vault-pass 08-rhcloudforms.yml
+# ansible-playbook -i inventories/inventory-local --ask-vault-pass 08-rhcloudforms.yml
 ```
 13. Modify the ocp-vars file in order to deploy OpenShift Container Platform
 ```
@@ -107,7 +107,7 @@ create your own. They are located in /root/hattrick/group_vars
 ```
 14. Deploy OpenShift on top
 ```
-# ansible-playbook --ask-vault-pass 09-rhocp.yml
+# ansible-playbook -i inventories/inventory-local --ask-vault-pass 09-rhocp.yml
 ```
 15. Modify the tower-vars file in order to deploy Ansible Tower
 ```
@@ -115,5 +115,5 @@ create your own. They are located in /root/hattrick/group_vars
 ```
 16. Deploy Ansible Tower on top
 ```
-# ansible-playbook --ask-vault-pass 10-ansible-tower.yml
+# ansible-playbook -i inventories/inventory-local --ask-vault-pass 10-ansible-tower.yml
 ```

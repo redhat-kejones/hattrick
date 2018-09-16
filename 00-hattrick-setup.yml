@@ -27,12 +27,14 @@
       repo: "https://github.com/redhat-kejones/hattrick.git"
       dest: /root/hattrick
       accept_hostkey: yes
+    when: disconnected is not defined
 
   - name: Copy vault sample
     copy:
       src: /root/hattrick/group_vars/all/vault.sample
       dest: /root/hattrick/group_vars/all/vault
       remote_src: yes
+    when: disconnected is not defined
 
   - debug:
       msg:

@@ -1,0 +1,53 @@
+---
+- hosts: tower
+  gather_facts: no
+  vars_files:
+    - '../../tower-vars.yml'
+  tasks:
+    - name: Create a unique ID
+      shell: echo "`date +"%Y%m%d%H%M%S"`-$(cat /dev/urandom | tr -cd [:alpha:] | tr '[:upper:]' '[:lower:]' | head -c 4)"
+      register: my_unique_id
+
+    - name: Launch a rhel instance
+      os_server:
+       auth:
+         auth_url: "{{ osp_url }}"
+         username: "{{ osp_user }}"
+         password: "{{ osp_pass }}"
+         project_name: "{{ osp_project }}"
+       name: rhel75-{{ my_unique_id.stdout }}
+       state: present
+       key_name: "{{ key_name }}"
+       availability_zone: "{{ az }}"
+       nics:
+         - net-name: "{{ network_name }}"
+       image: rhel75
+       flavor: m1.small
+       security_groups: "{{ security_group }}"
+       auto_ip: yes
+      register: osp_host
+
+    - name: assign floating ip to RHEL instance
+      os_floating_ip:
+       server: rhel75-{{ my_unique_id.stdout }}
+       auth:
+         auth_url: "{{ osp_url }}"
+         username: "{{ osp_user }}"
+         password: "{{ osp_pass }}"
+         project_name: "{{ osp_project }}"
+
+
+    - debug:
+        msg: "Instance ID is {{ osp_host.server.id }}"
+
+    - name: "Setting hostname to pass in workflow"
+      set_stats:
+       data:
+         hostname_to_stig:  rhel75-{{ my_unique_id.stdout }}
+
+#    - name: wait for instance become ready to use
+#      wait_for:
+#      host: "{{ osp_host.openstack.public_v4 }}"
+#      port: "22"
+#      timeout: "90"
+#      state: "started"

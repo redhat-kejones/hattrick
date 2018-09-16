@@ -1,0 +1,41 @@
+---
+- hosts: all
+  gather_facts: no
+  
+  tasks:
+    - name: Launch a RHEL instance to STIG
+      os_server:
+        auth:
+          auth_url: http://10.181.6.30:5000/v2.0
+          username: operator
+          password: redhat
+          project_name: operators
+        name: rhel-stig
+        state: present
+        key_name: operator
+        availability_zone: nova
+        nics:
+          - net-name: private
+        image: rhel75
+        flavor: m1.small
+        security_groups: default
+        auto_ip: yes
+      register: osp_host
+
+    - name: wait for instance become ready to use
+      wait_for:
+       host: "{{ osp_host.openstack.public_v4 }}"
+       port: "22"
+       timeout: "320"
+       state: "started"
+
+    - name: Pause playbook execution for 30 seconds
+      pause:
+        seconds: 30
+
+    - name: add master server to inventory
+      add_host:
+        hostname: "{{ osp_host.openstack.public_v4 }}"
+        ansible_ssh_user: cloud-user
+        groupname: rhel
+

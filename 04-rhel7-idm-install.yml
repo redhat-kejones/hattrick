@@ -34,6 +34,7 @@
   hosts: rhel_idm
   remote_user: root
   vars:
+    #NOTE: if doing disconnected intall this should be false
     use_public_dns: true
   roles:
     - rhel_common
@@ -43,7 +44,7 @@
   name: playbook to configure KVM to use IDM for DNS
   remote_user: root
   tasks:
-  - name: add IDM as nameserver to /etc/resolv.conf file
+  - name: add a IDM as nameserver in /etc/resolv.conf file on rhel_kvm
     lineinfile:
       dest: /etc/resolv.conf
       line: "nameserver {{ dns_server_local }}"

@@ -97,6 +97,11 @@
   become: false
   ignore_errors: true
 
+- name: disable dns forwarding on IDM server for disconnected install
+  shell: "echo '{{ rhel_idm.admin_pwd }}' | kinit admin && ipa dnsserver-mod --forward-policy=none {{ rhel_idm.hostname_short }}.{{ domain }}"
+  ignore_errors: true
+  when: (rhel_idm is not defined) or (rhel_idm is defined and rhel_idm.forward_ip is not defined)
+
 - name: enable dynamic updates on dns zones
   command: "echo {{ rhel_idm.admin_pwd }} | kinit admin && ipa dnszone-mod {{ item }} --dynamic-update=TRUE"
   with_items:

@@ -77,7 +77,7 @@
         hostname: "{{ undercloud_ip }}"
         ipaddress: "{{ undercloud_ip }}"
         port: "13000"
-        security_protocol: "ssl_without_validation"
+        security_protocol: "ssl"
         zone:
           href: "https://{{ db_server }}/api/zone/{{ region_num }}000000000004"
         credentials:

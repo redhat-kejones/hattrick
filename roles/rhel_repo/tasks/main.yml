@@ -7,32 +7,66 @@
   hostname:
     name: "{{ rhel_repo.hostname_short }}.{{ domain }}"
 
+- name: Creates directory for repos
+  file:
+    path: /repos/
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  tags: disconnected_repos
+  when: disconnected is defined
+
+- name: copy repos from KVM host
+  synchronize:
+    src: /repos/repos
+    dest: /repos
+  tags: disconnected_repos
+  when: disconnected is defined
+
+- name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhel_repo.repos.rhel }}"
+  when: not register_rhn
+
 - name: enable the needed repos for rhel
   command: "subscription-manager repos --enable {{ item }}"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: enable_repos
+  when: disconnected is not defined
 
 - name: enable the needed repos for osp
   command: "subscription-manager repos --enable {{ item }}"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: enable_repos
+  when: disconnected is not defined
 
 - name: enable the needed repos for ocp
   command: "subscription-manager repos --enable {{ item }}"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: enable_repos
+  when: disconnected is not defined
 
 - name: enable the needed repos for cfme
   command: "subscription-manager repos --enable {{ item }}"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: enable_repos
+  when: disconnected is not defined
 
 #NOTE: requires satellite subscription
 - name: enable the needed repos for satellite
   command: "subscription-manager repos --enable {{ item }}"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: enable_repos
-  when: rhel_repo.sync_satellite
+  when: rhel_repo.sync_satellite and disconnected is not defined
 
 - name: update packages
   yum:
@@ -80,57 +114,80 @@
     mode: 0775
   tags: sync_repos
 
+- name: move disconnected repos to web root
+  shell: mv /repos/repos/* /var/www/html/repos/
+  tags: disconnected_repos
+  when: disconnected is defined
+
+- name: change ownership of repos in web root
+  file:
+    path: /var/www/html/repos
+    owner: apache
+    group: apache
+    recurse: yes
+  tags: disconnected_repos
+  when: disconnected is defined
+
 - name: reposync rhel
   command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: sync_repos
+  when: disconnected is not defined
 
 - name: reposync osp
   command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: sync_repos
+  when: disconnected is not defined
 
 - name: reposync satellite
   command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
-  when: rhel_repo.sync_satellite
+  when: rhel_repo.sync_satellite and disconnected is not defined
 
 - name: reposync ocp
   command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: sync_repos
+  when: disconnected is not defined
 
 - name: reposync cfme
   command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: sync_repos
+  when: disconnected is not defined
 
 - name: create rhel repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: create_repos
+  when: disconnected is not defined
 
 - name: create osp repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: create_repos
+  when: disconnected is not defined
 
 - name: create satellite repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
   when: rhel_repo.sync_satellite
+  when: disconnected is not defined
 
 - name: create ocp repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: create_repos
+  when: disconnected is not defined
 
 - name: create cfme repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: create_repos
+  when: disconnected is not defined
 
 - name: Creates directory
   file:
@@ -149,6 +206,11 @@
     key_file: /var/www/.ssh/deploy_key
   become_user: apache
   tags: clone_deploy
+  when: disconnected is not defined
+
+- name: restore selinux context on web root
+  shell: restorecon -Rv /var/www/html
+  tags: apache
 
 - name: starting the httpd service
   service:

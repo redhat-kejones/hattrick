@@ -203,6 +203,7 @@ rhosp_director:
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
+  provisioning_interface_mtu: 1500
   # IP information for the interface on the Undercloud that will be
   # handling the PXE boots and DHCP for Overcloud instances.  The IP
   # portion of the value will be assigned to the network interface
