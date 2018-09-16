@@ -38,3 +38,14 @@
   roles:
     - rhel_common
     - rhel_idm
+
+- hosts: rhel_kvm
+  name: playbook to configure KVM to use IDM for DNS
+  remote_user: root
+  tasks:
+  - name: add IDM as nameserver to /etc/resolv.conf file
+    lineinfile:
+      dest: /etc/resolv.conf
+      line: "nameserver {{ dns_server_local }}"
+      insertbefore: "EOF"
+      state: present
