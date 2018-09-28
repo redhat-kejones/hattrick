@@ -84,7 +84,7 @@ create your own. They are located in /root/hattrick/group_vars
 9. Modify the group_vars/all/vars file
 > NOTE: "destructive_filesystem" is destructive and will destroy any partitions
 > that are created and defined in the roles folder that calls the filesytem
-> module.  Default us YES.
+> module. Default is YES.
 ```
 # vi group_vars/all/vars
 ```

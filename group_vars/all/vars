@@ -27,7 +27,7 @@ rhn_pool_name: "{{ vault_rhn_pool_name }}"
 
 versions:
   rhosp: 10
-  ceph: 3
+  ceph: 2
   satellite: 6.3
   ocp: 3.9
   cfme: 5.9
@@ -73,7 +73,7 @@ rhel_kvm:
   hostname_full: "nuc.{{ domain }}"
   disks:
     root: sda
-#    libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
+    libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
 #   content: sdc        #NOTE: only use if there is a third drive on KVM host
     destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
   repos:
@@ -168,10 +168,6 @@ rhosp_guest_images:
     min_disk: 10
     min_ram: 1024
     qcow_loc: guest_images/sahara-newton-spark-1.6.0-ubuntu.qcow2
-  - name: cf45
-    min_disk: 40
-    min_ram: 12288
-    qcow_loc: guest_images/cfme-rhos-5.8.4.5-1.x86_64.qcow2
   - name: cf46
     min_disk: 40
     min_ram: 12288

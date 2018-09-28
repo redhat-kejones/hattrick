@@ -72,7 +72,7 @@ rhel_idm:
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
   #NOTE: if disconnected installation, comment out forward_ip
-#  forward_ip: "{{ dns_server_public }}"
+  forward_ip: "{{ dns_server_public }}"
   reverse_zone: "168.192.in-addr.arpa."
   repos:
     - rhel-7-server-rpms
@@ -209,7 +209,7 @@ rhosp_overcloud:
   timeout: 60
   cloud_name: openstack
   controller_scale: 1
-  compute_scale: 2
+  compute_scale: 3
   ceph_storage_scale: 0
   ceph_disk_layout: ""
   operator_pub_key: "{{ vault_operator_pub_key }}"
