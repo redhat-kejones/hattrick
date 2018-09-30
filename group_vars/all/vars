@@ -72,10 +72,10 @@ rhel_nfs:
 rhel_kvm:
   hostname_full: "nuc.{{ domain }}"
   disks:
+    destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
     root: sda
     libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
 #   content: sdc        #NOTE: only use if there is a third drive on KVM host
-    destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms

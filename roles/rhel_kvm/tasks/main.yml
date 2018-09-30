@@ -88,7 +88,9 @@
     device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
     unit: MiB
   register: libvirt_images_info
-  when: rhel_kvm.disks.libvirt_images is defined
+  when:
+    - rhel_kvm.disks.libvirt_images is defined
+    - rhel_kvm.disks.destructive_filesystem
 
 - name: "remove all partitions from {{ rhel_kvm.disks.libvirt_images }}"
   parted:
@@ -98,24 +100,9 @@
   with_items:
    - "{{ libvirt_images_info.partitions }}"
   ignore_errors: true
-  when: rhel_kvm.disks.libvirt_images is defined
-
-- name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
-  parted:
-    device: "/dev/{{ rhel_kvm.disks.libvirt_images }}"
-    number: 1
-    state: present
-    label: gpt
-  when: rhel_kvm.disks.libvirt_images is defined
-
-- name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
-  filesystem:
-    fstype: xfs
-    dev: "/dev/{{ rhel_kvm.disks.libvirt_images }}1"
-    force: "{{ rhel_kvm.disks.destructive_filesystem }}"
   when:
     - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - rhel_kvm.disks.destructive_filesystem
 
 - name: "create 1 primary partition on {{ rhel_kvm.disks.libvirt_images }}"
   parted:
@@ -125,7 +112,7 @@
     label: gpt
   when:
     - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - rhel_kvm.disks.destructive_filesystem
 
 - name: "format {{ rhel_kvm.disks.libvirt_images }}1 xfs"
   filesystem:
@@ -134,7 +121,7 @@
     force: "{{ rhel_kvm.disks.destructive_filesystem }}"
   when:
     - rhel_kvm.disks.libvirt_images is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - rhel_kvm.disks.destructive_filesystem
 
 - name: "read {{ rhel_kvm.disks.content }} device information (always use unit when probing)"
   parted:
@@ -169,7 +156,7 @@
     force: "{{ rhel_kvm.disks.destructive_filesystem }}"
   when:
     - rhel_kvm.disks.content is defined
-    - rhel_kvm.disks.destructive_filesystem == "yes"
+    - rhel_kvm.disks.destructive_filesystem
 
 - name: "mount {{ rhel_kvm.disks.libvirt_images }}1 for libvirt images"
   mount:
@@ -231,12 +218,12 @@
         name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
         state: present
 
-    #- name: install ansible and other packages
-    #  yum:
-    #    name: '{{ item }}'
-    #    state: latest
-    #  with_items:
-    #    - python-pip
+    - name: install ansible and other packages
+      yum:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - python-pip
 
     - name: make sure pip is latest
       pip:
@@ -312,27 +299,8 @@
 
 - name: add NTP to firewalld
   firewalld:
-    service: ntpd
+    service: ntp
     permanent: true
     state: enabled
     immediate: yes
 
-#TODO: removing for now. fix kernel check later
-#- name: restart server to get updated kernel
-#  shell: sleep 2 && shutdown -r now "Ansible Restart Triggered for Undercloud Install"
-#  async: 1
-#  poll: 0
-#  ignore_errors: true
-#  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
-
-#- name: waiting for server to come back
-#  wait_for:
-#    host: "{{ inventory_hostname }}"
-#    state: started
-#    delay: 10
-#    connect_timeout: 5
-#    timeout: 300
-#    port: 22
-#  delegate_to: 127.0.0.1
-#  become: false
-#  ignore_errors: true
