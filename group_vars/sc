@@ -1,14 +1,14 @@
-domain: int.hattrick.lab
-dns_server_local: 192.168.0.4
+domain: hattrick.lab
+dns_server_local: 192.168.0.14
 
-nfs_server: 192.168.0.3
+nfs_server: 192.168.0.6
 nfs_repos_path: /export/repos/
 nfs_images_path: /export/images/
 
-ocp_shared_registry_server: 192.168.0.7
+ocp_shared_registry_server: 192.168.0.9
 ocp_shared_registry_port: 5000
 
-local_repo_url: "http://192.168.0.8/repos/"
+local_repo_url: "http://192.168.0.7/repos/"
 
 networks:
   external:
@@ -17,57 +17,57 @@ networks:
     defroute: true
     gateway: 192.168.0.1
     vlan: 1
-    dhcpStart: 192.168.1.40
-    dhcpEnd: 192.168.1.69
-    fipStart: 192.168.1.70
-    fipEnd: 192.168.1.199
+    dhcpStart: 192.168.1.20
+    dhcpEnd: 192.168.1.29
+    fipStart: 192.168.1.200
+    fipEnd: 192.168.1.249
   provisioning:
     name: provisioning
     cidr: 192.168.2.0/24
     defroute: false
-    gateway: 192.168.2.5
+    gateway: 192.168.2.15
     vlan: 2
-    dhcpStart: 192.168.2.70
-    dhcpEnd: 192.168.2.99
+    dhcpStart: 192.168.2.100
+    dhcpEnd: 192.168.2.109
   internal_api:
     name: internal_api
     cidr: 192.168.100.0/24
     defroute: false
     vlan: 900
-    dhcpStart: 192.168.100.40
-    dhcpEnd: 192.168.100.250
+    dhcpStart: 192.168.100.10
+    dhcpEnd: 192.168.100.39
   tenant:
     name: tenant
     cidr: 192.168.101.0/24
     defroute: false
     vlan: 901
-    dhcpStart: 192.168.101.40
-    dhcpEnd: 192.168.101.250
+    dhcpStart: 192.168.101.10
+    dhcpEnd: 192.168.101.39
   storage:
     name: storage
     cidr: 192.168.102.0/24
     defroute: false
     vlan: 902
-    dhcpStart: 192.168.102.40
-    dhcpEnd: 192.168.102.250
+    dhcpStart: 192.168.102.10
+    dhcpEnd: 192.168.102.39
   storage_mgmt:
     name: storage_mgmt
     cidr: 192.168.103.0/24
     defroute: false
     vlan: 903
-    dhcpStart: 192.168.103.40
-    dhcpEnd: 192.168.103.250
+    dhcpStart: 192.168.103.10
+    dhcpEnd: 192.168.103.39
   provider:
     name: provider
     cidr: 192.168.104.0/24
     defroute: false
     gateway: 192.168.104.1
     vlan: 904
-    dhcpStart: 192.168.104.40
-    dhcpEnd: 192.168.104.250
+    dhcpStart: 192.168.104.10
+    dhcpEnd: 192.168.104.39
 
 rhel_idm:
-  hostname_short: idm
+  hostname_short: ht2-idm
   realm: "{{ domain | upper }}"
   dm_pwd: "{{ vault_idm_dm_pwd }}"
   admin_pwd: "{{ vault_idm_admin_pwd }}"
@@ -94,25 +94,33 @@ rhel_idm:
     record_type: A
     ip_address: 192.168.0.1
     reverse_record: 1.0
-  - hostname: switch
-    record_type: A
-    ip_address: 192.168.0.2
-    reverse_record: 2.0
-  - hostname: kvm
+  - hostname: ht2-switch
     record_type: A
     ip_address: 192.168.0.3
     reverse_record: 3.0
-  - hostname: undercloud
+  - hostname: ht1-kvm
     record_type: A
     ip_address: 192.168.0.5
     reverse_record: 5.0
-  - hostname: openstack
+  - hostname: ht2-kvm
     record_type: A
-    ip_address: 192.168.1.40
-    reverse_record: 40.1
+    ip_address: 192.168.0.6
+    reverse_record: 6.0
+  - hostname: repo
+    record_type: A
+    ip_address: 192.168.0.7
+    reverse_record: 7.0
+  - hostname: undercloud
+    record_type: A
+    ip_address: 192.168.0.8
+    reverse_record: 8.0
+  - hostname: ht2-openstack
+    record_type: A
+    ip_address: 192.168.1.20
+    reverse_record: 20.1
 
 rhosp_director:
-  external_ip: 192.168.0.5
+  external_ip: 192.168.0.15
   poweroff: true
   bootdev: network
   validation_errors: []
@@ -147,30 +155,30 @@ rhosp_director:
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
-  provisioning_interface_mtu: 1550
+  provisioning_interface_mtu: 4000
   # IP information for the interface on the Undercloud that will be
   # handling the PXE boots and DHCP for Overcloud instances.  The IP
   # portion of the value will be assigned to the network interface
   # defined by local_interface, with the netmask defined by the prefix
   # portion of the value
-  provisioning_ip: 192.168.2.5/24
+  provisioning_ip: 192.168.2.15/24
   # Network CIDR for the Neutron-managed network for Overcloud
   # instances. This should be the subnet used for PXE booting
   provisioning_network_cidr: 192.168.2.0/24
   # Network gateway for the Neutron-managed network for Overcloud
   # instances. This should match the local_ip above when using masquerading
-  provisioning_network_gateway: 192.168.2.5
+  provisioning_network_gateway: 192.168.2.15
   # Virtual IP address to use for the admin endpoints of Undercloud services.
-  admin_apis_vip: 192.168.2.6
+  admin_apis_vip: 192.168.2.16
   # Temporary IP range that will be given to nodes during the discovery
   # process.  Should not overlap with the range defined by dhcp_start
   # and dhcp_end, but should be in the same network
-  inspection_dhcp_start: 192.168.2.20
-  inspection_dhcp_end: 192.168.2.39
+  inspection_dhcp_start: 192.168.2.110
+  inspection_dhcp_end: 192.168.2.119
   # Start of DHCP allocation range for PXE and DHCP of Overcloud instances
-  deploy_dhcp_start: 192.168.2.40
+  deploy_dhcp_start: 192.168.2.120
   # End of DHCP allocation range for PXE and DHCP of Overcloud instances
-  deploy_dhcp_end: 192.168.2.69
+  deploy_dhcp_end: 192.168.2.129
   # Defines whether to wipe the hard drive of overcloud nodes between
   # deployments and after the introspection
   clean_nodes: false
@@ -178,33 +186,33 @@ rhosp_director:
   admin_password: "{{ vault_undercloud_admin_pwd }}"
 
   overcloud_nodes:
-    - name: node1
+    - name: node5
       profile: control
-      pm_addr: "192.168.2.201"
+      pm_addr: "192.168.2.205"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node2
+#    - name: node6
+#      profile: compute
+#      pm_addr: "192.168.2.206"
+#      pm_user: "admin"
+#      pm_pwd: "admin"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+#      pm_driver: "pxe_ipmitool"
+    - name: node7
       profile: compute
-      pm_addr: "192.168.2.202"
+      pm_addr: "192.168.2.207"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node3
+    - name: node8
       profile: compute
-      pm_addr: "192.168.2.203"
-      pm_user: "admin"
-      pm_pwd: "admin"
-      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
-      #      should be a list of IPs to check and register
-      pm_driver: "pxe_ipmitool"
-    - name: node4
-      profile: compute
-      pm_addr: "192.168.2.204"
+      pm_addr: "192.168.2.208"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
@@ -216,7 +224,7 @@ rhosp_overcloud:
   timeout: 90
   cloud_name: openstack
   controller_scale: 1
-  compute_scale: 3
+  compute_scale: 2
   ceph_storage_scale: 0
   ceph_disk_layout: ""
   operator_pub_key: "{{ vault_operator_pub_key }}"

@@ -174,8 +174,7 @@
   command: "createrepo -v /var/www/html/repos/{{ item }}"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
-  when: rhel_repo.sync_satellite
-  when: disconnected is not defined
+  when: rhel_repo.sync_satellite and disconnected is not defined
 
 - name: create ocp repo
   command: "createrepo -v /var/www/html/repos/{{ item }}"

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 openstack overcloud container image prepare \
-  --namespace="{{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/rhosp{{ versions.rhosp }}" \
+  --namespace=registry.access.redhat.com/rhosp{{ versions.rhosp }} \
+  --push-destination={{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787 \
   --prefix=openstack- \
 {% if docker_latest is defined and docker_latest.stdout is defined%}
   --tag="{{ docker_latest.stdout }}" \
-{% elif disconnected is defined and disconnected.docker is defined and disconnected.docker.latest_tag is defined %}
+{% elif disonnected is defined and disconnected.docker is defined and disconnected.docker.latest_tag is defined %}
   --tag="{{ disconnected.docker.latest_tag }}" \
 {% endif -%} 
 {% for services in rhosp_director.optional_docker_services %}
@@ -13,7 +14,7 @@ openstack overcloud container image prepare \
 {% endfor %}
 {% if rhosp_director.ceph_enabled | bool %}
 {% if rhosp_director.ceph_namespace != None %}
-  --set  ceph_namespace={{ rhosp_director.provisioning_ip | ipaddr('address') }}:8787/{{ rhosp_director.ceph_namespace.split("/")[1] }} \
+  --set  ceph_namespace={{ rhosp_director.ceph_namespace }} \
 {% endif %}
 {% if rhosp_director.ceph_image != None %}
   --set  ceph_image={{ rhosp_director.ceph_image }} \
@@ -25,4 +26,6 @@ openstack overcloud container image prepare \
   --set  ceph_tag={{ rhosp_director.ceph_tag }} \
 {% endif %}
 {% endif %}
-  --output-env-file=/home/stack/templates/overcloud_images.yaml
+  --tag-from-label {version}-{release} \
+  --output-env-file=/home/stack/templates/overcloud_images.yaml \
+  --output-images-file /home/stack/local_registry_images.yaml

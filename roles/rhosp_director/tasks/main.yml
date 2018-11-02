@@ -38,15 +38,7 @@
 - name: enable the needed rhel repositories
   command: subscription-manager repos --enable={{ item }}
   with_items:
-    - rhel-7-server-rpms
-    - rhel-7-server-extras-rpms
-    - rhel-7-server-rh-common-rpms
-    - rhel-ha-for-rhel-7-server-rpms
-    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
-    - rhel-7-server-satellite-tools-{{ versions.satellite }}-rpms
-    - rhel-7-server-rhceph-2-osd-rpms
-    - rhel-7-server-rhceph-2-mon-rpms
-    - rhel-7-server-rhceph-2-tools-rpms
+    - "{{ rhosp_director.repos }}"
   when: register_rhn
   tags: prep
 
@@ -446,34 +438,18 @@
         chdir: /home/stack
       register: docker_latest
       tags: docker_registry_template
-      when: disconnected is not defined
+      when: disconnected is not defined and versions.rhosp == 12
     
-    - name: copy generate-local-registry-images-yaml.sh script
+    - name: copy generate-container-prepare.sh script
       template:
-        src: templates/generate-local-registry-images-yaml.sh.j2
-        dest: /home/stack/generate-local-registry-images-yaml.sh
+        src: templates/generate-container-prepare.sh.j2
+        dest: /home/stack/generate-container-prepare.sh
         owner: stack
         group: stack
         mode: 0775
       tags: docker_registry_template
-      when: disconnected.docker is not defined
-    
-    - name: copy generate-overcloud-registry-env-yaml.sh script
-      template:
-        src: templates/generate-overcloud-registry-env-yaml.sh.j2
-        dest: /home/stack/generate-overcloud-registry-env-yaml.sh
-        owner: stack
-        group: stack
-        mode: 0775
-      tags: docker_registry_template,docker_overcloud_registry
-    
-    - name: Create a template to pull the images to the local registry
-      shell: source /home/stack/stackrc && /home/stack/generate-local-registry-images-yaml.sh
-      args:
-        chdir: /home/stack
-      tags: docker_registry_template
       when: disconnected is not defined
-    
+
     - name: Pull the Docker images in to local registry
       shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
       args:
@@ -482,32 +458,33 @@
       poll: 30
       tags: docker_registry_pull
       when: disconnected is not defined
-
+    
     - name: Pull the Docker images from a URL source
       shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: disconnected.docker is defined
+      when: disconnected is defined and disconnected.docker is defined
 
     - name: Set tags for Docker images
       shell: curl "{{ disconnected.docker.tag_file }}" | while read a b c; do sudo docker tag "$c" "$a:$b"; done
       async: 2700
       poll: 30
       tags: docker_registry_pull
-      when: disconnected.docker is defined
+      when: disconnected is defined and disconnected.docker is defined
     
     - name: Push local images to local repository
       shell: for t in $(sudo docker images | sed '1d' | awk '/{{ rhosp_director.provisioning_ip | ipaddr('address') }}/ {print $1":"$2}'); do sudo docker push $t; done
       tags: docker_registry_push
-      when: disconnected.docker is defined
+      when: disconnected is defined and disconnected.docker is defined
 
-    - name: Create a template for using the images in our local registry on the undercloud
-      shell: source /home/stack/stackrc && /home/stack/generate-overcloud-registry-env-yaml.sh
+    - name: Create a template to pull the images to the local registry
+      shell: source /home/stack/stackrc && /home/stack/generate-container-prepare.sh
       args:
         chdir: /home/stack
+      tags: docker_registry_template
       tags: docker_registry_template,docker_overcloud_registry
-
+    
 - name: Process local CA for undercloud SSL
   become: yes
   become_user: stack
