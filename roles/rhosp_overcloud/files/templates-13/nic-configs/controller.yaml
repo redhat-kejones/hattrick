@@ -132,16 +132,20 @@ resources:
                 members:
                 - type: linux_bond
                   name: bond0
+                  mtu: 9000
                   bonding_options:
                     get_param: BondInterfaceOvsOptions
                   members:
                   - type: interface
                     name: nic1
+                    mtu: 9000
                     primary: true
                   - type: interface
                     name: nic2
+                    mtu: 9000
                 - type: vlan
                   device: bond0
+                  mtu: 9000
                   vlan_id:
                     get_param: InternalApiNetworkVlanID
                   addresses:
@@ -149,6 +153,7 @@ resources:
                       get_param: InternalApiIpSubnet
                 - type: vlan
                   device: bond0
+                  mtu: 9000
                   vlan_id:
                     get_param: StorageNetworkVlanID
                   addresses:
@@ -156,6 +161,7 @@ resources:
                       get_param: StorageIpSubnet
                 - type: vlan
                   device: bond0
+                  mtu: 9000
                   vlan_id:
                     get_param: StorageMgmtNetworkVlanID
                   addresses:
@@ -163,6 +169,7 @@ resources:
                       get_param: StorageMgmtIpSubnet
                 - type: vlan
                   device: bond0
+                  mtu: 9000
                   vlan_id:
                     get_param: TenantNetworkVlanID
                   addresses:
