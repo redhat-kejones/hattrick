@@ -11,3 +11,9 @@ bin
 include
 lib
 lib64
+*.bak
+*.orig
+*.crt
+*.pem
+ocp-old
+*.tgz
