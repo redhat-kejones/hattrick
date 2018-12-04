@@ -1,22 +1,23 @@
-domain: int.hattrick.lab
+ocp_image_tag: v3.9.27
+domain: hattrick.lab
 dns_server_local: 192.168.0.4
-repo_server_ip: 192.168.0.8
-local_repo_url: "http://192.168.0.8:8888/repos/"
-ocp_shared_registry_server: 192.168.0.8
+repo_server_ip: 192.168.0.7
+local_repo_url: "http://{{ repo_server_ip }}/repos/"
+ocp_shared_registry_server: 192.168.0.9
 ocp_shared_registry_port: 5000
-#ocp_disconnected: False
-register_rhn: true
+ocp_disconnected: false
+register_rhn: false
 ocp:
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
     - rhel-7-fast-datapath-rpms
     - rhel-7-server-ose-3.9-rpms
-    - rhel-7-server-ansible-2.5-rpms
+    - rhel-7-server-ansible-2.6-rpms
     - rh-gluster-3-client-for-rhel-7-server-rpms
     - rh-gluster-3-for-rhel-7-server-rpms
-osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
 osp_ip: 192.168.1.40 # OpenStack specific
+osp_url: http://{{ osp_ip }}:5000/v2.0 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
@@ -28,13 +29,14 @@ image_uid: rhel75
 master_flavor_name: ocp1.master
 node_flavor_name: ocp1.node
 key_name: operator #works with OpenStack & EC2
-network_name: private # Works with all providers
+network_name: private 
 ssh_user: cloud-user
-cf_db_dev: '/dev/vdc'
+cf_db_dev: '/dev/vdb'
 wipe_cns_dev: false #override with --extra-vars="wipe_cns_dev=true"
-cns_dev: '/dev/vdb'
-#cns_size: 100
+cns_dev: '/dev/vdc'
+cns_size: 150
 openshift_registry_volume_size: 50
+registry_vol_name: "ocp-cluster-registry"
 region_num: 20
 security_group: default # works with OpenStack & EC2
 dns: "{{ dns_server_local }}"
@@ -43,8 +45,29 @@ ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
 ocpuser: "{{ vault_ocp_user }}"
 ocppass: "{{ vault_ocp_pwd }}"
-ocp_wildcard_record: "*.ocp"
-ocp_wildcard_domain: "ocp.{{ domain }}"
-private_reverse_zone: "0.16.172.in-addr.arpa."
-deploy_cluster_extra_vars: -e "openshift_disable_check=disk_availability,memory_availability"
-#master1: "osp-master-0c6a.{{ domain }}"
+ocp_master_record: "ocp" #Points an A record at the master node
+ocp_master_domain: "{{ ocp_master_record }}.{{ domain }}"
+ocp_wildcard_record: "*.apps"
+ocp_wildcard_domain: "apps.{{ domain }}"
+private_reverse_zone: "16.172.in-addr.arpa."
+deploy_cluster_extra_vars: "-e openshift_disable_check=disk_availability,memory_availability"
+
+ocp_instances:
+  master:
+    num: 1
+    flavor: ocp1.master
+  node:
+    num: 3
+    flavor: ocp1.node
+  infra:
+    num: 1
+    flavor: ocp1.master
+
+docker_instances:
+  registry:
+    vm_name: ocp-registry
+    num: 1
+    flavor: ocp1.registry
+    docker_vol_size: 100
+    docker_vol_name: ocp-registry-vol-registry
+    docker_dev: '/dev/vdb'

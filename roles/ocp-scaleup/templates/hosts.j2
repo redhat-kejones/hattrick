@@ -3,7 +3,7 @@
 masters
 etcd
 nodes
-glusterfs
+#glusterfs
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
@@ -16,6 +16,16 @@ openshift_metrics_heapster_nodeselector={'region': 'infra'}
 openshift_logging_es_nodeselector={'region': 'infra'}
 openshift_logging_curator_nodeselector={'region': 'infra'}
 openshift_logging_kibana_nodeselector={'region': 'infra'}
+oreg_url={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-${component}:${version}
+openshift_examples_modify_imagestreams=true
+openshift_logging_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
+openshift_metrics_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
+openshift_web_console_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+ansible_service_broker_etcd_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+ansible_service_broker_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+template_service_broker_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+openshift_service_catalog_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+
 
 # If ansible_ssh_user is not root, ansible_become must be set to true
 ansible_become=true
@@ -66,12 +76,12 @@ template_service_broker_selector={'role': 'infra'}
 
 #openshift_storage_glusterfs_namespace=glusterfs
 #openshift_storage_glusterfs_name=storage
-openshift_storage_glusterfs_heketi_wipe=true
-openshift_storage_glusterfs_wipe=true
-openshift_storage_glusterfs_storageclass_default=true
+#openshift_storage_glusterfs_heketi_wipe=true
+#openshift_storage_glusterfs_wipe=true
+#openshift_storage_glusterfs_storageclass_default=true
 #openshift_storage_glusterfs_block_storageclass=false
 #openshift_master_dynamic_provisioning_enabled=true
-openshift_storage_glusterfs_timeout=900
+#openshift_storage_glusterfs_timeout=900
 #dynamic_volumes_check=False
 
 #Shared MPC registry
@@ -109,8 +119,8 @@ openshift_hosted_router_selector='role=infra'
 # Registry will only be created if nodes matching this label are present.
 # Default value: 'region=infra'
 openshift_hosted_registry_selector='role=infra'
-openshift_hosted_registry_storage_kind=glusterfs
-openshift_hosted_registry_storage_volume_size={{ openshift_registry_volume_size }}Gi
+#openshift_hosted_registry_storage_kind=glusterfs
+#openshift_hosted_registry_storage_volume_size={{ openshift_registry_volume_size }}Gi
 
 # Metrics deployment
 # See: https://docs.openshift.com/enterprise/latest/install_config/cluster_metrics.html
@@ -175,11 +185,11 @@ openshift_logging_kibana_nodeselector={'role': 'infra'}
 {% endfor %}
 
 # host group for glusterfs
-[glusterfs]
-{% set glusterfs_zone = 1 %}
-{% for host in groups['node'] %}
-{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_devices='[ "{{ cns_dev }}" ]'
+#[glusterfs]
+#{% set glusterfs_zone = 1 %}
+#{% for host in groups['node'] %}
+#{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_devices='[ "{{ cns_dev }}" ]'
 #{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_ip={{ hostvars[host].inventory_hostname }} glusterfs_zone={{ glusterfs_zone }} glusterfs_devices='[ "{{ cns_dev }}" ]'
-{% set glusterfs_zone = glusterfs_zone + 1 %}
-{% endfor %}
+#{% set glusterfs_zone = glusterfs_zone + 1 %}
+#{% endfor %}
 

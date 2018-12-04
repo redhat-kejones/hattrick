@@ -117,7 +117,7 @@ resources:
               members:
                 -
                   type: interface
-                  name: enp7s0
+                  name: nic3
                   primary: true
             -
               type: ovs_bridge
@@ -142,12 +142,12 @@ resources:
                   members:
                     -
                       type: interface
-                      name: enp3s0f0
+                      name: nic1
                       #mtu: 9000
                       primary: true
                     -
                       type: interface
-                      name: enp3s0f1
+                      name: nic2
                       #mtu: 9000
                 -
                   type: vlan

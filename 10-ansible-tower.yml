@@ -11,7 +11,7 @@
           username: "{{ osp_user }}"
           password: "{{ osp_pass }}"
           project_name: "{{ osp_project }}"
-        name: "{{ vm_name }}"
+        name: "{{ vm_name }}.{{ domain }}"
         state: present
         key_name: "{{ key_name }}"
         availability_zone: "{{ az }}"

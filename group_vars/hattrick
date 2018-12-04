@@ -132,6 +132,13 @@ rhosp_director:
 
   optional_docker_services:
     - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/barbican.yaml
+  ceph_enabled: true
+  ceph_namespace: registry.access.redhat.com/rhceph
+  ceph_image: rhceph-3-rhel7
+  ceph_tag: "{version}-{release}"
+  ceph_containerized: false
 
   # All variables for undercloud.conf
   cloud_domain: "{{ domain }}"
@@ -140,7 +147,7 @@ rhosp_director:
   # Network interface on the Undercloud that will be handling the PXE
   # boots and DHCP for Overcloud instances
   provisioning_interface: eth0
-  provisioning_interface_mtu: 1500
+  provisioning_interface_mtu: 1550
   # IP information for the interface on the Undercloud that will be
   # handling the PXE boots and DHCP for Overcloud instances.  The IP
   # portion of the value will be assigned to the network interface
@@ -206,7 +213,7 @@ rhosp_director:
     
 rhosp_overcloud:
   timezone: "US/Eastern"
-  timeout: 60
+  timeout: 90
   cloud_name: openstack
   controller_scale: 1
   compute_scale: 3

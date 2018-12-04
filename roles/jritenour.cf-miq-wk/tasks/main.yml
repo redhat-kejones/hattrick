@@ -12,7 +12,7 @@
       state: "started"
 
   - name: Configure Roles
-    command: "/var/www/miq/vmdb/bin/rails runner 'MiqServer.my_server.set_config(:server => {:role => \"event,reporting,scheduler,smartstate,ems_operations,ems_inventory,ems_metrics_collector,ems_metrics_coordinator,ems_metrics_processor,user_interface,websocket,web_services,automate\"})'" 
+    command: "/var/www/miq/vmdb/bin/rails runner 'MiqServer.my_server.set_config(:server => {:role => \"event,reporting,scheduler,smartstate,smartproxy,ems_operations,ems_inventory,ems_metrics_collector,ems_metrics_coordinator,ems_metrics_processor,user_interface,websocket,web_services,automate\"})'" 
 
   - name: restart EVM
     service:

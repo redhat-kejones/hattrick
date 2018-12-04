@@ -23,8 +23,8 @@
     #NOTE: above get_url should be commented out and below copy should be used for disconnected
     #copy:
     #  src: /repos/datastore.zip
-    #  dest: /root/datastore.zip
-    #  mode: 0644
+      dest: /root/datastore.zip
+      mode: 0644
 
   - name: Import automate domain
     command: '/var/www/miq/vmdb/bin/rake evm:automate:import DOMAIN=POC ZIP_FILE=/root/datastore.zip PREVIEW=false ENABLED=true'
@@ -37,8 +37,8 @@
     #NOTE: above get_url should be commented out and below copy should be used for disconnected
     #copy:
     #  src: /repos/dialog.yml
-    #  dest: /root/dialog.yml
-    #  mode: 0644
+      dest: /root/dialog.yml
+      mode: 0644
 
   - name: Import service dialogs
     command: "/var/www/miq/vmdb/bin/rake dialogs:import['/root/dialog.yml']"

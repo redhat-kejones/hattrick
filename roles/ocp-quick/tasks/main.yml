@@ -1,4 +1,8 @@
 ---
+  - name: set hostname
+    hostname:
+      name: "{{ ansible_hostname }}.{{ domain }}"
+
   - name: enable the needed rhel repositories
     yum_repository:
       name: "{{ item }}"
@@ -17,28 +21,6 @@
     with_items:
       - "{{ ocp.repos }}"
     when: register_rhn
-
-#  - name: Add Repos
-#    yum_repository:
-#      name: "{{ item.name }}"
-#      file: ocp
-#      description: "{{ item.description }}"
-#      baseurl: "{{ item.baseurl }}"
-#      gpgcheck: no
-#      enabled: yes
-#    with_items:
-#      - name: 'rhel-7-server-extras-rpms'
-#        description: 'RHEL 7 Extras'
-#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-extras-rpms'
-#      - name: 'rhel-7-server-rpms'
-#        description: 'RHEL 7 Base'
-#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-rpms'
-#      - name: 'rhel-7-fast-datapath-rpms'
-#        description: 'Fast datapath rpms'
-#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-fast-datapath-rpms'
-#      - name: 'rhel-7-server-ose-3.6-rpms'
-#        description: 'OCP 3.6 rpms'
-#        baseurl: 'http://{{ repo_server_ip }}/repos/rhel-7-server-ose-3.6-rpms'
 
   - name: update packages
     yum:
@@ -74,6 +56,25 @@
     - ipa-client
     - httpd-tools
     - dnsmasq
+    - skopeo
+    - screen
+    - vim
+
+  # Added a play to drop overcloud CA into the ca-trust
+#  - name: Add overcloud CA to the ca-trust
+#    template:
+#      dest: /etc/pki/ca-trust/source/anchors/overcloud.pem
+#      src: overcloud.pem
+#      owner: root
+
+#  - name: Add registry CA to the ca-trust
+#    template:
+#      dest: /etc/pki/ca-trust/source/anchors/external-registry-ca.crt
+#      src: external-registry-ca.crt
+#      owner: root
+
+#  - name: Update the ca trust
+#    shell: update-ca-trust extract
 
   - name: remove /mnt line from /etc/fstab
     mount:
@@ -125,7 +126,7 @@
       ipa_pass: "{{ ipa_password }}"
       state: present
       zone_name: "{{ domain }}"
-      record_name: "{{ ocp_wildcard_domain }}"
+      record_name: "{{ ocp_master_record }}"
       record_type: "A"
       record_value: "{{ inventory_hostname }}"
       validate_certs: false
@@ -209,6 +210,22 @@
 #    command: docker load -i /root/ose3-logging-metrics-images.tar
 #    when: "'master' not in group_names"
 
+  - name: Create volume for cluster docker registry
+    os_volume:
+      verify: no
+      auth:
+        auth_url: "{{ osp_url }}"
+        username: "{{ osp_user }}"
+        password: "{{ osp_pass }}"
+        project_name: "{{ osp_project }}"
+      state: present
+      availability_zone: "{{ az }}"
+      size: "{{ openshift_registry_volume_size }}"
+      display_name: "{{ registry_vol_name }}"
+    register: registry_volume
+    delegate_to: 127.0.0.1
+    when: "'master' in group_names"
+
   - name: copy hoststemplate file
     template:
       src: hosts.j2
@@ -269,17 +286,12 @@
     when: "'master' in group_names"
     ignore_errors: True
 
-# uncomment if doing a disconnected deployment
-#  - name: Run deploy_cluster playbook
-#    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml {{ deploy_cluster_extra_vars }}
-#    when: "'master' in group_names"
-#    ignore_errors: True
-
-# used for a connected deployment
   - name: Run deploy_cluster playbook
-    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+    command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml {{ deploy_cluster_extra_vars }}
     when: "'master' in group_names"
     ignore_errors: True
+
+ #Placed in the 09-r.yml playbook to be manually executed
 
   - name: Configure htpasswd for authentication
     htpasswd:

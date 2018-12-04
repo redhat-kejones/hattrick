@@ -5,6 +5,7 @@
   vars_files:
     - 'ocp-vars.yml'
   tasks:
+# uncomment out if anisble 2.6
   - ipa_dnszone:
       ipa_host: "{{ ipa_server }}"
       ipa_user: "{{ ipa_user }}"
@@ -13,13 +14,22 @@
       state: present
       zone_name: "{{ private_reverse_zone }}"
 
+# uncomment out if ansible 2.4
+#  - name: create reverse lookup zone
+    #shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-add {{ private_reverse_zone }} --dynamic-update=TRUE"
+#    shell: "echo bypassing"
+#    delegate_to: "{{ ipa_server }}"
+#    ignore_errors: true
+
   - name: enable dynamic updates on dns zones
     shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-mod {{ private_reverse_zone }} --dynamic-update=TRUE"
+    #shell: "echo bypassing"
     delegate_to: "{{ ipa_server }}"
     ignore_errors: true
 
   - name: enable allow ptr sync on dns zones
     shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-mod --allow-sync-ptr=1 {{ private_reverse_zone }}"
+    #shell: "echo bypassing"
     delegate_to: "{{ ipa_server }}"
     ignore_errors: true
 
@@ -31,10 +41,7 @@
     - 'ocp-vars.yml'
   vars:
     type: master
-    master: true
-    infra: false
-    node: false
-    num: 1
+    num: "{{ ocp_instances.master.num}}"
     flavor_name: "{{ master_flavor_name }}"
   roles:
     - ocp-osp
@@ -47,10 +54,7 @@
     - 'ocp-vars.yml'
   vars:
     type: infra
-    master: false
-    infra: true
-    node: false
-    num: 1
+    num: "{{ ocp_instances.infra.num }}"
     flavor_name: "{{ master_flavor_name }}"
   roles:
     - ocp-osp
@@ -63,15 +67,12 @@
     - 'ocp-vars.yml'
   vars:
     type: node
-    master: false
-    infra: false
-    node: true
-    num: 3
+    num: "{{ ocp_instances.node.num }}"
     flavor_name: "{{ node_flavor_name }}"
   roles:
     - ocp-osp
 
-- hosts: all
+- hosts: master,infra,node
   remote_user: cloud-user
   become: true
   vars_files:

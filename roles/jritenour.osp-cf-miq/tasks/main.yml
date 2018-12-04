@@ -123,7 +123,7 @@
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-      name: cf-{{ type }}-{{ num }}
+      name: cf-{{ type }}-{{ num }}.{{ domain }}
       state: present
       key_name: "{{ key_name }}"
       availability_zone: "{{ az }}"
@@ -145,7 +145,7 @@
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-      name: cf-{{ type }}-{{ item }}
+      name: cf-{{ type }}-{{ item }}.{{ domain }}
       state: present
       key_name: "{{ key_name }}"
       availability_zone: "{{ az }}"

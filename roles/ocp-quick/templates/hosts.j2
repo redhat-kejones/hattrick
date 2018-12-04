@@ -3,33 +3,37 @@
 masters
 etcd
 nodes
-glusterfs
+#glusterfs
 
 # Set variables common for all OSEv3 hosts
 [OSEv3:vars]
 # SSH user, this user should allow ssh based auth without requiring a password
 ansible_ssh_user={{ ssh_user }}
 ansible_ssh_common_args='-o StrictHostKeyChecking=no'
-openshift_metrics_cassandra_nodeselector={'region': 'infra'}
-openshift_metrics_hawkular_nodeselector={'region': 'infra'}
-openshift_metrics_heapster_nodeselector={'region': 'infra'}
-openshift_logging_es_nodeselector={'region': 'infra'}
-openshift_logging_curator_nodeselector={'region': 'infra'}
-openshift_logging_kibana_nodeselector={'region': 'infra'}
-{% if ocp_disconnected|default('False')|bool %}
-oreg_url={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-${component}:${version}
-openshift_examples_modify_imagestreams=true
-openshift_logging_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
-openshift_metrics_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
-openshift_web_console_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
-ansible_service_broker_etcd_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
-ansible_service_broker_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
-template_service_broker_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
-openshift_service_catalog_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
-{% endif %}
-
 # If ansible_ssh_user is not root, ansible_become must be set to true
 ansible_become=true
+
+# Openstack
+openshift_cloudprovider_kind=openstack
+openshift_cloudprovider_openstack_auth_url="{{ osp_url }}"
+openshift_cloudprovider_openstack_username="{{ osp_user }}"
+openshift_cloudprovider_openstack_password="{{ osp_pass }}"
+openshift_cloudprovider_openstack_tenant_name="{{ osp_project }}"
+
+#oreg_url={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-${component}:${version}
+#openshift_examples_modify_imagestreams=true
+#openshift_logging_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
+#openshift_metrics_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/
+#openshift_web_console_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+#ansible_service_broker_etcd_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+#ansible_service_broker_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+#template_service_broker_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+#openshift_service_catalog_image_prefix={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-
+
+# If using in a disconnected environment
+#openshift_docker_blocked_registries=registry.access.redhat.com,docker.io
+#openshift_image_tag={{ ocp_image_tag }}
+#openshift_release={{ ocp_image_tag }}
 
 openshift_deployment_type=openshift-enterprise
 
@@ -37,9 +41,8 @@ openshift_deployment_type=openshift-enterprise
 #openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
 openshift_master_identity_providers=[{'name': 'allow_all', 'login': 'true', 'challenge': 'true', 'kind': 'AllowAllPasswordIdentityProvider'}]
 
-#openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
-openshift_master_cluster_public_hostname={{ ocp_wildcard_domain }}
-
+openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+openshift_master_cluster_public_hostname={{ ocp_master_domain }}
 openshift_master_default_subdomain={{ ocp_wildcard_domain }}
 
 # default project node selector
@@ -51,10 +54,13 @@ osm_use_cockpit=true
 # Set cockpit plugins
 osm_cockpit_plugins=['cockpit-kubernetes']
 
+# Increase docker pull timeout to 10 minutes
+openshift_node_kubelet_args={'image-pull-progress-deadline': ['10m']}
+
 openshift_disable_check=docker_image_availability
 
 # Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
-os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
+#os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
 
 #Change console/api port to 443 instead of 8443
 openshift_master_api_port=443
@@ -67,27 +73,9 @@ openshift_enable_service_catalog=true
 template_service_broker_install=true
 template_service_broker_selector={'role': 'infra'}
 
-#CNS
-
-#openshift_storage_glusterfs_block_deploy=true
-#openshift_storage_glusterfs_block_host_vol_size=20
-#openshift_storage_glusterfs_block_storageclass=true
-#openshift_storage_glusterfs_block_storageclass_default=true
-#openshift_storageclass_default=false
-
-#openshift_storage_glusterfs_namespace=glusterfs
-#openshift_storage_glusterfs_name=storage
-openshift_storage_glusterfs_heketi_wipe=true
-openshift_storage_glusterfs_wipe=true
-openshift_storage_glusterfs_storageclass_default=true
-#openshift_storage_glusterfs_block_storageclass=false
-#openshift_master_dynamic_provisioning_enabled=true
-openshift_storage_glusterfs_timeout=900
-#dynamic_volumes_check=False
-
 #Shared MPC registry
-openshift_docker_additional_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
-openshift_docker_insecure_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+#openshift_docker_additional_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+#openshift_docker_insecure_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
 
 # OpenShift Router Options
 #
@@ -120,7 +108,10 @@ openshift_hosted_router_selector='role=infra'
 # Registry will only be created if nodes matching this label are present.
 # Default value: 'region=infra'
 openshift_hosted_registry_selector='role=infra'
-openshift_hosted_registry_storage_kind=glusterfs
+openshift_hosted_registry_storage_kind=openstack
+openshift_hosted_registry_storage_access_modes=['ReadWriteOnce']
+openshift_hosted_registry_storage_openstack_filesystem=ext4
+openshift_hosted_registry_storage_openstack_volumeID="{{ registry_volume.id }}"
 openshift_hosted_registry_storage_volume_size={{ openshift_registry_volume_size }}Gi
 
 # Metrics deployment
@@ -152,24 +143,6 @@ openshift_logging_es_nodeselector={'role': 'infra'}
 openshift_logging_curator_nodeselector={'role': 'infra'}
 openshift_logging_kibana_nodeselector={'role': 'infra'}
 
-# Prometheus deployment
-#
-# Currently prometheus deployment is disabled by default, enable it by setting this
-#openshift_hosted_prometheus_deploy=true
-#
-# Prometheus storage config
-#openshift_prometheus_storage_type=pvc
-#openshift_prometheus_storage_class=glusterfs-storage
-#openshift_prometheus_alertmanager_storage_type=pvc
-#openshift_prometheus_alertmanager_storage_class=glusterfs-storage
-#openshift_prometheus_alertbuffer_storage_type=pvc
-#openshift_prometheus_alertbuffer_storageinventory_class=glusterfs-storage
-#
-# Other Prometheus Options
-#openshift_prometheus_node_selector={'role': 'infra'}
-# The default v0.15.2 doesn't exist
-#openshift_prometheus_node_exporter_image_version=v3.9
-
 # host group for masters
 [masters]
 {{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
@@ -179,18 +152,8 @@ openshift_logging_kibana_nodeselector={'role': 'infra'}
 
 # host group for nodes, includes region info
 [nodes]
-{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }} 
 {{ hostvars[groups['infra'][0]]['ansible_hostname'] }}.{{ domain }} openshift_node_labels="{'region': 'infra', 'zone': 'default', 'role': 'infra'}"
 {% for host in groups['node'] %}
 {{ hostvars[host].ansible_hostname }}.{{ domain }} openshift_node_labels="{'region': 'primary', 'zone': 'default', 'role': 'app'}"
 {% endfor %}
-
-# host group for glusterfs
-[glusterfs]
-{% set glusterfs_zone = 1 %}
-{% for host in groups['node'] %}
-{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_devices='[ "{{ cns_dev }}" ]'
-#{{ hostvars[host].ansible_hostname }}.{{ domain }} glusterfs_ip={{ hostvars[host].inventory_hostname }} glusterfs_zone={{ glusterfs_zone }} glusterfs_devices='[ "{{ cns_dev }}" ]'
-{% set glusterfs_zone = glusterfs_zone + 1 %}
-{% endfor %}
-

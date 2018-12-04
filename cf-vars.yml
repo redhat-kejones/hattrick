@@ -1,3 +1,4 @@
+domain: hattrick.lab
 osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
 osp_ip: 192.168.1.40 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
@@ -24,10 +25,9 @@ rhn_user: "{{ vault_rhn_user }}"
 rhn_pass: "{{ vault_rhn_pwd }}"
 rhn_pool: "{{ vault_rhn_pool_name }}"
 ipa_server: "idm.{{ domain }}"
-domain: "{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"
-undercloud_ip: 192.168.0.5 # OpenStack specific
+undercloud_ip: 192.168.0.8 # OpenStack specific
 undercloud_user: "{{ vault_undercloud_admin_user }}" # OpenStack specific
 undercloud_pw: "{{ vault_undercloud_admin_pwd }}"
 ocppass: xxx

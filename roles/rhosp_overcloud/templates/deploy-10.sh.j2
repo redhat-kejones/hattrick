@@ -3,6 +3,9 @@
 cd ~
 source ~/stackrc
 
+#  -e /home/stack/templates/disable-stigged-services.yaml \
+#  -e /home/stack/templates/post-deploy-stig.yaml \
+
 openstack overcloud deploy --templates \
   -r /home/stack/templates/roles_data.yaml \
   -e /home/stack/templates/timezone.yaml \

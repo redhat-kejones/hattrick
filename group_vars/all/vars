@@ -34,7 +34,7 @@ versions:
 
 rhel_repo:
   hostname_short: repo
-  sync_satellite: false
+  sync_satellite: true
   repos:
     rhel:
       - rhel-{{ ansible_distribution_major_version }}-server-rpms
@@ -45,10 +45,18 @@ rhel_repo:
       - rhel-{{ ansible_distribution_major_version }}-server-ansible-2.6-rpms
     osp:
       - rhel-ha-for-rhel-{{ ansible_distribution_major_version }}-server-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-devtools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-10-optools-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-devtools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-openstack-{{ versions.rhosp }}-optools-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-osd-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-mon-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-rhceph-2-tools-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-osd-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-mon-rpms
+      - rhel-{{ ansible_distribution_major_version }}-server-rhceph-{{ versions.ceph }}-tools-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-satellite-tools-{{ versions.satellite }}-rpms
     satellite:
       - rhel-{{ ansible_distribution_major_version }}-server-satellite-{{ versions.satellite }}-rpms
@@ -56,6 +64,8 @@ rhel_repo:
     ocp:
       - rhel-{{ ansible_distribution_major_version }}-fast-datapath-rpms
       - rhel-{{ ansible_distribution_major_version }}-server-ose-{{ versions.ocp }}-rpms
+      - rh-gluster-3-client-for-rhel-7-server-rpms
+      - rh-gluster-3-for-rhel-7-server-rpms
     cfme:
       - cf-me-{{ versions.cfme }}-for-rhel-{{ ansible_distribution_major_version }}-rpms
 
@@ -70,11 +80,11 @@ rhel_nfs:
     - portmap
 
 rhel_kvm:
-  hostname_full: "nuc.{{ domain }}"
+  hostname_full: "ht1-kvm.{{ domain }}"
   disks:
     destructive_filesystem: yes #Default to yes (will use the force: yes for filesystem ansible modules incase partitions already exists, this is destructive!!)
     root: sda
-    libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
+#    libvirt_images: sdb #NOTE: only use if there is a second drive on KVM host
 #   content: sdc        #NOTE: only use if there is a third drive on KVM host
   repos:
     - rhel-7-server-rpms
@@ -122,10 +132,10 @@ vmenator:
     nics:
     - name: eth0
       config: "--type bridge --source br2 --model virtio"
-      ip: 192.168.2.5
+      ip: 192.168.2.8
     - name: eth1
       config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.5
+      ip: 192.168.0.8
     ram: 16384
     vcpus: 8
   - name: idm
@@ -143,7 +153,7 @@ vmenator:
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.8
+      ip: 192.168.0.7
     ram: 1024
     vcpus: 1
 

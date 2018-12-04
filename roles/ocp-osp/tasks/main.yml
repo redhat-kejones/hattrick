@@ -7,8 +7,27 @@
 #    debug:
 #      var: uuid_list.stdout
 
+#the below should be re-written to use an array loop for volumes and instances
+
+
+# Moved to ocp-quick
+#  - name: Create volume for cluster docker registry
+#    os_volume:
+#      verify: no
+#      auth:
+#        auth_url: "{{ osp_url }}"
+#        username: "{{ osp_user }}"
+#        password: "{{ osp_pass }}"
+#        project_name: "{{ osp_project }}"
+#      state: present
+#      availability_zone: "{{ az }}"
+#      size: "{{ openshift_registry_volume_size }}"
+#      display_name: "{{ registry_vol_name }}"
+#    register: registry_volume
+
   - name: Create volume for docker storage for all instances
     os_volume:
+      verify: no
       auth:
         auth_url: "{{ osp_url }}"
         username: "{{ osp_user }}"
@@ -21,51 +40,54 @@
     with_sequence:
       count={{ num }}
 
-  - name: Create volume for cns for all instances
-    os_volume:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
-      state: present
-      availability_zone: "{{ az }}"
-      size: "{{ cns_size | default('100') }}"
-      display_name: "{{ db_vol_name }}-cns-{{ item }}"
-    with_sequence:
-      count={{ num }}
+#  - name: Create volume for cns for all instances
+#    os_volume:
+#      verify: no
+#      auth:
+#        auth_url: "{{ osp_url }}"
+#        username: "{{ osp_user }}"
+#        password: "{{ osp_pass }}"
+#        project_name: "{{ osp_project }}"
+#      state: present
+#      availability_zone: "{{ az }}"
+#      size: "{{ cns_size | default('100') }}"
+#      display_name: "{{ db_vol_name }}-cns-{{ item }}"
+#    with_sequence:
+#      count={{ num }}
 
-  - debug:
-      msg: "{{ flavor_name }}"
   - name: launch instances
     os_server:
+      verify: no
       auth:
         auth_url: "{{ osp_url }}"
         username: "{{ osp_user }}"
         password: "{{ osp_pass }}"
         project_name: "{{ osp_project }}"
-      name: "{{ vm_name }}-{{ item }}"
+      name: "{{ vm_name }}-{{ item }}.{{ domain }}"
       state: present
       key_name: "{{ key_name }}"
       availability_zone: "{{ az }}"
       nics:
         - net-name: "{{ network_name }}"
-      image: "{{ image_uid }}"
       flavor: "{{ flavor_name }}"
+      image: "{{ image_uid }}"
       security_groups: "{{ security_group }}"
       auto_ip: yes
       volumes:
         - "{{ db_vol_name }}-{{ item }}"
-        - "{{ db_vol_name }}-cns-{{ item }}"
       timeout: 300
     register: osp_host
     with_sequence:
       count={{ num }}
 
-#  - name: debug
-#    debug:
-#      var: osp_host.results
+#  - name: add entry to dns
+#    shell: "ssh root@{{ dns_server_local }} 'ipa dnsrecord-add {{ domain }} {{ item.openstack.name }} --a-rec {{ item.openstack.public_v4 }}' "
+#    with_items: "{{ osp_host.results }}"
+#    register: ssh_result
 
+  - debug:
+      var: ssh_result
+  
   - name: wait for instances become ready to use
     wait_for:
      host: "{{ item.openstack.public_v4 }}"
@@ -79,7 +101,7 @@
       hostname: "{{ osp_host.results[0].openstack.public_v4 }}"
       ansible_ssh_user: cloud-user
       groupname: master
-    when: master
+    when: type=='master'
 
   - name: add nodes to inventory
     add_host:
@@ -87,7 +109,7 @@
       ansible_ssh_user: cloud-user
       groupname: node
     with_items: "{{ osp_host.results }}"
-    when: node 
+    when: type=='node'
 
   - name: add nodes to inventory
     add_host:
@@ -95,7 +117,8 @@
       ansible_ssh_user: cloud-user
       groupname: infra
     with_items: "{{ osp_host.results }}"
-    when: infra
+    when: type=='infra'
+
 
   - name: Pause playbook execution for 30 seconds
     pause:

@@ -3,3 +3,5 @@ DEVICE=eth1
 ONBOOT=yes
 TYPE=Ethernet
 USERCTL=no
+PEERDNS=no
+DEFROUTE=no

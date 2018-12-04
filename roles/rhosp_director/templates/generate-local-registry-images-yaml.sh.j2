@@ -5,7 +5,7 @@ openstack overcloud container image prepare \
   --prefix=openstack- \
 {% if docker_latest is defined and docker_latest.stdout is defined%}
   --tag="{{ docker_latest.stdout }}" \
-{% elif disconnected.docker is defined and disconnected.docker.latest_tag is defined %}
+{% elif disonnected is defined and disconnected.docker is defined and disconnected.docker.latest_tag is defined %}
   --tag="{{ disconnected.docker.latest_tag }}" \
 {% endif -%} 
 {% for services in rhosp_director.optional_docker_services %}
@@ -18,7 +18,10 @@ openstack overcloud container image prepare \
 {% if rhosp_director.ceph_image != None %}
   --set  ceph_image={{ rhosp_director.ceph_image }} \
 {% endif %}
-{% if rhosp_director.ceph_tag != None %}
+{% if versions.rhosp >=13 %}
+  --tag-from-label {version}-{release} \
+{% endif %}
+{% if versions.rhosp == 12 and rhosp_director.ceph_tag != None %}
   --set  ceph_tag={{ rhosp_director.ceph_tag }} \
 {% endif %}
 {% endif %}
