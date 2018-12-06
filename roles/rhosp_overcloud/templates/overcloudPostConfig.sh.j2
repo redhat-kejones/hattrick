@@ -53,16 +53,15 @@ echo $keypairPubkey > /tmp/${keypairName}.pub
 nova keypair-add --pub-key /tmp/${keypairName}.pub $keypairName
 
 #Create a base flavor for use later
-openstack flavor create --id 1 --ram 512 --disk 1 --vcpus 1 --public m1.tiny
+openstack flavor create --id 1 --ram 256 --disk 1 --vcpus 1 --public m1.tiny
 openstack flavor create --id 2 --ram 1024 --disk 10 --vcpus 1 --public m1.small
 openstack flavor create --id 3 --ram 2048 --disk 20 --vcpus 2 --public m1.medium
 openstack flavor create --id 4 --ram 4096 --disk 40 --vcpus 4 --public m1.large
 openstack flavor create --id 5 --ram 8192 --disk 80 --vcpus 8 --public m1.xlarge
 openstack flavor create --id 6 --ram 12288 --disk 80 --vcpus 4 --public cf.min
-openstack flavor create --id 7 --ram 16834 --disk 40 --ephemeral 40 --vcpus 8 --public ocp1.master
-openstack flavor create --id 8 --ram 8192 --disk 40 --ephemeral 300 --vcpus 8 --public ocp1.node
+openstack flavor create --id 7 --ram 16384 --disk 80 --vcpus 8 --public ocp1.master
+openstack flavor create --id 8 --ram 32768 --disk 80 --vcpus 8 --public ocp1.node
 openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
-
 
 #TODO: Need to figure out a way to make this dynamic on whether flat or vlan
 #Create shared external network via flat provider type
@@ -102,40 +101,3 @@ neutron router-gateway-set router-$externalNetwork $externalNetwork
 {% for images in rhosp_guest_images %}
 glance image-create --name {{ images.name }} --disk-format qcow2 --min-disk {{ images.min_disk }} --min-ram {{ images.min_ram }} --container-format bare --visibility public --progress --file ./{{ images.qcow_loc }}
 {% endfor %}
-
-#Cirros
-#glance image-create --name cirros --disk-format qcow2 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cirros.qcow2
-
-#RHEL Cloud Images
-#glance image-create --name rhel74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.4-x86_64-kvm.qcow2
-
-#glance image-create --name rhel75 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-7.5-x86_64-kvm.qcow2
-
-#glance image-create --name rhel69 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-guest-image-6.9-206.x86_64.qcow2
-
-#glance image-create --name rhel610 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-server-6.10-beta-1-x86_64-kvm.qcow2
-
-#RHEL Atomic
-#glance image-create --name rhelatomic74 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/rhel-atomic-cloud-7.4.1-5.x86_64.qcow2
-
-#CentOS 7
-#glance image-create --name centos7 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/CentOS-7-x86_64-GenericCloud.qcow2
-
-#Sahara Apache Spark
-#glance image-create --name spark160 --disk-format qcow2 --min-disk 10 --min-ram 1024 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/sahara-newton-spark-1.6.0-ubuntu.qcow2
-
-#CloudForms
-#glance image-create --name cf46 --disk-format qcow2 --min-disk 40 --min-ram 12288 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/cfme-rhos-5.9.1.2-1.x86_64.qcow2
-
-#Windows Server 2012r2 Cloud Image
-#glance image-create --name win2012r2 --disk-format qcow2 --min-disk 40 --min-ram 4096 \
-#  --container-format bare --visibility public --progress --file /home/stack/guest-images/windows_server_2012_r2_standard_eval_kvm_20151021.qcow2

@@ -26,10 +26,10 @@ rhn_pwd: "{{ vault_rhn_pwd }}"
 rhn_pool_name: "{{ vault_rhn_pool_name }}"
 
 versions:
-  rhosp: 10
-  ceph: 2
+  rhosp: 13
+  ceph: 3
   satellite: 6.3
-  ocp: 3.9
+  ocp: 3.11
   cfme: 5.9
 
 rhel_repo:
@@ -132,10 +132,10 @@ vmenator:
     nics:
     - name: eth0
       config: "--type bridge --source br2 --model virtio"
-      ip: 192.168.2.8
+      ip: 192.168.2.5
     - name: eth1
       config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.8
+      ip: 192.168.0.5
     ram: 16384
     vcpus: 8
   - name: idm
@@ -153,36 +153,28 @@ vmenator:
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.7
+      ip: 192.168.0.8
     ram: 1024
     vcpus: 1
 
 rhosp_guest_images:
   - name: cirros
     min_disk: 10
-    min_ram: 1024
+    min_ram: 64
     qcow_loc: guest_images/cirros.qcow2
   - name: rhel75
     min_disk: 10
     min_ram: 1024
     qcow_loc: guest_images/rhel-server-7.5-x86_64-kvm.qcow2
-  - name: rhel69
-    min_disk: 10
-    min_ram: 1024
-    qcow_loc: guest_images/rhel-guest-image-6.9-206.x86_64.qcow2
   - name: centos7
     min_disk: 10
     min_ram: 1024
     qcow_loc: guest_images/CentOS-7-x86_64-GenericCloud.qcow2
-  - name: spark160
-    min_disk: 10
-    min_ram: 1024
-    qcow_loc: guest_images/sahara-newton-spark-1.6.0-ubuntu.qcow2
   - name: cf46
     min_disk: 40
     min_ram: 12288
-    qcow_loc: guest_images/cfme-rhos-5.9.3.4-1.x86_64.qcow2
+    qcow_loc: guest_images/cfme-rhos-5.9.4.7-1.x86_64.qcow2
   - name: win2012r2
     min_disk: 40
     min_ram: 4096
-    qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20151021.qcow2
+    qcow_loc: guest_images/windows_server_2012_r2_standard_eval_kvm_20170321.qcow2

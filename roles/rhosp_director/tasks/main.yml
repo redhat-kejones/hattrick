@@ -450,15 +450,6 @@
       tags: docker_registry_template
       when: disconnected is not defined
 
-    - name: Pull the Docker images in to local registry
-      shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
-      args:
-        chdir: /home/stack
-      async: 2700
-      poll: 30
-      tags: docker_registry_pull
-      when: disconnected is not defined
-    
     - name: Pull the Docker images from a URL source
       shell: curl "{{ disconnected.docker.source }}" | gzip -d | sudo docker load
       async: 2700
@@ -484,6 +475,15 @@
         chdir: /home/stack
       tags: docker_registry_template
       tags: docker_registry_template,docker_overcloud_registry
+    
+    - name: Pull the Docker images in to local registry
+      shell: source /home/stack/stackrc && sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+      args:
+        chdir: /home/stack
+      async: 2700
+      poll: 30
+      tags: docker_registry_pull
+      when: disconnected is not defined
     
 - name: Process local CA for undercloud SSL
   become: yes
