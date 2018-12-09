@@ -21,12 +21,33 @@
     group: stack
   tags: pre-overcloud
 
+- name: copy node-info.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/node-info.yaml.j2"
+    dest: /home/stack/templates/node-info.yaml
+    owner: stack
+    group: stack
+  when: versions.rhosp == 13
+  tags: pre-overcloud
+
 - name: copy cloudname.yaml template
   become: yes
   become_user: stack
   template:
     src: "templates/templates-{{ versions.rhosp }}/cloudname.yaml.j2"
     dest: /home/stack/templates/cloudname.yaml
+    owner: stack
+    group: stack
+  tags: pre-overcloud
+
+- name: copy network_data.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/network_data.yaml.j2"
+    dest: /home/stack/templates/network_data.yaml
     owner: stack
     group: stack
   tags: pre-overcloud
@@ -49,6 +70,18 @@
     dest: /home/stack/templates/storage-environment.yaml
     owner: stack
     group: stack
+  when: versions.rhosp == 10
+  tags: pre-overcloud
+
+- name: copy ceph-environment.yaml template
+  become: yes
+  become_user: stack
+  template:
+    src: "templates/templates-{{ versions.rhosp }}/ceph-environment.yaml.j2"
+    dest: /home/stack/templates/ceph-environment.yaml
+    owner: stack
+    group: stack
+  when: versions.rhosp == 13
   tags: pre-overcloud
 
 - name: copy timezone.yaml template
@@ -84,7 +117,6 @@
   copy:
     src: guest_images/
     dest: /home/stack/guest_images
-
 
 #TODO: Need to convert this script to ansible tasks
 - name: copy overcloud post config script

@@ -3,27 +3,27 @@
 cd ~
 source ~/stackrc
 
-openstack overcloud deploy --templates \
+#Disable Telemetry
+#  -e /usr/share/openstack-tripleo-heat-templates/environments/disable-telemetry.yaml
+
+#Enable nested Virt on Hypervisors
+#  -e /home/stack/templates/nested-virt-post-deploy.yaml \
+
+time openstack overcloud deploy --templates \
   -r /home/stack/templates/roles_data.yaml \
+  -n /home/stack/templates/network_data.yaml \
+  -e /home/stack/templates/overcloud_images.yaml \
   -e /home/stack/templates/timezone.yaml \
   -e /home/stack/templates/cloudname.yaml \
-  -e /home/stack/templates/overcloud_images.yaml \
-  -e /usr/share/openstack-tripleo-heat-templates/environments/network-isolation.yaml \
-  -e /home/stack/templates/network-environment.yaml \
-  -e /home/stack/templates/storage-environment.yaml \
-{% if rhosp_director.ceph_enabled | bool %}
-  -e /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml \
-  -e /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-rgw.yaml \
-  -e /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml \
-{% endif %}
+  -e /home/stack/templates/inject-trust-anchor-hiera.yaml \
+  -e /home/stack/templates/node-info.yaml \
 {% for services in rhosp_director.optional_docker_services %}
   -e {{ services }} \
 {% endfor %}
-  --control-flavor control \
-  --compute-flavor compute \
-  --ceph-storage-flavor ceph-storage \
-  --control-scale {{ rhosp_overcloud.controller_scale }} \
-  --compute-scale {{ rhosp_overcloud.compute_scale }} \
-  --ceph-storage-scale {{ rhosp_overcloud.ceph_storage_scale }} \
-  --ntp-server {{ ntp_server }} \
+  -e /usr/share/openstack-tripleo-heat-templates/environments/enable-swap.yaml \
+  -e /usr/share/openstack-tripleo-heat-templates/environments/network-isolation.yaml \
+  -e /home/stack/templates/network-environment.yaml \
+  -e /home/stack/templates/ceph-environment.yaml \
+  -e /home/stack/templates/firstboot-environment.yaml \
+  -e /home/stack/templates/octavia-post-deploy.yaml \
   --timeout {{ rhosp_overcloud.timeout }}

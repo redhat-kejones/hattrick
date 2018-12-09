@@ -131,9 +131,13 @@ rhosp_director:
   stack_user_pwd: "{{ vault_stack_user_pwd }}"
 
   optional_docker_services:
-    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/sahara.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/services/barbican.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/barbican-backend-simple-crypto.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/services/octavia.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/services/sahara.yaml
     - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-ansible.yaml
-    - /usr/share/openstack-tripleo-heat-templates/environments/services-docker/barbican.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/ceph-ansible/ceph-rgw.yaml
+    - /usr/share/openstack-tripleo-heat-templates/environments/cinder-backup.yaml
   ceph_enabled: true
   ceph_namespace: registry.access.redhat.com/rhceph
   ceph_image: rhceph-3-rhel7

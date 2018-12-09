@@ -85,6 +85,7 @@
     - 'crudini'
     - 'git'
     - 'libguestfs-tools-c'
+    - 'python-pyghmi'
     - 'python-tripleoclient'
     - 'rhosp-director-images'
     - 'rhosp-director-images-ipa'
@@ -245,13 +246,6 @@
     - '/usr/share/rhosp-director-images/ironic-python-agent-latest-{{ versions.rhosp }}.0.tar'
   tags: install
 
-- name: Remove 192.168.122.1 from /etc/resolv.conf on overcloud-full image
-  become: yes
-  become_user: stack
-  command: "virt-customize -a /home/stack/images/overcloud-full.qcow2 --no-network --run-command 'sed -i \"/nameserver 192.168.122.1/d\" /etc/resolv.conf'"
-  when: versions.rhosp >= 12
-  tags: install,overcloud-full
-
 - name: install the Undercloud
   become: yes
   become_user: stack
@@ -280,6 +274,7 @@
   become: yes
   become_user: stack
   shell: source /home/stack/stackrc && sudo keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone && sudo tar -zcf /home/stack/keystone-fernet-keys.tar.gz /etc/keystone/fernet-keys && upload-swift-artifacts -f /home/stack/keystone-fernet-keys.tar.gz
+  when: versions.rhosp == 10
   tags: install
 
 - name: set debug flag to false in DEFAULT section
@@ -313,6 +308,7 @@
     dest: /etc/nova/nova.conf
     regexp: '^dhcp_domain='
     line: "dhcp_domain={{ rhosp_director.cloud_domain }}"
+  when: versions.rhosp == 10
   tags: install
 
 - name: restart openstack services
@@ -324,14 +320,6 @@
     - 'neutron-*'
     - 'httpd'
   tags: install
-
-- name: install several useful utility and undercloud packages
-  yum:
-    name: "{{ item }}"
-    state: latest
-  with_items:
-    - python-pyghmi
-  tags: introspection
 
 - name: create instackenv file
   copy:
@@ -426,20 +414,12 @@
     msg: ipmi completely validated
   tags: introspection
 
-- name: Configure undercloud for local Docker repo
+- name: Configure undercloud for containerized overcloud
   become: yes
   become_user: stack
-  when: versions.rhosp >= 12
+  when: versions.rhosp == 13
   tags: docker_registry
   block:
-    - name: Discover the tag for the latest Docker images
-      shell: source /home/stack/stackrc && sudo openstack overcloud container image tag discover --image "registry.access.redhat.com/rhosp{{ versions.rhosp }}/openstack-base:latest" --tag-from-label version-release
-      args:
-        chdir: /home/stack
-      register: docker_latest
-      tags: docker_registry_template
-      when: disconnected is not defined and versions.rhosp == 12
-    
     - name: copy generate-container-prepare.sh script
       template:
         src: templates/generate-container-prepare.sh.j2
@@ -497,14 +477,14 @@
       register: stat_data
 
     - name: Read in CA that is used to for Undercloud SSL services
-      shell: /bin/awk 'BEGIN{display=0};/BEGIN CERTIFICATE/ {display=1}; (display==1) {print "    "$0}; /END CERTIFICATE/ {display=0};' "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
+      shell: /bin/awk 'BEGIN{display=0};/BEGIN CERTIFICATE/ {display=1}; (display==1) {print "        "$0}; /END CERTIFICATE/ {display=0};' "{{ rhosp_director.local_ca_file | default('/etc/pki/ca-trust/source/anchors/cm-local-ca.pem') }}"
       when: stat_data.stat.exists
       register: ssl_ca_certificate
 
     - name: Generate trust anchor environment file
       template:
-        src: templates/inject-trust-anchor.yaml.j2
-        dest: /home/stack/templates/inject-trust-anchor.yaml
+        src: templates/inject-trust-anchor-hiera.yaml.j2
+        dest: /home/stack/templates/inject-trust-anchor-hiera.yaml
         owner: stack
         group: stack
         mode: 0444

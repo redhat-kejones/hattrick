@@ -1,0 +1,16 @@
+parameter_defaults:
+  ControllerCount: {{ rhosp_overcloud.controller_scale }}
+  OvercloudControllerFlavor: control
+  ComputeCount: {{ rhosp_overcloud.compute_scale }}
+  OvercloudComputeFlavor: compute
+  CephStorageCount: {{ rhosp_overcloud.ceph_storage_scale }}
+  OvercloudCephStorageFlavor: ceph-storage
+  #Other Params
+  NtpServer: {{ ntp_server }}
+  AdminPassword: {{ vault_undercloud_admin_pwd }}
+  BarbicanSimpleCryptoGlobalDefault: true
+  CeilometerStoreEvents: true
+  CephAnsiblePlaybookVerbosity: 0
+  ExtraConfig:
+    nova::compute::reserved_host_memory: 4096
+    nova::cpu_allocation_ratio: 0

@@ -43,14 +43,14 @@ sed -i "s/\(OS_PASSWORD=\).*/\1${password}/" /home/stack/${user}rc
 source /home/stack/${user}rc
 
 #Add ICMP and SSH incoming rules to the default security group in operators tenant
-openstack security group rule create default --protocol icmp
-openstack security group rule create default --protocol tcp
-openstack security group rule create default --protocol udp
+openstack security group rule create --protocol icmp $(openstack security group list --project operators -c ID -f value)
+openstack security group rule create --protocol tcp $(openstack security group list --project operators -c ID -f value)
+openstack security group rule create --protocol udp $(openstack security group list --project operators -c ID -f value)
 
 #Create a temp public key file
 echo $keypairPubkey > /tmp/${keypairName}.pub
 #Import the public key for the operator user
-nova keypair-add --pub-key /tmp/${keypairName}.pub $keypairName
+openstack keypair create --public-key /tmp/${keypairName}.pub $keypairName
 
 #Create a base flavor for use later
 openstack flavor create --id 1 --ram 256 --disk 1 --vcpus 1 --public m1.tiny
@@ -67,16 +67,16 @@ openstack flavor create --id 9 --ram 12288 --disk 80 --vcpus 4 --public sat6.min
 #Create shared external network via flat provider type
 
 #External is VLAN
-#neutron net-create $externalNetwork --provider:network_type vlan --provider:segmentation_id $externalVlanId --provider:physical_network datacentre --shared --router:external
+#openstack network create --provider-network-type vlan --provider-physical-network datacentre --provider-segment $externalVlanId --share --external $externalNetwork
 
 #External is Flat
-neutron net-create $externalNetwork --provider:network_type flat --provider:physical_network datacentre --shared --router:external
+openstack network create --provider-network-type flat --provider-physical-network datacentre --share --external $externalNetwork
 
 #Create external subnet
 neutron subnet-create $externalNetwork $externalCidr --name ${externalNetwork}-sub --disable-dhcp --allocation-pool=start=$externalFipStart,end=$externalFipEnd --gateway=$externalGateway --dns-nameserver $externalDns
 
 #Create a private tenant vxlan network
-neutron net-create $tenantNetwork
+openstack network create $tenantNetwork
 
 #Create private tenant subnet
 neutron subnet-create $tenantNetwork $tenantCidr --name ${tenantNetwork}-sub --dns-nameserver $externalDns
