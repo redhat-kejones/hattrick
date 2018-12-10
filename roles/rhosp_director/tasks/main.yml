@@ -180,9 +180,11 @@
     - { key: local_interface, value: "{{ rhosp_director.provisioning_interface }}" }
     - { key: local_mtu, value: "{{ rhosp_director.provisioning_interface_mtu }}" }
     - { key: undercloud_public_vip, value: "{{ inventory_hostname }}" }
+    - { key: undercloud_public_host, value: "{{ inventory_hostname }}" }
     - { key: undercloud_admin_vip, value: "{{ rhosp_director.admin_apis_vip }}" }
+    - { key: undercloud_admin_host, value: "{{ rhosp_director.admin_apis_vip }}" }
     - { key: generate_service_certificate, value: "{{ rhosp_director.generate_service_certificate | default('true') }}" }
-    - { key: certificate_generate_ca, value: "local" }
+    - { key: certificate_generation_ca, value: "local" }
     - { key: undercloud_service_certificate, value: ""}
     - { key: service_principal, value: ""}
     - { key: network_cidr, value: "{{ rhosp_director.provisioning_network_cidr }}" }
@@ -218,6 +220,26 @@
     value: "{{ rhosp_director.admin_password }}"
     mode: 0644
     backup: no
+  tags: install
+
+- name: set undercloud.conf variables in the ctlplane section
+  #become: yes
+  #become_user: stack
+  ini_file:
+    dest: /home/stack/undercloud.conf
+    section: ctlplane-subnet
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    mode: 0644
+    backup: no
+  with_items:
+    - { key: cidr, value: "{{ rhosp_director.provisioning_network_cidr }}" }
+    - { key: dhcp_start, value: "{{ rhosp_director.deploy_dhcp_start }}" }
+    - { key: dhcp_end, value: "{{ rhosp_director.deploy_dhcp_end }}" }
+    - { key: inspection_iprange, value: "{{ rhosp_director.inspection_dhcp_start }},{{ rhosp_director.inspection_dhcp_end }}" }
+    - { key: gateway, value: "{{ rhosp_director.provisioning_network_gateway }}" }
+    - { key: masquerade, value: "true"}
+  when: versions.rhosp == 13
   tags: install
 
 - name: make images and templates directories
@@ -269,6 +291,13 @@
   become_user: stack
   shell: source /home/stack/stackrc && openstack subnet set --dns-nameserver {{ dns_server_local }} $(openstack subnet list | awk '/{{ networks.provisioning.cidr | ipaddr('network') }}/ {print $2}')
   tags: install
+
+- name: set mtu to 1500 on ctlplane network
+  become: yes
+  become_user: stack
+  shell: "source /home/stack/stackrc && openstack network set --mtu 1500 ctlplane"
+  args:
+    chdir: /home/stack
 
 - name: configuring fernet tokens for overcloud
   become: yes
@@ -453,7 +482,6 @@
       shell: source /home/stack/stackrc && /home/stack/generate-container-prepare.sh
       args:
         chdir: /home/stack
-      tags: docker_registry_template
       tags: docker_registry_template,docker_overcloud_registry
     
     - name: Pull the Docker images in to local registry
@@ -469,7 +497,7 @@
   become: yes
   become_user: stack
   tags: inject_local_ca
-  when: ( rhosp_director.generate_service_certificate is not defined ) or ( rhosp_director.generate_service_certificate == true )
+  when: ( rhosp_director.generate_service_certificate is not defined ) or ( rhosp_director.generate_service_certificate == true and versions.rhosp == 13 )
   block:
     - name: Check to see if local ca file exists
       stat:

@@ -177,50 +177,54 @@ rhosp_director:
   deploy_dhcp_end: 192.168.2.69
   # Defines whether to wipe the hard drive of overcloud nodes between
   # deployments and after the introspection
-  clean_nodes: false
+  clean_nodes: true
   # Set admin password for undercloud
   admin_password: "{{ vault_undercloud_admin_pwd }}"
 
   overcloud_nodes:
-    - name: node1
+    - name: node5
       profile: control
-      pm_addr: "192.168.2.201"
+      pm_addr: "192.168.2.205"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node2
-      profile: compute
-      pm_addr: "192.168.2.202"
+      root_device: "/dev/nvme0n1"
+    #- name: node6
+    #  profile: compute
+    #  pm_addr: "192.168.2.206"
+    #  pm_user: "admin"
+    #  pm_pwd: "admin"
+      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
+      #      should be a list of IPs to check and register
+    #  pm_driver: "pxe_ipmitool"
+    #  root_device: "/dev/nvme0n1"
+    - name: node7
+      profile: control
+      pm_addr: "192.168.2.207"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node3
-      profile: compute
-      pm_addr: "192.168.2.203"
+      root_device: "/dev/nvme0n1"
+    - name: node8
+      profile: control
+      pm_addr: "192.168.2.208"
       pm_user: "admin"
       pm_pwd: "admin"
       #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
       #      should be a list of IPs to check and register
       pm_driver: "pxe_ipmitool"
-    - name: node4
-      profile: compute
-      pm_addr: "192.168.2.204"
-      pm_user: "admin"
-      pm_pwd: "admin"
-      #NOTE: If pxe_ssh, ipmi_addr should be IP of hypervisor. If pxe_ipmitool,
-      #      should be a list of IPs to check and register
-      pm_driver: "pxe_ipmitool"
+      root_device: "/dev/nvme0n1"
     
 rhosp_overcloud:
   timezone: "US/Eastern"
-  timeout: 90
+  timeout: 120
   cloud_name: openstack
-  controller_scale: 1
-  compute_scale: 3
+  controller_scale: 3
+  compute_scale: 0
   ceph_storage_scale: 0
   ceph_disk_layout: ""
   operator_pub_key: "{{ vault_operator_pub_key }}"

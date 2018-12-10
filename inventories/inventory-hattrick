@@ -14,6 +14,7 @@ hattrick_switch
 192.168.0.3
 192.168.0.4
 192.168.0.5
+192.168.0.7
 192.168.0.8
 
 [rhel_common:children]
@@ -50,6 +51,12 @@ hattrick_rhosp_director
 [rhosp_overcloud:children]
 hattrick_rhosp_overcloud
 
+[hattrick_rhel_registry]
+192.168.0.7
+
+[rhel_registry:children]
+hattrick_rhel_registry
+
 [hattrick_rhel_repo]
 192.168.0.8
 
@@ -63,6 +70,7 @@ hattrick_rhel_kvm
 hattrick_vmenator
 hattrick_rhel_idm
 hattrick_rhel_repo
+hattrick_rhel_registry
 hattrick_rhel_common
 hattrick_rhosp_director
 hattrick_rhosp_overcloud

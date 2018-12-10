@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+ASSET_SERVER={{ rhel_registry.external_ip }}
+
+docker search registry.access.redhat.com/rhosp13| awk '{print $2}' | grep ^registry.access.redhat.com | while read IMAGE_NAME
+
+do
+  TAG=$(openstack overcloud container image tag discover --image ${IMAGE_NAME} --tag-from-label {version}-{release})
+  echo "Pulling ${IMAGE_NAME}:${TAG} ..."
+  docker pull ${IMAGE_NAME}:${TAG}
+  IMAGE_PATH=$(echo ${IMAGE_NAME} | cut -f2- -d/)
+  docker tag ${IMAGE_NAME}:${TAG} ${ASSET_SERVER}:8787/${IMAGE_PATH}:${TAG}
+  docker tag ${ASSET_SERVER}:8787/${IMAGE_PATH}:${TAG} ${ASSET_SERVER}:8787/${IMAGE_PATH}:latest
+  docker push ${ASSET_SERVER}:8787/${IMAGE_PATH}
+done
+
+docker pull registry.access.redhat.com/rhceph/rhceph-3-rhel7:latest
+
+docker tag registry.access.redhat.com/rhceph/rhceph-3-rhel7:latest ${ASSET_SERVER}:8787/rhceph/rhceph-3-rhel7:latest
+
+docker push ${ASSET_SERVER}:8787/rhceph/rhceph-3-rhel7:latest

@@ -1,0 +1,140 @@
+---
+# tasks file for roles/rhel_registry
+- name: set hostname
+  hostname:
+    name: "{{ rhel_registry.hostname_short }}.{{ domain }}"
+
+- name: add line to hosts file for self
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: "^{{ inventory_hostname }}"
+    line: "{{ inventory_hostname }} {{ rhel_registry.hostname_short }}.{{ domain }} {{ rhel_registry.hostname_short }}"
+
+- name: enable the needed rhel repositories
+  yum_repository:
+    name: "{{ item }}"
+    description: "{{ item }}"
+    baseurl: "{{ local_repo_url }}{{ item }}"
+    gpgcheck: no
+    enabled: yes
+    file: rhn-local
+    state: present
+  with_items:
+    - "{{ rhel_registry.repos }}"
+  when: not register_rhn
+
+- name: enable the needed rhel repositories
+  command: subscription-manager repos --enable={{ item }}
+  with_items:
+    - "{{ rhel_registry.repos }}"
+  when: register_rhn
+
+- name: update packages
+  yum:
+    name: '*'
+    state: latest
+  register: yum_result
+  async: 1000
+  poll: 30
+
+- name: check Kernel is the Latest
+  shell: if [ $(uname -r) == $(rpm -q kernel | tail -n 1 | sed -e 's/kernel-//g') ] ; then echo no ; else echo reboot; fi
+  ignore_errors: true
+  register: reboot_hint
+
+- name: make sure cloud-init is not installed
+  yum:
+    name: cloud-init
+    state: absent
+
+- name: install the required packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ rhel_registry.packages }}"
+  tags: configure_registry
+
+- name: restart machine to get updated kernel
+  shell: sleep 2 && shutdown -r now "ansible restart triggered for registry install"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: yum_result.changed or reboot_hint.stdout.find("reboot") != -1
+    
+- name: waiting for server to come back
+  wait_for:
+    host: "{{ inventory_hostname }}"
+    state: started
+    delay: 10
+    connect_timeout: 5
+    timeout: 300
+    port: 22
+  delegate_to: 127.0.0.1
+  become: false
+  ignore_errors: true
+
+- name: add ip to docker-distribution config
+  lineinfile:
+    dest: /etc/docker-distribution/registry/config.yml
+    state: present
+    regexp: "addr:"
+    line: "    addr: {{ rhel_registry.external_ip }}:8787"
+    insertafter: "^http:"
+  tags: configure_registry
+
+- name: starting the docker-distribution service
+  service:
+    name: docker-distribution
+    state: started
+    enabled: yes
+  tags: configure_registry
+
+- name: add insecure registry to docker config
+  lineinfile:
+    dest: /etc/sysconfig/docker
+    state: present
+    line: 'INSECURE_REGISTRY="--insecure-registry {{ rhel_registry.external_ip }}:8787"'
+    insertafter: "EOF"
+  tags: configure_registry
+
+- name: starting the docker service
+  service:
+    name: docker
+    state: started
+    enabled: yes
+  tags: configure_registry
+
+#Pull RHOSP 13 Container Images
+- name: copy pull-rhosp-images.sh script
+  template:
+    src: templates/pull-rhosp13-images.sh.j2
+    dest: /root/pull-rhosp13-images.sh
+    owner: root
+    group: root
+    mode: 0775
+
+- name: Execute the pull-rhosp13-images.sh script
+  shell: /root/pull-rhosp13-images.sh
+  args:
+    chdir: /root
+
+- name: docker login for registry.redhat.io
+  shell: docker login -u='{{ rhel_registry.rh_registry_username }}' -p={{ rhel_registry.rh_registry_token }} registry.redhat.io
+
+- name: Pull ocp images
+  shell: docker pull {{ item }}
+  with_items: "{{ rhel_registry.ocp_images }}"
+
+#Pull OCP Container Images
+
+#- name: Add docker-distribution service to firewalld config
+#  firewalld:
+#    port: "8787/TCP"
+#    permanent: true
+#    state: enabled
+
+#- name: restart firewalld
+#  service: name=firewalld state=restarted
+

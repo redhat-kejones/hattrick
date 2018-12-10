@@ -75,9 +75,132 @@ rhel_nfs:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
   packages:
-    - nfs-utils
-    - nfs-utils-lib
-    - portmap
+    - docker-distribution
+
+rhel_registry_ocp_tag: v3.11.16
+rhel_registry:
+  hostname_short: registry
+  external_ip: 192.168.0.7
+  rh_registry_username: "{{ vault_rh_registry_username }}"
+  rh_registry_token: "{{ vault_rh_registry_token }}"
+  repos:
+    - rhel-7-server-rpms
+    - rhel-7-server-extras-rpms
+    - rhel-7-server-rh-common-rpms
+    - rhel-ha-for-rhel-7-server-rpms
+    - rhel-7-server-openstack-{{ versions.rhosp }}-rpms
+  packages:
+    - docker-distribution
+    - python-tripleoclient
+    - docker
+  ocp_images:
+    - registry.redhat.io/openshift3/apb-base:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/apb-tools:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/automation-broker-apb:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/csi-attacher:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/csi-driver-registrar:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/csi-livenessprobe:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/csi-provisioner:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/grafana:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/image-inspector:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/mariadb-apb:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/mediawiki:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/mediawiki-apb:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/mysql-apb:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-ansible:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-ansible-service-broker:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-cli:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-cluster-autoscaler:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-cluster-capacity:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-cluster-monitoring-operator:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-console:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-configmap-reloader:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-control-plane:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-deployer:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-descheduler:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-docker-builder:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-docker-registry:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-efs-provisioner:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-egress-dns-proxy:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-egress-http-proxy:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-egress-router:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-haproxy-router:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-hyperkube:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-hypershift:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-keepalived-ipfailover:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-kube-rbac-proxy:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-kube-state-metrics:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-metrics-server:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-node:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-node-problem-detector:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-operator-lifecycle-manager:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-pod:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-prometheus-config-reloader:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-prometheus-operator:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-recycler:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-service-catalog:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-template-service-broker:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-web-console:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/postgresql-apb:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/registry-console:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/snapshot-controller:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/snapshot-provisioner:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/rhel7/etcd:3.2.22
+    - registry.redhat.io/openshift3/metrics-cassandra:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/metrics-hawkular-metrics:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/metrics-hawkular-openshift-agent:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/metrics-heapster:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/metrics-schema-installer:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/oauth-proxy:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-logging-curator5:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-logging-elasticsearch5:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-logging-eventrouter:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-logging-fluentd:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/ose-logging-kibana5:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/prometheus:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/prometheus-alert-buffer:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/prometheus-alertmanager:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/prometheus-node-exporter:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/cloudforms46/cfme-openshift-postgresql
+    - registry.redhat.io/cloudforms46/cfme-openshift-memcached
+    - registry.redhat.io/cloudforms46/cfme-openshift-app-ui
+    - registry.redhat.io/cloudforms46/cfme-openshift-app
+    - registry.redhat.io/cloudforms46/cfme-openshift-embedded-ansible
+    - registry.redhat.io/cloudforms46/cfme-openshift-httpd
+    - registry.redhat.io/cloudforms46/cfme-httpd-configmap-generator
+    - registry.redhat.io/rhgs3/rhgs-server-rhel7
+    - registry.redhat.io/rhgs3/rhgs-volmanager-rhel7
+    - registry.redhat.io/rhgs3/rhgs-gluster-block-prov-rhel7
+    - registry.redhat.io/rhgs3/rhgs-s3-server-rhel7
+    - registry.redhat.io/jboss-amq-6/amq63-openshift
+    - registry.redhat.io/jboss-datagrid-7/datagrid71-openshift
+    - registry.redhat.io/jboss-datagrid-7/datagrid71-client-openshift
+    - registry.redhat.io/jboss-datavirt-6/datavirt63-openshift
+    - registry.redhat.io/jboss-datavirt-6/datavirt63-driver-openshift
+    - registry.redhat.io/jboss-decisionserver-6/decisionserver64-openshift
+    - registry.redhat.io/jboss-processserver-6/processserver64-openshift
+    - registry.redhat.io/jboss-eap-6/eap64-openshift
+    - registry.redhat.io/jboss-eap-7/eap70-openshift
+    - registry.redhat.io/jboss-webserver-3/webserver31-tomcat7-openshift
+    - registry.redhat.io/jboss-webserver-3/webserver31-tomcat8-openshift
+    - registry.redhat.io/openshift3/jenkins-2-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/jenkins-agent-maven-35-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/jenkins-agent-nodejs-8-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/jenkins-slave-base-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/jenkins-slave-maven-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/openshift3/jenkins-slave-nodejs-rhel7:{{ rhel_registry_ocp_tag }}
+    - registry.redhat.io/rhscl/mongodb-32-rhel7
+    - registry.redhat.io/rhscl/mysql-57-rhel7
+    - registry.redhat.io/rhscl/perl-524-rhel7
+    - registry.redhat.io/rhscl/php-56-rhel7
+    - registry.redhat.io/rhscl/postgresql-95-rhel7
+    - registry.redhat.io/rhscl/python-35-rhel7
+    - registry.redhat.io/redhat-sso-7/sso70-openshift
+    - registry.redhat.io/rhscl/ruby-24-rhel7
+    - registry.redhat.io/redhat-openjdk-18/openjdk18-openshift
+    - registry.redhat.io/redhat-sso-7/sso71-openshift
+    - registry.redhat.io/rhscl/nodejs-6-rhel7
+    - registry.redhat.io/rhscl/mariadb-101-rhel7
 
 rhel_kvm:
   hostname_full: "ht1-kvm.{{ domain }}"
@@ -128,7 +251,7 @@ vmenator:
   vms:
   - name: undercloud
     disk_os_name: undercloud-os.qcow2
-    disk_os_size: 80G
+    disk_os_size: 100G
     nics:
     - name: eth0
       config: "--type bridge --source br2 --model virtio"
@@ -136,24 +259,24 @@ vmenator:
     - name: eth1
       config: "--type bridge --source br1 --model virtio"
       ip: 192.168.0.5
-    ram: 16384
-    vcpus: 8
+    ram: 22528
+    vcpus: 4
   - name: idm
     disk_os_name: idm-os.qcow2
-    disk_os_size: 80G
+    disk_os_size: 40G
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"
       ip: 192.168.0.4
     ram: 4096
     vcpus: 1
-  - name: repo
-    disk_os_name: repo-os.qcow2
-    disk_os_size: 150G
+  - name: registry
+    disk_os_name: registry-os.qcow2
+    disk_os_size: 50G
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"
-      ip: 192.168.0.8
+      ip: 192.168.0.7
     ram: 1024
     vcpus: 1
 

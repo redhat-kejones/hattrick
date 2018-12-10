@@ -20,5 +20,7 @@ vault_cf_ssh_pwd: smartvm
 #OCP
 vault_ocp_user: admin
 vault_ocp_pwd: redhat
+vault_rh_registry_username: "1234567|rhregistryuser"
+vault_rh_registry_token: "..."
 #Tower
 vault_tower_pwd: redhat
