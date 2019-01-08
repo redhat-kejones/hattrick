@@ -251,7 +251,7 @@ vmenator:
   vms:
   - name: undercloud
     disk_os_name: undercloud-os.qcow2
-    disk_os_size: 100G
+    disk_os_size: 80G
     nics:
     - name: eth0
       config: "--type bridge --source br2 --model virtio"
@@ -260,7 +260,7 @@ vmenator:
       config: "--type bridge --source br1 --model virtio"
       ip: 192.168.0.5
     ram: 22528
-    vcpus: 4
+    vcpus: 2
   - name: idm
     disk_os_name: idm-os.qcow2
     disk_os_size: 40G
@@ -270,9 +270,18 @@ vmenator:
       ip: 192.168.0.4
     ram: 4096
     vcpus: 1
+  - name: repo
+    disk_os_name: repo-os.qcow2
+    disk_os_size: 160G
+    nics:
+    - name: eth0
+      config: "--type bridge --source br1 --model virtio"
+      ip: 192.168.0.8
+    ram: 1024
+    vcpus: 1
   - name: registry
     disk_os_name: registry-os.qcow2
-    disk_os_size: 50G
+    disk_os_size: 60G
     nics:
     - name: eth0
       config: "--type bridge --source br1 --model virtio"

@@ -143,6 +143,7 @@
     record_name: "{{ item.hostname }}"
     record_type: "A"
     record_value: "{{ item.ip_address }}"
+    record_ttl: 300
   with_items:
     - "{{ rhel_idm.dns_records }}"
 
@@ -156,6 +157,7 @@
     record_name: "{{ item.reverse_record }}"
     record_type: 'PTR'
     record_value: "{{ item.hostname }}.{{ domain }}"
+    record_ttl: 300
   with_items:
     - "{{ rhel_idm.dns_records }}"
 
