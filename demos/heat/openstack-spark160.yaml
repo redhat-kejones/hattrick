@@ -1,0 +1,25 @@
+heat_template_version: 2015-04-30
+parameters:
+  private_network:
+    type: string
+    default: private
+  keypair:
+    type: string
+    default: operator
+  cluster_name: 
+    type: string
+    default: change-me
+
+resources:
+  cluster:
+    type: OS::Sahara::Cluster
+    properties:
+      cluster_template_id: a5b393e8-baf9-4189-9b5e-03abc562f769
+      default_image_id: dd4e1ba2-1a64-4e7f-b6ac-a7c581190582
+      hadoop_version: 1.6.0
+      key_name: {get_param: keypair}
+      name: {get_param: cluster_name}
+      neutron_management_network: {get_param: private_network}
+      plugin_name: spark
+      use_autoconfig: true
+
