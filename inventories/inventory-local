@@ -1,2 +1,16 @@
 [localhost]
 127.0.0.1 ansible_python_interpreter=/root/hattrick/bin/python
+
+#NOTE: below can be updated and used to bypass the OCP provisioning part
+#      So if you get past provisioning, but fail, update the IPs below
+#      and use --start-at-task in the playbook run to continue with OCP install
+#[master]
+#192.168.1.92
+
+#[infra]
+#192.168.1.85
+
+#[node]
+#192.168.1.70
+#192.168.1.73
+#192.168.1.86

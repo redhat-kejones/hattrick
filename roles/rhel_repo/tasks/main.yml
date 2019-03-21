@@ -129,31 +129,31 @@
   when: disconnected is defined
 
 - name: reposync rhel
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  command: "reposync -n -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.rhel }}"
   tags: sync_repos
   when: disconnected is not defined
 
 - name: reposync osp
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  command: "reposync -n -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.osp }}"
   tags: sync_repos
   when: disconnected is not defined
 
 - name: reposync satellite
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  command: "reposync -n -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.satellite }}"
   tags: sync_satellite
   when: rhel_repo.sync_satellite and disconnected is not defined
 
 - name: reposync ocp
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  command: "reposync -n -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.ocp }}"
   tags: sync_repos
   when: disconnected is not defined
 
 - name: reposync cfme
-  command: "reposync --gpgcheck -l --repoid={{ item }} --download_path=/var/www/html/repos"
+  command: "reposync -n -l --repoid={{ item }} --download_path=/var/www/html/repos"
   with_items: "{{ rhel_repo.repos.cfme }}"
   tags: sync_repos
   when: disconnected is not defined

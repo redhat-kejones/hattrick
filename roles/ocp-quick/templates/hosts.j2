@@ -1,3 +1,16 @@
+[masters]
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+
+[etcd]
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+
+[nodes]
+{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}  openshift_node_group_name="node-config-master"
+{{ hostvars[groups['infra'][0]]['ansible_hostname'] }}.{{ domain }}  openshift_node_group_name="node-config-infra"
+{% for host in groups['node'] %}
+{{ hostvars[host].ansible_hostname }}.{{ domain }} openshift_node_group_name="node-config-compute"
+{% endfor %}
+
 # Create an OSEv3 group that contains the masters and nodes groups
 [OSEv3:children]
 masters
@@ -19,6 +32,7 @@ openshift_cloudprovider_openstack_auth_url="{{ osp_url }}"
 openshift_cloudprovider_openstack_username="{{ osp_user }}"
 openshift_cloudprovider_openstack_password="{{ osp_pass }}"
 openshift_cloudprovider_openstack_tenant_name="{{ osp_project }}"
+openshift_cloudprovider_openstack_domain_name=default
 
 #oreg_url={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}/openshift3/ose-${component}:${version}
 #openshift_examples_modify_imagestreams=true
@@ -32,10 +46,14 @@ openshift_cloudprovider_openstack_tenant_name="{{ osp_project }}"
 
 # If using in a disconnected environment
 #openshift_docker_blocked_registries=registry.access.redhat.com,docker.io
-#openshift_image_tag={{ ocp_image_tag }}
-#openshift_release={{ ocp_image_tag }}
+openshift_image_tag={{ ocp_image_tag }}
+openshift_release={{ ocp_release }}
+
+openshift_disable_check=package_version
 
 openshift_deployment_type=openshift-enterprise
+oreg_auth_user={{ rh_reg_user }}
+oreg_auth_password={{ rh_reg_token }}
 
 # uncomment the following to enable htpasswd authentication; defaults to DenyAllPasswordIdentityProvider
 #openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
@@ -45,8 +63,11 @@ openshift_master_cluster_hostname={{ hostvars[groups['master'][0]]['ansible_host
 openshift_master_cluster_public_hostname={{ ocp_master_domain }}
 openshift_master_default_subdomain={{ ocp_wildcard_domain }}
 
+# Manage openshift example imagestreams and templates during install and upgrade
+openshift_install_examples=true
+
 # default project node selector
-osm_default_node_selector='role=app'
+osm_default_node_selector='node-role.kubernetes.io/compute=true'
 
 # Enable cockpit
 osm_use_cockpit=true
@@ -60,7 +81,7 @@ openshift_node_kubelet_args={'image-pull-progress-deadline': ['10m']}
 openshift_disable_check=docker_image_availability
 
 # Configure the multi-tenant SDN plugin (default is 'redhat/openshift-ovs-subnet')
-#os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
+os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
 
 #Change console/api port to 443 instead of 8443
 openshift_master_api_port=443
@@ -71,11 +92,15 @@ openshift_enable_service_catalog=true
 
 # Enable template service broker (requires service catalog to be enabled, above)
 template_service_broker_install=true
-template_service_broker_selector={'role': 'infra'}
+template_service_broker_selector={'node-role.kubernetes.io/infra': 'true'}
 
-#Shared MPC registry
-#openshift_docker_additional_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
-#openshift_docker_insecure_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+# Enable ansible service broker
+ansible_service_broker_install=true
+ansible_service_broker_node_selector={'node-role.kubernetes.io/infra': 'true'}
+
+#Shared local registry
+openshift_docker_additional_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
+openshift_docker_insecure_registries={{ ocp_shared_registry_server }}:{{ ocp_shared_registry_port }}
 
 # OpenShift Router Options
 #
@@ -91,7 +116,7 @@ template_service_broker_selector={'role': 'infra'}
 # Router selector (optional)
 # Router will only be created if nodes matching this label are present.
 # Default value: 'region=infra'
-openshift_hosted_router_selector='role=infra'
+openshift_hosted_router_selector='node-role.kubernetes.io/infra=true'
 
 # Openshift Registry Options
 #
@@ -107,7 +132,7 @@ openshift_hosted_router_selector='role=infra'
 # Registry selector (optional)
 # Registry will only be created if nodes matching this label are present.
 # Default value: 'region=infra'
-openshift_hosted_registry_selector='role=infra'
+openshift_hosted_registry_selector='node-role.kubernetes.io/infra=true'
 openshift_hosted_registry_storage_kind=openstack
 openshift_hosted_registry_storage_access_modes=['ReadWriteOnce']
 openshift_hosted_registry_storage_openstack_filesystem=ext4
@@ -125,9 +150,29 @@ openshift_metrics_cassandra_storage_type=dynamic
 #
 # Other Metrics Options -- Common items you may wish to reconfigure, for the complete
 # list of options please see roles/openshift_metrics/README.md
-openshift_metrics_cassandra_nodeselector={'role': 'infra'}
-openshift_metrics_hawkular_nodeselector={'role': 'infra'}
-openshift_metrics_heapster_nodeselector={'role': 'infra'}
+openshift_metrics_cassandra_nodeselector={'node-role.kubernetes.io/infra': 'true'}
+openshift_metrics_hawkular_nodeselector={'node-role.kubernetes.io/infra': 'true'}
+openshift_metrics_heapster_nodeselector={'node-role.kubernetes.io/infra': 'true'}
+
+# Cluster monitoring
+#
+# Cluster monitoring is enabled by default, disable it by setting
+# openshift_cluster_monitoring_operator_install=false
+#
+# Cluster monitoring configuration variables allow setting the amount of
+# storage requested through PersistentVolumeClaims.
+#
+#openshift_cluster_monitoring_operator_prometheus_storage_enabled=true
+#openshift_cluster_monitoring_operator_prometheus_storage_class_name=glusterfs-storage-block
+#openshift_cluster_monitoring_operator_prometheus_storage_capacity="10Gi"
+
+#openshift_cluster_monitoring_operator_alertmanager_storage_enabled=true
+#openshift_cluster_monitoring_operator_alertmanager_storage_class_name=glusterfs-storage-block
+#openshift_cluster_monitoring_operator_alertmanager_storage_capacity="10Gi"
+#
+# Other cluster monitoring options
+#
+openshift_cluster_monitoring_operator_node_selector={'node-role.kubernetes.io/infra': 'true'}
 
 # Logging deployment
 #
@@ -139,21 +184,17 @@ openshift_logging_es_pvc_dynamic=true
 #
 # Other Logging Options -- Common items you may wish to reconfigure, for the complete
 # list of options please see roles/openshift_logging/README.md
-openshift_logging_es_nodeselector={'role': 'infra'}
-openshift_logging_curator_nodeselector={'role': 'infra'}
-openshift_logging_kibana_nodeselector={'role': 'infra'}
+openshift_logging_es_nodeselector={'node-role.kubernetes.io/infra': 'true'}
+openshift_logging_curator_nodeselector={'node-role.kubernetes.io/infra': 'true'}
+openshift_logging_kibana_nodeselector={'node-role.kubernetes.io/infra': 'true'}
 
-# host group for masters
-[masters]
-{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
+# Firewall configuration
+os_firewall_use_firewalld=true
+# You can open additional firewall ports by defining them as a list. of service
+# names and ports/port ranges for either masters or nodes.
+#openshift_master_open_ports=[{"service":"svc1","port":"11/tcp"}]
+#openshift_node_open_ports=[{"service":"svc2","port":"12-13/tcp"},{"service":"svc3","port":"14/udp"}]
 
-[etcd]
-{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }}
-
-# host group for nodes, includes region info
-[nodes]
-{{ hostvars[groups['master'][0]]['ansible_hostname'] }}.{{ domain }} 
-{{ hostvars[groups['infra'][0]]['ansible_hostname'] }}.{{ domain }} openshift_node_labels="{'region': 'infra', 'zone': 'default', 'role': 'infra'}"
-{% for host in groups['node'] %}
-{{ hostvars[host].ansible_hostname }}.{{ domain }} openshift_node_labels="{'region': 'primary', 'zone': 'default', 'role': 'app'}"
-{% endfor %}
+# Enable unsupported configurations, things that will yield a partially
+# functioning cluster but would not be supported for production use
+#openshift_enable_unsupported_configurations=false

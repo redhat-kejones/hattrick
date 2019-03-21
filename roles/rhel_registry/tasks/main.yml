@@ -120,14 +120,24 @@
   args:
     chdir: /root
 
+#Pull OCP Container Images
 - name: docker login for registry.redhat.io
   shell: docker login -u='{{ rhel_registry.rh_registry_username }}' -p={{ rhel_registry.rh_registry_token }} registry.redhat.io
 
 - name: Pull ocp images
-  shell: docker pull {{ item }}
+  shell: docker pull registry.redhat.io/{{ item }}
   with_items: "{{ rhel_registry.ocp_images }}"
+  ignore_errors: true
 
-#Pull OCP Container Images
+- name: Tag ocp images
+  shell: docker tag registry.redhat.io/{{ item }} {{ rhel_registry.external_ip }}:8787/{{ item }}
+  with_items: "{{ rhel_registry.ocp_images }}"
+  ignore_errors: true
+
+- name: Push ocp images
+  shell: docker push {{ rhel_registry.external_ip }}:8787/{{ item }}
+  with_items: "{{ rhel_registry.ocp_images }}"
+  ignore_errors: true
 
 #- name: Add docker-distribution service to firewalld config
 #  firewalld:

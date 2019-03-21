@@ -6,13 +6,15 @@
     - 'ocp-vars.yml'
   tasks:
 # uncomment out if anisble 2.6
-  - ipa_dnszone:
+  - name: create idm reverse dns zone
+    ipa_dnszone:
       ipa_host: "{{ ipa_server }}"
       ipa_user: "{{ ipa_user }}"
       ipa_pass: "{{ ipa_password }}"
       validate_certs: no
       state: present
       zone_name: "{{ private_reverse_zone }}"
+    when: use_idm
 
 # uncomment out if ansible 2.4
 #  - name: create reverse lookup zone
@@ -26,12 +28,14 @@
     #shell: "echo bypassing"
     delegate_to: "{{ ipa_server }}"
     ignore_errors: true
+    when: use_idm
 
   - name: enable allow ptr sync on dns zones
     shell: "echo '{{ ipa_password }}' | kinit {{ ipa_user }} && ipa dnszone-mod --allow-sync-ptr=1 {{ private_reverse_zone }}"
     #shell: "echo bypassing"
     delegate_to: "{{ ipa_server }}"
     ignore_errors: true
+    when: use_idm
 
 - hosts: localhost
   connection: local
@@ -71,6 +75,18 @@
     flavor_name: "{{ node_flavor_name }}"
   roles:
     - ocp-osp
+
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - 'ocp-vars.yml'
+  tasks:
+  - name: pause to create DNS records for OCP instances
+    pause:
+      prompt:
+        'Please create the appropriate DNS records for your OCP instances and public hostnames. Press return to continue. Press Ctrl+c and then "a" to abort'
+    when: not use_idm
 
 - hosts: master,infra,node
   remote_user: cloud-user

@@ -20,13 +20,18 @@
   - name: Download automate file
     get_url:
       url: https://raw.githubusercontent.com/jritenour/cf-poc/master/automate/datastore.zip
-    #NOTE: above get_url should be commented out and below copy should be used for disconnected
-    #copy:
-    #  src: /repos/datastore.zip
       dest: /root/datastore.zip
       mode: 0644
+    when: not disconnected
 
-  - name: Import automate domain
+  - name: Download automate file
+    copy:
+      src: files/datastore.zip
+      dest: /root/datastore.zip
+      mode: 0644
+    when: disconnected
+
+  - name: Import automate domain (disconnected)
     command: '/var/www/miq/vmdb/bin/rake evm:automate:import DOMAIN=POC ZIP_FILE=/root/datastore.zip PREVIEW=false ENABLED=true'
     args:
       chdir: /var/www/miq/vmdb
@@ -34,11 +39,16 @@
   - name: Download dialog file
     get_url:
       url: https://raw.githubusercontent.com/jritenour/cf-poc/master/dialogs/dialog.yml
-    #NOTE: above get_url should be commented out and below copy should be used for disconnected
-    #copy:
-    #  src: /repos/dialog.yml
       dest: /root/dialog.yml
       mode: 0644
+    when: not disconnected
+
+  - name: Download dialog file (disconnected)
+    copy:
+      src: files/dialog.yml
+      dest: /root/dialog.yml
+      mode: 0644
+    when: disconnected
 
   - name: Import service dialogs
     command: "/var/www/miq/vmdb/bin/rake dialogs:import['/root/dialog.yml']"

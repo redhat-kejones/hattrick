@@ -6,11 +6,7 @@
   tasks:
     - name: Launch Tower instance
       os_server:
-        auth:
-          auth_url: "{{ osp_url }}"
-          username: "{{ osp_user }}"
-          password: "{{ osp_pass }}"
-          project_name: "{{ osp_project }}"
+        auth: "{{ os_auth | default(omit) }}"
         name: "{{ vm_name }}.{{ domain }}"
         state: present
         key_name: "{{ key_name }}"

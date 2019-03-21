@@ -232,7 +232,14 @@ rhosp_overcloud:
 
 rhosp_director_ip: "{{ rhosp_director.external_ip }}"
 osp_ip: "{{ networks.external.dhcpStart }}"
-osp_url: "http://{{ osp_ip }}:5000/v2.0" # OpenStack specific
+osp_url: "http://{{ osp_ip }}:5000/v3" # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
+os_auth:
+  auth_url: "{{ osp_url }}"
+  username: "{{ osp_user }}"
+  password: "{{ osp_pass }}"
+  project_name: "{{ osp_project }}"
+  project_domain_name: default
+  user_domain_name: default

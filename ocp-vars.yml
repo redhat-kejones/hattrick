@@ -1,26 +1,37 @@
-ocp_image_tag: v3.9.27
+ocp_image_tag: v3.11.43
+ocp_release: 3.11
 domain: hattrick.lab
 dns_server_local: 192.168.0.4
-repo_server_ip: 192.168.0.7
+repo_server_ip: 192.168.0.8
 local_repo_url: "http://{{ repo_server_ip }}/repos/"
-ocp_shared_registry_server: 192.168.0.9
-ocp_shared_registry_port: 5000
+ocp_shared_registry_server: 192.168.0.7
+ocp_shared_registry_port: 8787
 ocp_disconnected: false
-register_rhn: false
+register_rhn: true
+rh_reg_user: "{{ vault_rh_registry_username }}"
+rh_reg_token: "{{ vault_rh_registry_token }}"
 ocp:
   repos:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
     - rhel-7-fast-datapath-rpms
-    - rhel-7-server-ose-3.9-rpms
+    - rhel-7-server-ose-3.11-rpms
     - rhel-7-server-ansible-2.6-rpms
     - rh-gluster-3-client-for-rhel-7-server-rpms
     - rh-gluster-3-for-rhel-7-server-rpms
 osp_ip: 192.168.1.40 # OpenStack specific
-osp_url: http://{{ osp_ip }}:5000/v2.0 # OpenStack specific
+osp_url: http://{{ osp_ip }}:5000/v3 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
+os_auth:
+  auth_url: "{{ osp_url }}"
+  username: "{{ osp_user }}"
+  password: "{{ osp_pass }}"
+  project_name: "{{ osp_project }}"
+  project_domain_name: default
+  user_domain_name: default
+
 az: nova # works with OpenStack, EC2 & Azure
 db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
 db_vol_name: ocp-{{ type }}-vol
@@ -40,6 +51,7 @@ registry_vol_name: "ocp-cluster-registry"
 region_num: 20
 security_group: default # works with OpenStack & EC2
 dns: "{{ dns_server_local }}"
+use_idm: true
 ipa_server: "idm.{{ domain }}"
 ipa_user: "{{ vault_idm_admin_user }}"
 ipa_password: "{{ vault_idm_admin_pwd }}"

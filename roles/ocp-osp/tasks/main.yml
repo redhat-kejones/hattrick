@@ -14,11 +14,7 @@
 #  - name: Create volume for cluster docker registry
 #    os_volume:
 #      verify: no
-#      auth:
-#        auth_url: "{{ osp_url }}"
-#        username: "{{ osp_user }}"
-#        password: "{{ osp_pass }}"
-#        project_name: "{{ osp_project }}"
+#      auth: "{{ os_auth | default(omit) }}"
 #      state: present
 #      availability_zone: "{{ az }}"
 #      size: "{{ openshift_registry_volume_size }}"
@@ -28,11 +24,7 @@
   - name: Create volume for docker storage for all instances
     os_volume:
       verify: no
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+      auth: "{{ os_auth | default(omit) }}"
       state: present
       availability_zone: "{{ az }}"
       size: "{{ db_size }}"
@@ -43,11 +35,7 @@
 #  - name: Create volume for cns for all instances
 #    os_volume:
 #      verify: no
-#      auth:
-#        auth_url: "{{ osp_url }}"
-#        username: "{{ osp_user }}"
-#        password: "{{ osp_pass }}"
-#        project_name: "{{ osp_project }}"
+#      auth: "{{ os_auth | default(omit) }}"
 #      state: present
 #      availability_zone: "{{ az }}"
 #      size: "{{ cns_size | default('100') }}"
@@ -58,11 +46,7 @@
   - name: launch instances
     os_server:
       verify: no
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+      auth: "{{ os_auth | default(omit) }}"
       name: "{{ vm_name }}-{{ item }}.{{ domain }}"
       state: present
       key_name: "{{ key_name }}"
@@ -118,7 +102,6 @@
       groupname: infra
     with_items: "{{ osp_host.results }}"
     when: type=='infra'
-
 
   - name: Pause playbook execution for 30 seconds
     pause:

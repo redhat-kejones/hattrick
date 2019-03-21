@@ -8,11 +8,19 @@ tower:
     - rhel-7-server-rpms
     - rhel-7-server-extras-rpms
     - rhel-7-server-ansible-2.6-rpms
-osp_url: http://192.168.1.40:5000/v2.0 # OpenStack specific
 osp_ip: 192.168.1.40 # OpenStack specific
+osp_url: http://{{ osp_ip }}:5000/v3 # OpenStack specific
 osp_user: "{{ vault_osp_user }}" # OpenStack specific
 osp_pass: "{{ vault_osp_pwd }}" # OpenStack specific
 osp_project: operators  # OpenStack specific
+os_auth:
+  auth_url: "{{ osp_url }}"
+  username: "{{ osp_user }}"
+  password: "{{ osp_pass }}"
+  project_name: "{{ osp_project }}"
+  project_domain_name: default
+  user_domain_name: default
+
 az: nova # works with OpenStack, EC2 & Azure
 db_size: 40 # note that RHV requires the 'GiB' suffix - all other providers just take the integer
 db_vol_name: tower-vol

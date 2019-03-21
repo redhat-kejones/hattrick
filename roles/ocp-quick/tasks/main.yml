@@ -41,6 +41,7 @@
       name: '{{ item }}'
       state: present
     with_items:
+    - yum-utils
     - wget
     - git
     - net-tools
@@ -51,7 +52,6 @@
     - kexec-tools
     - sos
     - psacct
-    - atomic-openshift-utils
     - docker-1.13.1
     - ipa-client
     - httpd-tools
@@ -59,6 +59,7 @@
     - skopeo
     - screen
     - vim
+    - openshift-ansible
 
   # Added a play to drop overcloud CA into the ca-trust
 #  - name: Add overcloud CA to the ca-trust
@@ -129,8 +130,9 @@
       record_name: "{{ ocp_master_record }}"
       record_type: "A"
       record_value: "{{ inventory_hostname }}"
+      #record_ttl: 300
       validate_certs: false
-    when: "'master' in group_names"
+    when: "'master' in group_names and use_idm"
 
   - name: add DNS Wildcard record pointed to infra node(s)
     ipa_dnsrecord:
@@ -142,12 +144,14 @@
       record_name: "{{ ocp_wildcard_record }}"
       record_type: "A"
       record_value: "{{ hostvars[groups['infra'][0]]['inventory_hostname'] }}"
+      #record_ttl: 300
       validate_certs: false
-    when: "'master' in group_names"
+    when: "'master' in group_names and use_idm"
 
   - name: configure IPA client
     command: ipa-client-install --server='{{ ipa_server }}' --domain='{{ domain }}' --hostname='{{ ansible_hostname }}'.'{{ domain }}' --principal='{{ ipa_user }}' --password='{{ ipa_password }}' --unattended --force-join --enable-dns-updates
     ignore_errors: true
+    when: use_idm
 
   - name: configure docker storage
     template:
@@ -210,31 +214,6 @@
 #    command: docker load -i /root/ose3-logging-metrics-images.tar
 #    when: "'master' not in group_names"
 
-  - name: Create volume for cluster docker registry
-    os_volume:
-      verify: no
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
-      state: present
-      availability_zone: "{{ az }}"
-      size: "{{ openshift_registry_volume_size }}"
-      display_name: "{{ registry_vol_name }}"
-    register: registry_volume
-    delegate_to: 127.0.0.1
-    when: "'master' in group_names"
-
-  - name: copy hoststemplate file
-    template:
-      src: hosts.j2
-      dest: /etc/ansible/hosts
-      owner: root
-      group: root
-      mode: 0644
-    when: "'master' in group_names"
-
   - name: add line to default ansbile.cfg to set the log file
     lineinfile:
       dest: /etc/ansible/ansible.cfg
@@ -280,6 +259,27 @@
       user: "{{ ssh_user }}"
       state: present
       key: "{{ hostvars[groups['master'][0]]['masterpubkey']  }}"
+
+  - name: Create volume for cluster docker registry
+    os_volume:
+      verify: no
+      auth: "{{ os_auth | default(omit) }}"
+      state: present
+      availability_zone: "{{ az }}"
+      size: "{{ openshift_registry_volume_size }}"
+      display_name: "{{ registry_vol_name }}"
+    register: registry_volume
+    delegate_to: 127.0.0.1
+    when: "'master' in group_names"
+
+  - name: copy hoststemplate file
+    template:
+      src: hosts.j2
+      dest: /etc/ansible/hosts
+      owner: root
+      group: root
+      mode: 0644
+    when: "'master' in group_names"
 
   - name: Run prereqs playbook
     command: ansible-playbook  -i /etc/ansible/hosts -e 'host_key_checking=False' /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml

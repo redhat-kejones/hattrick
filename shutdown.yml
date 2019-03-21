@@ -11,11 +11,7 @@
 
   - name: authenticate to the cloud and retrieve the service catalog
     os_auth:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+      auth: "{{ os_auth | default(omit) }}"
 
   - name: get list of openstack projects
     become: yes
@@ -34,22 +30,14 @@
 
   - name: get list of instances per project
     os_server_facts:
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+      auth: "{{ os_auth | default(omit) }}"
     with_items:
       - "{{ openstack_projects.stdout_lines }}"
 
   - name: stop all instances in each project
     os_server_action:
       action: stop
-      auth:
-        auth_url: "{{ osp_url }}"
-        username: "{{ osp_user }}"
-        password: "{{ osp_pass }}"
-        project_name: "{{ osp_project }}"
+      auth: "{{ os_auth | default(omit) }}"
       server: "{{ item.name }}"
       timeout: 200
     with_items:
