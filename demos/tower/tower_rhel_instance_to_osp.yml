@@ -15,7 +15,7 @@
          username: "{{ osp_user }}"
          password: "{{ osp_pass }}"
          project_name: "{{ osp_project }}"
-       name: rhel75-{{ my_unique_id.stdout }}
+       name: rhel76-{{ my_unique_id.stdout }}
        state: present
        key_name: "{{ key_name }}"
        availability_zone: "{{ az }}"
@@ -29,7 +29,7 @@
 
     - name: assign floating ip to RHEL instance
       os_floating_ip:
-       server: rhel75-{{ my_unique_id.stdout }}
+       server: rhel76-{{ my_unique_id.stdout }}
        auth:
          auth_url: "{{ osp_url }}"
          username: "{{ osp_user }}"
@@ -43,7 +43,7 @@
     - name: "Setting hostname to pass in workflow"
       set_stats:
        data:
-         hostname_to_stig:  rhel75-{{ my_unique_id.stdout }}
+         hostname_to_stig:  rhel76-{{ my_unique_id.stdout }}
 
 #    - name: wait for instance become ready to use
 #      wait_for:
