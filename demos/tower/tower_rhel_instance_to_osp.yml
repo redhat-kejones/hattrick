@@ -21,7 +21,7 @@
        availability_zone: "{{ az }}"
        nics:
          - net-name: "{{ network_name }}"
-       image: rhel75
+       image: rhel76
        flavor: m1.small
        security_groups: "{{ security_group }}"
        auto_ip: yes
